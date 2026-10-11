@@ -3558,3 +3558,17 @@ select.modal-input:disabled {
 .target-controls > .target-counter:first-child {
     flex-basis: 100%;
 }
+
+/* A line between the number of targets and the targets themselves, when there are several */
+.target-controls > .target-counter:first-child:not(:only-child) {
+    padding-bottom: 8px;
+    margin-bottom: 2px;
+
+    border-bottom: 1px solid var(--border);
+}
+
+/* On the solid-colour action panels (Blueprint and Noir), in the panel's text colour */
+:root[data-theme="blueprint"] #actionPanel .target-controls > .target-counter:first-child,
+:root[data-theme="noir"] #actionPanel .target-controls > .target-counter:first-child {
+    border-bottom-color: color-mix(in srgb, var(--on-accent) 40%, transparent);
+}
