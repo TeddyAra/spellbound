@@ -17,7 +17,9 @@ import {
     SAVING_THROWS,
     SPELL_LEVEL_SCALE,
     CREATION_QUALITY,
-    biggerDie
+    biggerDie,
+    targetDie,
+    maxTargets
 } from "./rules.js";
 import { rollDice } from "./dice.js";
 import { preference, setPreference } from "./preferences.js";
@@ -535,27 +537,88 @@ async function castSavedSpell(level) {
 // What the action panel shows: { school, mode, level }
 let action = null;
 
-async function rollEffect(title, count, sides, bonus = 0, bonusLabel = null) {
-    const rolls = await rollDice(`${count}d${sides}`);
+/*
+ * Rolls `count` dice for each target, all at once. A bonus (e.g. Healing Hymn)
+ * is added to every target's total.
+ */
+async function rollEffect(title, count, sides, { targets = 1, bonus = 0, bonusLabel = null } = {}) {
+    const rolls = await rollDice(`${count * targets}d${sides}`);
 
     if (!rolls) {
         return;
     }
 
-    const rows = [[`${count}d${sides}`, sum(rolls)]];
+    if (targets === 1) {
+        const rows = [[`${count}d${sides}`, sum(rolls)]];
 
-    if (bonus) {
-        rows.push([bonusLabel, `+${bonus}`]);
+        if (bonus) {
+            rows.push([bonusLabel, `+${bonus}`]);
+        }
+
+        rows.push(["Total", sum(rolls) + bonus]);
+
+        showInfoResult(title, rows, { title: "Effect dice", values: rolls });
+
+        return;
     }
 
-    rows.push(["Total", sum(rolls) + bonus]);
+    const rows = Array.from({ length: targets }, (_, target) => {
+        const own = rolls.slice(target * count, (target + 1) * count);
 
-    showInfoResult(title, rows, { title: "Effect dice", values: rolls });
+        return [`Target ${target + 1} (${own.join(" + ")}${bonus ? ` + ${bonus}` : ""})`, sum(own) + bonus];
+    });
+
+    if (bonus) {
+        rows.push([bonusLabel, `+${bonus} each`]);
+    }
+
+    showInfoResult(`${title} (${count}d${sides} each)`, rows, { title: "Effect dice", values: rolls });
 }
 
 /* The weapon die once per level, plus Spellfury's extra die. */
 function rollWeaponDamage(level) {
     return rollEffect("Weapon Damage", level + weaponExtraDice(), weaponDie());
+}
+
+/* Harm, Aid and Passion spells can have several targets (see targetDie in rules.js). */
+const hasTargets = ({ school, mode }) => (mode === "spell" || mode === "saved") && ["harm", "aid", "passion"].includes(school);
+
+/* The effect die for one target, before splitting it over several. */
+function baseEffectDie(school) {
+    return effectDie(school, school === "passion" ? 6 : 8);
+}
+
+/* − Targets + */
+function targetCounter() {
+    const counter = element("span", "counter target-counter");
+    const minus = element("button", null, "−");
+    const plus = element("button", null, "+");
+    const most = maxTargets(baseEffectDie(action.school));
+
+    minus.type = "button";
+    plus.type = "button";
+    minus.setAttribute("aria-label", "One target fewer");
+    plus.setAttribute("aria-label", "One more target");
+    minus.disabled = action.targets <= 1;
+    plus.disabled = action.targets >= most;
+    plus.title = action.targets >= most ? `At most ${most} targets: the die can't get smaller than a d4` : "";
+
+    const change = by => {
+        action.targets = Math.min(most, Math.max(1, action.targets + by));
+        renderActionPanel();
+    };
+
+    minus.addEventListener("click", () => change(-1));
+    plus.addEventListener("click", () => change(1));
+
+    counter.append(element("span", "result-label", "Targets"), minus, element("strong", null, action.targets), plus);
+
+    return counter;
+}
+
+/* "2d8" for one target, "2d6 × 2" for two */
+function targetDice(count, sides, targets) {
+    return targets === 1 ? `${count}d${sides}` : `${count}d${sides} × ${targets}`;
 }
 
 function preciseWording() {
@@ -619,17 +682,25 @@ function effectButtons() {
 
             add(`First aid ${level}d${sides}`, () => rollEffect("First Aid", level, sides), "primary");
         }
-    } else if (school === "harm") {
-        add(`One target ${level}d${effectDie("harm", 8)}`, () => rollEffect("Harm: One Target", level, effectDie("harm", 8)), "primary");
-        add(`Several ${level}d${effectDie("harm", 6)} each`, () => rollEffect("Harm: Several Targets", level, effectDie("harm", 6)));
-    } else if (school === "aid") {
-        const [bonus, label] = healingBonus(level);
+    } else if (hasTargets(action)) {
+        const targets = action.targets;
+        const sides = targetDie(baseEffectDie(school), targets);
+        const dice = targetDice(level, sides, targets);
 
-        add(`Heal one ${level}d${effectDie("aid", 8)}`, () => rollEffect("Heal: One Target", level, effectDie("aid", 8), bonus, label), "primary");
-        add(`Heal several ${level}d${effectDie("aid", 6)}`, () => rollEffect("Heal: Several Targets", level, effectDie("aid", 6), bonus, label));
-        add(`Ward ${level}d${effectDie("aid", 8)}`, () => rollEffect("Ward", level, effectDie("aid", 8)));
-    } else if (school === "passion") {
-        add(`Effect ${level}d${effectDie("passion", 6)}`, () => rollEffect(`${schoolName("passion")} Effect`, level, effectDie("passion", 6)), "primary");
+        buttons.push(targetCounter());
+
+        if (school === "harm") {
+            add(`Damage ${dice}`, () => rollEffect("Harm", level, sides, { targets }), "primary");
+        } else if (school === "aid") {
+            const [bonus, bonusLabel] = healingBonus(level);
+
+            add(`Heal ${dice}`, () => rollEffect("Heal", level, sides, { targets, bonus, bonusLabel }), "primary");
+
+            // A ward protects one creature
+            add(`Ward ${level}d${baseEffectDie("aid")}`, () => rollEffect("Ward", level, baseEffectDie("aid")));
+        } else {
+            add(`Effect ${dice}`, () => rollEffect(`${schoolName("passion")} Effect`, level, sides, { targets }), "primary");
+        }
     }
 
     if (state.className === "trickster" && (mode === "weapon" || (mode !== "mundane" && school === "harm"))) {
@@ -667,11 +738,25 @@ function actionHint() {
         return `Creation quality: ${CREATION_QUALITY[level]}.`;
     }
 
+    // Damage and healing scale with the dice, so the level's "several targets" doesn't apply
+    if (hasTargets(action)) {
+        const base = baseEffectDie(school);
+
+        return maxTargets(base) === 1
+            ? "One target."
+            : `Each extra target makes the die one size smaller, so up to ${maxTargets(base)} targets.`;
+    }
+
     return `${SPELL_LEVEL_SCALE[level]}.`;
 }
 
 function renderActionPanel() {
     const { school, mode, level } = action;
+
+    // Turning off Precise Wording makes the die smaller, which can allow fewer targets
+    if (hasTargets(action)) {
+        action.targets = Math.min(action.targets, maxTargets(baseEffectDie(school)));
+    }
 
     const what = {
         spell: `${schoolName(school)} spell`,
@@ -712,7 +797,8 @@ function openActionPanel(level) {
         slotIndex: roll.slotIndex,
         level,
         highest: Math.max(...roll.rolls),
-        precise: false
+        precise: false,
+        targets: 1
     };
 
     renderActionPanel();

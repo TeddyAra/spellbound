@@ -87,6 +87,16 @@ export function biggerDie(sides, steps = 1) {
 }
 
 /*
+ * Several targets: every target after the first makes the effect die one size
+ * smaller (d8 → d6 → d4), which also limits how many targets a spell can have.
+ */
+const SMALLEST_TARGET_DIE = 4;
+
+export const targetDie = (sides, targets) => sides - 2 * (targets - 1);
+
+export const maxTargets = sides => Math.max(1, (sides - SMALLEST_TARGET_DIE) / 2 + 1);
+
+/*
  * =========================================================
  * ADVANCEMENT
  * =========================================================

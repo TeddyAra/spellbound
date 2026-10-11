@@ -3517,3 +3517,25 @@ select.modal-input:disabled {
 :root[data-theme="noir"] #actionPanel input[type="checkbox"]:checked {
     background: var(--on-accent);
 }
+
+/* Targets − 1 + in the action panel (see casting.js) */
+.target-counter {
+    margin-right: 4px;
+}
+
+.target-counter .result-label {
+    font-size: 14px;
+}
+
+#actionButtons .target-counter button {
+    width: 28px;
+    height: 28px;
+
+    padding: 0;
+}
+
+/* On the solid-colour action panels the label takes the panel's text colour */
+:root[data-theme="blueprint"] #actionPanel .target-counter .result-label,
+:root[data-theme="noir"] #actionPanel .target-counter .result-label {
+    color: var(--on-accent);
+}
