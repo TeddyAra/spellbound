@@ -1891,12 +1891,6 @@ select.modal-input:disabled {
     min-height: 42px;
 }
 
-/* Saved spells in two columns */
-#savedSpells {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 /* A tighter settings window */
 #characterOverlay .modal {
     max-height: calc(100vh / var(--ui-zoom, 1) - 40px);
@@ -2650,6 +2644,13 @@ select.modal-input:disabled {
 
 :root[data-theme="pop"] .roll-button {
     font-weight: 700;
+}
+
+/* The class line under the name: grey and thin was hard to read on the gradient */
+:root[data-theme="pop"] #characterClassDisplay {
+    color: var(--text);
+
+    font-weight: 600;
 }
 
 :root[data-theme="pop"] .rolls-title,
