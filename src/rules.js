@@ -264,7 +264,7 @@ export const CLASSES = {
         },
 
         feats: [
-            { key: "healingHymn", name: "Healing Hymn", text: "Your Aid spells heal extra hit points equal to their level." },
+            { key: "healingHymn", name: "Healing Hymn", text: "Your Aid spells heal 1 extra hit point per effect die, so shared dice share the bonus too." },
             { key: "mockingVerse", name: "Mocking Verse", text: "When your Control succeeds, the target rolls one die fewer next time." },
             { key: "wordBank", name: "Word Bank", minLevel: 4, text: "Shared Verse gives up to 6 tiles, to any ally who can hear you." },
             { key: "chorusLine", name: "Chorus Line", minLevel: 4, text: "Use Inspiring Word twice per round." },
@@ -498,7 +498,7 @@ export const CLASSES = {
             lifewarden: {
                 name: "Lifewarden",
                 features: [
-                    { level: 2, name: "Healing Hands", text: "Bonus action: level 1 first aid to an ally next to you. Aid spells heal extra equal to their level." },
+                    { level: 2, name: "Healing Hands", text: "Bonus action: level 1 first aid to an ally next to you. Aid spells heal 1 extra hit point per effect die." },
                     { level: 5, name: "Shared Strength", text: "When you heal an ally with Aid, heal half as much yourself." },
                     { level: 10, name: "Second Chance", text: "Once per long rest, bring back a creature that died in the last minute with 1 HP." }
                 ]

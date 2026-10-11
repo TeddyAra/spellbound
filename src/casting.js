@@ -538,10 +538,10 @@ let action = null;
 
 /*
  * Rolls `count` dice. With a split (e.g. [2, 1]) they're shared between
- * targets, each with its own total. A bonus (e.g. Healing Hymn) is added to
- * every target's total.
+ * targets, each with its own total. A bonus per die (e.g. Healing Hymn's +1)
+ * follows the dice: 2d8 + 2 and 1d8 + 1.
  */
-async function rollEffect(title, count, sides, { split = [count], bonus = 0, bonusLabel = null } = {}) {
+async function rollEffect(title, count, sides, { split = [count], bonusPerDie = 0, bonusLabel = null } = {}) {
     const rolls = await rollDice(`${count}d${sides}`);
 
     if (!rolls) {
@@ -549,6 +549,7 @@ async function rollEffect(title, count, sides, { split = [count], bonus = 0, bon
     }
 
     if (split.length === 1) {
+        const bonus = bonusPerDie * count;
         const rows = [[`${count}d${sides}`, sum(rolls)]];
 
         if (bonus) {
@@ -566,12 +567,13 @@ async function rollEffect(title, count, sides, { split = [count], bonus = 0, bon
 
     const rows = split.map((dice, target) => {
         const own = rolls.slice(next, next += dice);
+        const bonus = bonusPerDie * dice;
 
         return [`Target ${target + 1}: ${dice}d${sides} (${own.join(" + ")}${bonus ? ` + ${bonus}` : ""})`, sum(own) + bonus];
     });
 
-    if (bonus) {
-        rows.push([bonusLabel, `+${bonus} each`]);
+    if (bonusPerDie) {
+        rows.push([bonusLabel, `+${bonusPerDie} per die`]);
     }
 
     showInfoResult(`${title} (${split.length} targets)`, rows, { title: "Effect dice", values: rolls });
@@ -706,14 +708,14 @@ function effectDie(school, base) {
     return sides;
 }
 
-/* Healing Hymn (Loresinger) and Healing Hands (Lifewarden) add the level to Aid healing. */
-function healingBonus(level) {
+/* Healing Hymn (Loresinger) and Healing Hands (Lifewarden): +1 hit point per effect die. */
+function healingBonus() {
     if (hasFeat("healingHymn")) {
-        return [level, "Healing Hymn"];
+        return [1, "Healing Hymn"];
     }
 
     if (subclassIs("lifewarden")) {
-        return [level, "Healing Hands"];
+        return [1, "Healing Hands"];
     }
 
     return [0, null];
@@ -750,12 +752,12 @@ function effectButtons() {
         if (school === "harm") {
             add(`Damage ${dice}`, () => rollEffect("Harm", level, sides, { split }), "primary");
         } else if (school === "aid") {
-            const [bonus, bonusLabel] = healingBonus(level);
+            const [bonusPerDie, bonusLabel] = healingBonus();
 
-            add(`Heal ${dice}`, () => rollEffect("Heal", level, sides, { split, bonus, bonusLabel }), "primary");
+            add(`Heal ${dice}`, () => rollEffect("Heal", level, sides, { split, bonusPerDie, bonusLabel }), "primary");
 
-            // A ward protects one creature
-            add(`Ward ${level}d${sides}`, () => rollEffect("Ward", level, sides));
+            // Wards share their dice the same way: one strong ward, or weaker wards on more creatures
+            add(`Ward ${dice}`, () => rollEffect("Ward", level, sides, { split }));
         } else {
             add(`Effect ${dice}`, () => rollEffect(`${schoolName("passion")} Effect`, level, sides, { split }), "primary");
         }
