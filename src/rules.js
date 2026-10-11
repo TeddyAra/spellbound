@@ -87,14 +87,14 @@ export function biggerDie(sides, steps = 1) {
 }
 
 /*
- * Several targets: every target after the first makes the effect die one size
- * smaller (d8 → d6 → d4), which also limits how many targets a spell can have.
+ * Several targets: a spell's effect dice are shared between its targets, at
+ * least one each, so it can have as many targets as it has dice. This splits
+ * them as evenly as possible, bigger shares first: 5 dice over 2 → [3, 2].
  */
-const SMALLEST_TARGET_DIE = 4;
-
-export const targetDie = (sides, targets) => sides - 2 * (targets - 1);
-
-export const maxTargets = sides => Math.max(1, (sides - SMALLEST_TARGET_DIE) / 2 + 1);
+export function splitDice(count, targets) {
+    return Array.from({ length: targets }, (_, target) =>
+        Math.floor(count / targets) + (target < count % targets ? 1 : 0));
+}
 
 /*
  * =========================================================

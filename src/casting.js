@@ -18,8 +18,7 @@ import {
     SPELL_LEVEL_SCALE,
     CREATION_QUALITY,
     biggerDie,
-    targetDie,
-    maxTargets
+    splitDice
 } from "./rules.js";
 import { rollDice } from "./dice.js";
 import { preference, setPreference } from "./preferences.js";
@@ -538,17 +537,18 @@ async function castSavedSpell(level) {
 let action = null;
 
 /*
- * Rolls `count` dice for each target, all at once. A bonus (e.g. Healing Hymn)
- * is added to every target's total.
+ * Rolls `count` dice. With a split (e.g. [2, 1]) they're shared between
+ * targets, each with its own total. A bonus (e.g. Healing Hymn) is added to
+ * every target's total.
  */
-async function rollEffect(title, count, sides, { targets = 1, bonus = 0, bonusLabel = null } = {}) {
-    const rolls = await rollDice(`${count * targets}d${sides}`);
+async function rollEffect(title, count, sides, { split = [count], bonus = 0, bonusLabel = null } = {}) {
+    const rolls = await rollDice(`${count}d${sides}`);
 
     if (!rolls) {
         return;
     }
 
-    if (targets === 1) {
+    if (split.length === 1) {
         const rows = [[`${count}d${sides}`, sum(rolls)]];
 
         if (bonus) {
@@ -562,17 +562,19 @@ async function rollEffect(title, count, sides, { targets = 1, bonus = 0, bonusLa
         return;
     }
 
-    const rows = Array.from({ length: targets }, (_, target) => {
-        const own = rolls.slice(target * count, (target + 1) * count);
+    let next = 0;
 
-        return [`Target ${target + 1} (${own.join(" + ")}${bonus ? ` + ${bonus}` : ""})`, sum(own) + bonus];
+    const rows = split.map((dice, target) => {
+        const own = rolls.slice(next, next += dice);
+
+        return [`Target ${target + 1}: ${dice}d${sides} (${own.join(" + ")}${bonus ? ` + ${bonus}` : ""})`, sum(own) + bonus];
     });
 
     if (bonus) {
         rows.push([bonusLabel, `+${bonus} each`]);
     }
 
-    showInfoResult(`${title} (${count}d${sides} each)`, rows, { title: "Effect dice", values: rolls });
+    showInfoResult(`${title} (${split.length} targets)`, rows, { title: "Effect dice", values: rolls });
 }
 
 /* The weapon die once per level, plus Spellfury's extra die. */
@@ -580,46 +582,102 @@ function rollWeaponDamage(level) {
     return rollEffect("Weapon Damage", level + weaponExtraDice(), weaponDie());
 }
 
-/* Harm, Aid and Passion spells can have several targets (see targetDie in rules.js). */
+/* Harm, Aid and Passion spells can share their dice between targets (see splitDice in rules.js). */
 const hasTargets = ({ school, mode }) => (mode === "spell" || mode === "saved") && ["harm", "aid", "passion"].includes(school);
 
-/* The effect die for one target, before splitting it over several. */
+/* The effect die: the same however the dice are shared. */
 function baseEffectDie(school) {
     return effectDie(school, school === "passion" ? 6 : 8);
 }
 
-/* − Targets + */
-function targetCounter() {
+/* A small − value + control. */
+function stepper(label, value, { canDown, canUp, down, up, downLabel, upLabel, title = "" }) {
     const counter = element("span", "counter target-counter");
     const minus = element("button", null, "−");
     const plus = element("button", null, "+");
-    const most = maxTargets(baseEffectDie(action.school));
 
     minus.type = "button";
     plus.type = "button";
-    minus.setAttribute("aria-label", "One target fewer");
-    plus.setAttribute("aria-label", "One more target");
-    minus.disabled = action.targets <= 1;
-    plus.disabled = action.targets >= most;
-    plus.title = action.targets >= most ? `At most ${most} targets: the die can't get smaller than a d4` : "";
+    minus.setAttribute("aria-label", downLabel);
+    plus.setAttribute("aria-label", upLabel);
+    minus.disabled = !canDown;
+    plus.disabled = !canUp;
+    plus.title = canUp ? "" : title;
 
-    const change = by => {
-        action.targets = Math.min(most, Math.max(1, action.targets + by));
-        renderActionPanel();
-    };
+    minus.addEventListener("click", down);
+    plus.addEventListener("click", up);
 
-    minus.addEventListener("click", () => change(-1));
-    plus.addEventListener("click", () => change(1));
+    if (label) {
+        counter.append(element("span", "result-label", label));
+    }
 
-    counter.append(element("span", "result-label", "Targets"), minus, element("strong", null, action.targets), plus);
+    counter.append(minus, element("strong", null, value), plus);
 
     return counter;
 }
 
-/* "2d8" for one target, "2d6 × 2" for two */
-function targetDice(count, sides, targets) {
-    return targets === 1 ? `${count}d${sides}` : `${count}d${sides} × ${targets}`;
+/*
+ * Targets − 2 +, and with more than one target, each target's share of the
+ * dice. Giving a target another die takes one from the target with the most;
+ * taking one away gives it to the target with the fewest.
+ */
+function targetControls() {
+    const { level, split } = action;
+    const sides = baseEffectDie(action.school);
+    const controls = element("div", "target-controls");
+
+    const setTargets = targets => {
+        action.split = splitDice(level, targets);
+        renderActionPanel();
+    };
+
+    controls.append(stepper("Targets", split.length, {
+        canDown: split.length > 1,
+        canUp: split.length < level,
+        down: () => setTargets(split.length - 1),
+        up: () => setTargets(split.length + 1),
+        downLabel: "One target fewer",
+        upLabel: "One more target",
+        title: `At most ${level} targets: one die each`
+    }));
+
+    if (split.length === 1) {
+        return controls;
+    }
+
+    // The other target with the most (or fewest) dice
+    const other = (target, pick) => split
+        .map((dice, index) => ({ dice, index }))
+        .filter(({ index }) => index !== target)
+        .reduce((best, entry) => pick(entry.dice, best.dice) ? entry : best);
+
+    split.forEach((dice, target) => {
+        const richest = other(target, (a, b) => a > b);
+
+        controls.append(stepper(`Target ${target + 1}`, `${dice}d${sides}`, {
+            canDown: dice > 1,
+            canUp: richest.dice > 1,
+            down: () => {
+                action.split[target]--;
+                action.split[other(target, (a, b) => a < b).index]++;
+                renderActionPanel();
+            },
+            up: () => {
+                action.split[target]++;
+                action.split[richest.index]--;
+                renderActionPanel();
+            },
+            downLabel: `One die fewer for target ${target + 1}`,
+            upLabel: `One more die for target ${target + 1}`,
+            title: "Every other target is down to one die"
+        }));
+    });
+
+    return controls;
 }
+
+/* "3d8" for one target, "2d8 + 1d8" for two */
+const splitLabel = (split, sides) => split.map(dice => `${dice}d${sides}`).join(" + ");
 
 function preciseWording() {
     return action.mode !== "mundane" && action.mode !== "weapon"
@@ -683,23 +741,23 @@ function effectButtons() {
             add(`First aid ${level}d${sides}`, () => rollEffect("First Aid", level, sides), "primary");
         }
     } else if (hasTargets(action)) {
-        const targets = action.targets;
-        const sides = targetDie(baseEffectDie(school), targets);
-        const dice = targetDice(level, sides, targets);
+        const split = [...action.split];
+        const sides = baseEffectDie(school);
+        const dice = splitLabel(split, sides);
 
-        buttons.push(targetCounter());
+        buttons.push(targetControls());
 
         if (school === "harm") {
-            add(`Damage ${dice}`, () => rollEffect("Harm", level, sides, { targets }), "primary");
+            add(`Damage ${dice}`, () => rollEffect("Harm", level, sides, { split }), "primary");
         } else if (school === "aid") {
             const [bonus, bonusLabel] = healingBonus(level);
 
-            add(`Heal ${dice}`, () => rollEffect("Heal", level, sides, { targets, bonus, bonusLabel }), "primary");
+            add(`Heal ${dice}`, () => rollEffect("Heal", level, sides, { split, bonus, bonusLabel }), "primary");
 
             // A ward protects one creature
-            add(`Ward ${level}d${baseEffectDie("aid")}`, () => rollEffect("Ward", level, baseEffectDie("aid")));
+            add(`Ward ${level}d${sides}`, () => rollEffect("Ward", level, sides));
         } else {
-            add(`Effect ${dice}`, () => rollEffect(`${schoolName("passion")} Effect`, level, sides, { targets }), "primary");
+            add(`Effect ${dice}`, () => rollEffect(`${schoolName("passion")} Effect`, level, sides, { split }), "primary");
         }
     }
 
@@ -740,11 +798,9 @@ function actionHint() {
 
     // Damage and healing scale with the dice, so the level's "several targets" doesn't apply
     if (hasTargets(action)) {
-        const base = baseEffectDie(school);
-
-        return maxTargets(base) === 1
-            ? "One target."
-            : `Each extra target makes the die one size smaller, so up to ${maxTargets(base)} targets.`;
+        return level === 1
+            ? "One die, so one target."
+            : `Share the ${level} dice between up to ${level} targets, at least one die each.`;
     }
 
     return `${SPELL_LEVEL_SCALE[level]}.`;
@@ -752,11 +808,6 @@ function actionHint() {
 
 function renderActionPanel() {
     const { school, mode, level } = action;
-
-    // Turning off Precise Wording makes the die smaller, which can allow fewer targets
-    if (hasTargets(action)) {
-        action.targets = Math.min(action.targets, maxTargets(baseEffectDie(school)));
-    }
 
     const what = {
         spell: `${schoolName(school)} spell`,
@@ -798,7 +849,9 @@ function openActionPanel(level) {
         level,
         highest: Math.max(...roll.rolls),
         precise: false,
-        targets: 1
+
+        // How the effect dice are shared between targets (see targetControls)
+        split: [level]
     };
 
     renderActionPanel();

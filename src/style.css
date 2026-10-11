@@ -3518,9 +3518,17 @@ select.modal-input:disabled {
     background: var(--on-accent);
 }
 
-/* Targets − 1 + in the action panel (see casting.js) */
-.target-counter {
-    margin-right: 4px;
+/* Targets − 2 + and each target’s share of the dice, on their own row above the roll buttons (see casting.js) */
+.target-controls {
+    flex-basis: 100%;
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+}
+
+.target-counter strong {
+    min-width: 34px;
 }
 
 .target-counter .result-label {
@@ -3538,4 +3546,15 @@ select.modal-input:disabled {
 :root[data-theme="blueprint"] #actionPanel .target-counter .result-label,
 :root[data-theme="noir"] #actionPanel .target-counter .result-label {
     color: var(--on-accent);
+}
+
+/* The Save Spell window's spell field fills the window, for long spells */
+#saveSpellForm .modal-element {
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+}
+
+/* The number of targets on its own row, each target's share below it */
+.target-controls > .target-counter:first-child {
+    flex-basis: 100%;
 }
