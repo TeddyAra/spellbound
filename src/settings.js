@@ -1,10 +1,14 @@
 import { $, show, hide, element } from "./dom.js";
+import { closeColorPicker } from "./colorPicker.js";
+import { renderDiceSettings } from "./diceSettings.js";
 
 /*
  * The Settings window: preferences for this browser, not the character.
- * For now that's the theme, which sets data-theme on <html> (see the themes
- * at the top of style.css). The page sets it again before drawing, from the
- * same storage key, so the default doesn't flash first (see index.html).
+ * The dice section is in diceSettings.js.
+ *
+ * The theme sets data-theme on <html> (see the themes in style.css). The page
+ * also sets it before drawing, from the same storage key, so the default
+ * doesn't flash first (see index.html).
  */
 
 const THEME_KEY = "spellboundTheme";
@@ -102,9 +106,22 @@ function renderThemeOptions() {
 
 $("settingsButton").addEventListener("click", () => {
     renderThemeOptions();
+    renderDiceSettings();
     show(settingsOverlay);
 });
 
-$("closeSettings").addEventListener("click", () => hide(settingsOverlay));
+function closeSettings() {
+    closeColorPicker();
+    hide(settingsOverlay);
+}
+
+$("closeSettings").addEventListener("click", closeSettings);
+
+// Clicking the backdrop or pressing Escape also closes it (see overlays.js): take the colour grid along
+settingsOverlay.addEventListener("click", event => {
+    if (event.target === settingsOverlay) {
+        closeColorPicker();
+    }
+});
 
 applyTheme(savedTheme());

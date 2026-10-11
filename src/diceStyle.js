@@ -1,7 +1,7 @@
 /*
  * How the 3D dice look: their colour (or two colours swirled together), the
  * colour of the numbers, and a finish. Saved in this browser.
- * (See diceSettings.js for the window, dice.js for the dice.)
+ * (See diceSettings.js for the settings, dice.js for the dice.)
  *
  * A finish is one of the dice library's materials (how light plays on the dice)
  * with one of its textures (a pattern printed on them); the texture images are

@@ -12,7 +12,6 @@ const closableOverlays = [
     "rollDiceOverlay",
     "inventoryOverlay",
     "infoResultOverlay",
-    "diceSettingsOverlay",
     "settingsOverlay"
 ].map($);
 

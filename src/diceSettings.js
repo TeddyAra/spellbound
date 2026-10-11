@@ -4,11 +4,12 @@ import { colorPicker, closeColorPicker } from "./colorPicker.js";
 import { RANDOM_COLORS, DICE_FINISHES, loadDiceStyle, saveDiceStyle } from "./diceStyle.js";
 
 /*
- * The dice settings window: the dice colour (or a random one every roll), an
- * optional second colour swirled through it, the numbers' colour and a finish.
+ * The Dice section of the Settings window (see settings.js): the dice colour
+ * (or a random one every roll), an optional second colour swirled through it,
+ * the numbers' colour and a finish.
  */
 
-const overlay = $("diceSettingsOverlay");
+const settingsOverlay = $("settingsOverlay");
 
 let style = loadDiceStyle();
 
@@ -45,31 +46,20 @@ function render() {
     }));
 }
 
-$("diceTwoTone").addEventListener("change", event => update({ twoTone: event.target.checked }));
-
-$("diceSettingsButton").addEventListener("click", () => {
+/* Called when the Settings window opens. */
+export function renderDiceSettings() {
     style = loadDiceStyle();
     render();
-    show(overlay);
-});
-
-function close() {
-    closeColorPicker();
-    hide(overlay);
 }
 
-$("closeDiceSettings").addEventListener("click", close);
-
-// Clicking the backdrop or pressing Escape also closes it (see overlays.js): take the colour grid along
-overlay.addEventListener("click", event => {
-    if (event.target === overlay) {
-        closeColorPicker();
-    }
-});
+$("diceTwoTone").addEventListener("change", event => update({ twoTone: event.target.checked }));
 
 // Shows the dice as they are now (the window comes back after the roll)
 $("testDiceButton").addEventListener("click", async () => {
-    close();
+    closeColorPicker();
+    hide(settingsOverlay);
+
     await rollDice("1d20+1d6");
-    show(overlay);
+
+    show(settingsOverlay);
 });

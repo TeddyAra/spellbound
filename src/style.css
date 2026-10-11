@@ -1016,10 +1016,10 @@ button:disabled {
 }
 
 /* =========================================================
-   DICE SETTINGS (see diceSettings.js)
+   DICE SETTINGS (in the Settings window; see diceSettings.js)
    ========================================================= */
 
-#diceSettingsOverlay .rolls-title {
+#settingsOverlay .rolls-title {
     margin: 16px 0 10px;
 }
 
@@ -2387,21 +2387,14 @@ select.modal-input:disabled {
    SETTINGS (see settings.js)
    ========================================================= */
 
-/* Five round buttons now share the menu's width */
-.icon-button {
-    width: 56px;
-    height: 56px;
-}
-
-.icon-button img,
-.icon-button svg {
-    width: 30px;
-    height: 30px;
+/* A little wider than other windows, so the themes fit three to a row */
+#settingsOverlay .modal {
+    width: min(640px, 94vw);
 }
 
 .theme-options {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
 }
 
