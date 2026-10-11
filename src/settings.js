@@ -16,10 +16,25 @@ const THEMES = {
         description: "Dark, with violet accents",
         swatches: ["#101116", "#1b1d25", "#9d7cff", "#f3f3f5"]
     },
+    light: {
+        name: "Light",
+        description: "The original, but light",
+        swatches: ["#f5f5f9", "#ffffff", "#7c5cf0", "#16171d"]
+    },
     blueprint: {
         name: "Blueprint",
         description: "Cream graph paper and cobalt ink",
         swatches: ["#ebe2cd", "#f3ecdc", "#1f4fc9", "#e8592b"]
+    },
+    pop: {
+        name: "Pop",
+        description: "Sunny gradient and chunky outlines",
+        swatches: ["#f4787f", "#fbef82", "#6be675", "#161616"]
+    },
+    noir: {
+        name: "Noir",
+        description: "Pitch black with burnt orange",
+        swatches: ["#000000", "#222222", "#d4471f", "#ededed"]
     }
 };
 

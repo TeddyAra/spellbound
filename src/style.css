@@ -37,47 +37,6 @@
     --tile-text: #302616;
 }
 
-/* Blueprint: a drafting-table look, with cream graph paper, cobalt blue, charcoal ink and a little orange */
-:root[data-theme="blueprint"] {
-    --font-body: "Inter Tight", "Segoe UI", system-ui, sans-serif;
-    --font-heading: "Inter Tight", "Segoe UI", system-ui, sans-serif;
-    --font-mono: "IBM Plex Mono", Consolas, monospace;
-    --font-hand: "Architects Daughter", "Segoe Print", cursive;
-
-    --bg: #ebe2cd;
-    --bg-glow: #ebe2cd;
-    --grid-line: rgba(45, 45, 45, 0.07);
-    --panel: #f3ecdc;
-    --panel-2: #f7f2e6;
-    --button-hover: #e4e9f7;
-    --inset: #fbf8f0;
-    --input: #fffdf7;
-
-    --text: #2d2d2d;
-    --muted: #6b6658;
-    --accent: #1f4fc9;
-    --accent-hover: #2b5fe0;
-    --on-accent: #f7f2e6;
-    --highlight: #e8592b;
-
-    --danger: #c8432b;
-    --danger-text: #9e2f1c;
-    --danger-inset: #f6e0d8;
-    --success: #2f7d4f;
-    --success-text: #23603c;
-
-    --border: #9a9483;
-    --border-strong: #2d2d2d;
-
-    --backdrop: rgba(24, 38, 82, 0.45);
-    --shadow-rgb: 24, 38, 82;
-
-    --tile-light: #fffdf6;
-    --tile-dark: #f1eadb;
-    --tile-border: #2d2d2d;
-    --tile-text: #2d2d2d;
-}
-
 * {
     box-sizing: border-box;
 }
@@ -2122,6 +2081,47 @@ select.modal-input:disabled {
    BLUEPRINT THEME
    ========================================================= */
 
+/* A drafting-table look: cream graph paper, cobalt blue, charcoal ink and a little orange */
+:root[data-theme="blueprint"] {
+    --font-body: "Inter Tight", "Segoe UI", system-ui, sans-serif;
+    --font-heading: "Inter Tight", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", Consolas, monospace;
+    --font-hand: "Architects Daughter", "Segoe Print", cursive;
+
+    --bg: #ebe2cd;
+    --bg-glow: #ebe2cd;
+    --grid-line: rgba(45, 45, 45, 0.07);
+    --panel: #f3ecdc;
+    --panel-2: #f7f2e6;
+    --button-hover: #e4e9f7;
+    --inset: #fbf8f0;
+    --input: #fffdf7;
+
+    --text: #2d2d2d;
+    --muted: #6b6658;
+    --accent: #1f4fc9;
+    --accent-hover: #2b5fe0;
+    --on-accent: #f7f2e6;
+    --highlight: #e8592b;
+
+    --danger: #c8432b;
+    --danger-text: #9e2f1c;
+    --danger-inset: #f6e0d8;
+    --success: #2f7d4f;
+    --success-text: #23603c;
+
+    --border: #9a9483;
+    --border-strong: #2d2d2d;
+
+    --backdrop: rgba(24, 38, 82, 0.45);
+    --shadow-rgb: 24, 38, 82;
+
+    --tile-light: #fffdf6;
+    --tile-dark: #f1eadb;
+    --tile-border: #2d2d2d;
+    --tile-text: #2d2d2d;
+}
+
 /* Cream graph paper: a fine grid, with a heavier line every fifth square */
 :root[data-theme="blueprint"] body {
     background-color: var(--bg);
@@ -2439,4 +2439,568 @@ select.modal-input:disabled {
 
     border: 1px solid rgba(128, 128, 128, 0.5);
     border-radius: 4px;
+}
+
+/* =========================================================
+   LIGHT THEME
+   ========================================================= */
+
+/* The original, flipped: light greys with the same violet */
+:root[data-theme="light"] {
+    --bg: #f5f5f9;
+    --bg-glow: #ffffff;
+    --panel: #ffffff;
+    --panel-2: #eef0f5;
+    --button-hover: #e3e6ee;
+    --inset: #f4f5f9;
+    --input: #ffffff;
+
+    --text: #16171d;
+    --muted: #5f6372;
+    --accent: #7c5cf0;
+    --accent-hover: #6a48e6;
+    --on-accent: #fff;
+    --highlight: #1494c4;
+
+    --danger: #c7414f;
+    --danger-text: #a3303d;
+    --danger-inset: #fbeef0;
+    --success: #2f9a55;
+    --success-text: #237a42;
+
+    --border: #d9dbe3;
+    --border-strong: #b5b8c5;
+
+    --backdrop: rgba(20, 22, 35, 0.35);
+    --shadow-rgb: 30, 32, 50;
+}
+
+/* The icons are white, so they're drawn dark on the light buttons */
+:root[data-theme="light"] .icon-button img {
+    filter: brightness(0);
+    opacity: 0.8;
+}
+
+:root[data-theme="light"] .icon-button svg {
+    stroke: var(--text);
+}
+
+:root[data-theme="light"] .icon-button svg .pip {
+    fill: var(--text);
+}
+
+:root[data-theme="light"] .roll-button,
+:root[data-theme="light"] .stat-box,
+:root[data-theme="light"] .icon-button {
+    box-shadow: 0 1px 2px rgba(var(--shadow-rgb), 0.08);
+}
+
+:root[data-theme="light"] .modal {
+    box-shadow: 0 24px 60px rgba(var(--shadow-rgb), 0.2);
+}
+
+/* =========================================================
+   POP THEME
+   ========================================================= */
+
+/* A sunny gradient, chunky black outlines and pill shapes that look pressable */
+:root[data-theme="pop"] {
+    --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+    --font-heading: "Archivo", "Arial Black", sans-serif;
+
+    --bg: #fbef82;
+    --bg-glow: #fbef82;
+    --panel: #ffffff;
+    --panel-2: #ffffff;
+    --button-hover: #fff8c4;
+    --inset: #fffdf0;
+    --input: #ffffff;
+
+    --text: #161616;
+    --muted: #5c5646;
+    --accent: #161616;
+    --accent-hover: #2e2e2e;
+    --on-accent: #fbef82;
+    --highlight: #8b5cf6;
+
+    /* The green highlight from the reference */
+    --pop-green: #6be675;
+    --pop-pink: #f4787f;
+
+    --danger: #e5484d;
+    --danger-text: #b42328;
+    --danger-inset: #ffe3e1;
+    --success: #2f9e44;
+    --success-text: #1f7a33;
+
+    --border: #161616;
+    --border-strong: #161616;
+
+    --backdrop: rgba(22, 22, 22, 0.35);
+    --shadow-rgb: 22, 22, 22;
+
+    --tile-light: #ffffff;
+    --tile-dark: #ffffff;
+    --tile-border: #161616;
+    --tile-text: #161616;
+}
+
+:root[data-theme="pop"] body {
+    background: linear-gradient(120deg, #f4787f 0%, #f7ae7e 28%, #fbe282 58%, #fbef82 100%) fixed;
+
+    font-family: var(--font-body);
+}
+
+:root[data-theme="pop"] button,
+:root[data-theme="pop"] input,
+:root[data-theme="pop"] select {
+    font-family: var(--font-body);
+}
+
+/* Black outlines with a hard shadow underneath, pressed down when clicked */
+:root[data-theme="pop"] button,
+:root[data-theme="pop"] .stat-box,
+:root[data-theme="pop"] .modal-input {
+    border: 1.5px solid var(--border);
+}
+
+:root[data-theme="pop"] .roll-button,
+:root[data-theme="pop"] .stat-box,
+:root[data-theme="pop"] .icon-button,
+:root[data-theme="pop"] .actions button,
+:root[data-theme="pop"] .button-pair button,
+:root[data-theme="pop"] #actionButtons button {
+    box-shadow: 0 3px 0 var(--border);
+}
+
+:root[data-theme="pop"] button:active {
+    transform: translateY(2px);
+
+    box-shadow: 0 1px 0 var(--border);
+}
+
+:root[data-theme="pop"] button:disabled,
+:root[data-theme="pop"] .roll-disabled {
+    box-shadow: none;
+}
+
+:root[data-theme="pop"] .roll-button,
+:root[data-theme="pop"] .actions button,
+:root[data-theme="pop"] .button-pair button,
+:root[data-theme="pop"] .mode-buttons button,
+:root[data-theme="pop"] #actionButtons button {
+    border-radius: 999px;
+}
+
+:root[data-theme="pop"] .stat-box,
+:root[data-theme="pop"] .result-row,
+:root[data-theme="pop"] .rolls,
+:root[data-theme="pop"] .feature-card,
+:root[data-theme="pop"] .feat-row,
+:root[data-theme="pop"] .item-card,
+:root[data-theme="pop"] .outcome,
+:root[data-theme="pop"] .theme-option {
+    border-radius: 18px;
+}
+
+:root[data-theme="pop"] .result-row,
+:root[data-theme="pop"] .rolls,
+:root[data-theme="pop"] .feature-card,
+:root[data-theme="pop"] .feat-row,
+:root[data-theme="pop"] .item-card {
+    border: 1.5px solid var(--border);
+}
+
+:root[data-theme="pop"] .modal-input {
+    border-radius: 12px;
+}
+
+/* Main buttons in the reference's green */
+:root[data-theme="pop"] .primary,
+:root[data-theme="pop"] .mode-buttons button.selected,
+:root[data-theme="pop"] #actionButtons button.primary {
+    background: var(--pop-green);
+    color: var(--text);
+
+    font-weight: 700;
+}
+
+:root[data-theme="pop"] .primary:hover {
+    background: #85ee8d;
+}
+
+/* Headings: wide, heavy capitals */
+:root[data-theme="pop"] .modal h2,
+:root[data-theme="pop"] .modal h3,
+:root[data-theme="pop"] #characterHeader strong,
+:root[data-theme="pop"] #actionTitle {
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-stretch: 125%;
+
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+}
+
+:root[data-theme="pop"] .modal h2 {
+    font-size: 28px;
+}
+
+:root[data-theme="pop"] .roll-button {
+    font-weight: 700;
+}
+
+:root[data-theme="pop"] .rolls-title,
+:root[data-theme="pop"] .rank-grid-head,
+:root[data-theme="pop"] .stat-box > span {
+    color: var(--text);
+
+    font-weight: 700;
+}
+
+/* Round white buttons with dark icons */
+:root[data-theme="pop"] .icon-button {
+    background: #fff;
+}
+
+:root[data-theme="pop"] .icon-button:hover {
+    background: var(--button-hover);
+}
+
+:root[data-theme="pop"] .icon-button img {
+    filter: brightness(0);
+}
+
+:root[data-theme="pop"] .icon-button svg {
+    stroke: var(--text);
+}
+
+:root[data-theme="pop"] .icon-button svg .pip {
+    fill: var(--text);
+}
+
+:root[data-theme="pop"] .badge {
+    border: 1.5px solid var(--border);
+
+    background: var(--highlight);
+    color: #fff;
+}
+
+:root[data-theme="pop"] .roll-divider {
+    height: 1.5px;
+
+    border: 0;
+
+    background: var(--border);
+}
+
+/* Windows: big rounded cards with a chunky shadow */
+:root[data-theme="pop"] .modal {
+    border: 1.5px solid var(--border);
+    border-radius: 28px;
+
+    box-shadow: 0 8px 0 var(--border);
+}
+
+:root[data-theme="pop"] .modal::-webkit-scrollbar-track {
+    margin: 28px 0;
+}
+
+:root[data-theme="pop"] .die {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+
+    background: #fff;
+}
+
+:root[data-theme="pop"] .die.high {
+    background: var(--pop-green);
+    color: var(--text);
+}
+
+:root[data-theme="pop"] .outcome.success {
+    border: 1.5px solid var(--border);
+
+    background: var(--pop-green);
+    color: var(--text);
+}
+
+:root[data-theme="pop"] .outcome.failure {
+    border: 1.5px solid var(--border);
+
+    background: var(--pop-pink);
+    color: var(--text);
+}
+
+:root[data-theme="pop"] #actionPanel {
+    border: 1.5px solid var(--border);
+    border-radius: 28px;
+
+    box-shadow: 0 6px 0 var(--border);
+}
+
+:root[data-theme="pop"] #safeZone {
+    border: 2px dashed var(--border);
+    border-radius: 28px;
+
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--text);
+}
+
+:root[data-theme="pop"] .scrabble-letter {
+    border: 1.5px solid var(--tile-border);
+    border-radius: 10px;
+
+    box-shadow: 0 3px 0 var(--tile-border);
+
+    font-family: var(--font-heading);
+    font-weight: 900;
+}
+
+:root[data-theme="pop"] .word-underline {
+    height: 5px;
+
+    background: var(--pop-green);
+    box-shadow: 0 0 0 1.5px var(--border);
+}
+
+/* =========================================================
+   NOIR THEME
+   ========================================================= */
+
+/* Pitch black, hairline rules, serif captions and a burnt orange highlight */
+:root[data-theme="noir"] {
+    --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
+    --font-serif: "Instrument Serif", Georgia, serif;
+
+    --bg: #000000;
+    --bg-glow: #000000;
+    --panel: #050505;
+    --panel-2: #000000;
+    --button-hover: #1c0d07;
+    --inset: #0a0a0a;
+    --input: #0a0a0a;
+
+    --text: #ededed;
+    --muted: #8a8a8a;
+    --accent: #d4471f;
+    --accent-hover: #e85a30;
+    --on-accent: #ffffff;
+    --highlight: #d4471f;
+
+    --danger: #e5533d;
+    --danger-text: #f08a77;
+    --danger-inset: #140805;
+    --success: #6fae78;
+    --success-text: #9cd3a4;
+
+    --border: #222222;
+    --border-strong: #3a3a3a;
+
+    --backdrop: rgba(0, 0, 0, 0.75);
+    --shadow-rgb: 0, 0, 0;
+
+    --tile-light: #ededed;
+    --tile-dark: #d6d6d6;
+    --tile-border: #000000;
+    --tile-text: #000000;
+}
+
+:root[data-theme="noir"] body {
+    background: var(--bg);
+
+    font-family: var(--font-body);
+}
+
+:root[data-theme="noir"] button,
+:root[data-theme="noir"] input,
+:root[data-theme="noir"] select {
+    font-family: var(--font-body);
+}
+
+/* Square, flat and uppercase, like the reference's name cards */
+:root[data-theme="noir"] button,
+:root[data-theme="noir"] .roll-button,
+:root[data-theme="noir"] .stat-box,
+:root[data-theme="noir"] .modal,
+:root[data-theme="noir"] .modal-input,
+:root[data-theme="noir"] .result-row,
+:root[data-theme="noir"] .rolls,
+:root[data-theme="noir"] .feature-card,
+:root[data-theme="noir"] .feat-row,
+:root[data-theme="noir"] .item-card,
+:root[data-theme="noir"] .die,
+:root[data-theme="noir"] .outcome,
+:root[data-theme="noir"] .theme-option,
+:root[data-theme="noir"] #actionPanel,
+:root[data-theme="noir"] #safeZone,
+:root[data-theme="noir"] .scrabble-letter {
+    border-radius: 0;
+}
+
+:root[data-theme="noir"] .roll-button {
+    font-size: 12px;
+    font-weight: 500;
+
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Dice notation stays lowercase: 1d6, not 1D6 */
+:root[data-theme="noir"] .school-rank small,
+:root[data-theme="noir"] #weaponDieDisplay {
+    text-transform: none;
+}
+
+/* Hovering lights a card up in orange, like the reference */
+:root[data-theme="noir"] button:hover {
+    border-color: var(--accent);
+
+    background: var(--button-hover);
+}
+
+:root[data-theme="noir"] .primary,
+:root[data-theme="noir"] .mode-buttons button.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+:root[data-theme="noir"] .primary:hover {
+    background: var(--accent-hover);
+}
+
+/* Serif headings and captions */
+:root[data-theme="noir"] .modal h2,
+:root[data-theme="noir"] .modal h3,
+:root[data-theme="noir"] #characterHeader strong,
+:root[data-theme="noir"] #actionTitle {
+    font-family: var(--font-serif);
+    font-weight: 400;
+}
+
+:root[data-theme="noir"] .modal h2 {
+    font-size: 36px;
+}
+
+:root[data-theme="noir"] .modal h3 {
+    font-size: 24px;
+}
+
+:root[data-theme="noir"] #characterHeader strong {
+    font-size: 26px;
+}
+
+:root[data-theme="noir"] .rolls-title,
+:root[data-theme="noir"] .rank-grid-head,
+:root[data-theme="noir"] .stat-box > span,
+:root[data-theme="noir"] #characterClassDisplay,
+:root[data-theme="noir"] .school-rank small,
+:root[data-theme="noir"] .result-label {
+    font-family: var(--font-serif);
+
+    color: var(--muted);
+}
+
+:root[data-theme="noir"] .rolls-title,
+:root[data-theme="noir"] .rank-grid-head,
+:root[data-theme="noir"] .stat-box > span,
+:root[data-theme="noir"] #characterClassDisplay {
+    font-size: 14px;
+
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+:root[data-theme="noir"] .school-rank small {
+    font-size: 14px;
+}
+
+:root[data-theme="noir"] .icon-button {
+    border-radius: 0;
+
+    background: transparent;
+}
+
+:root[data-theme="noir"] .badge {
+    border-color: var(--bg);
+    border-radius: 0;
+
+    background: var(--accent);
+}
+
+:root[data-theme="noir"] .roll-divider {
+    height: 1px;
+
+    border: 0;
+
+    background: var(--border);
+}
+
+:root[data-theme="noir"] .modal {
+    border-color: var(--border);
+
+    box-shadow: none;
+}
+
+:root[data-theme="noir"] .modal::-webkit-scrollbar-track {
+    margin: 0;
+}
+
+/* The current action: a lit-up orange card */
+:root[data-theme="noir"] #actionPanel {
+    border: 1px solid var(--accent);
+
+    background: var(--accent);
+    color: var(--on-accent);
+}
+
+:root[data-theme="noir"] #actionPanel #actionTitle,
+:root[data-theme="noir"] #actionPanel #actionHint,
+:root[data-theme="noir"] #actionPanel .check-row,
+:root[data-theme="noir"] #actionPanel .item-discard {
+    color: var(--on-accent);
+}
+
+:root[data-theme="noir"] #actionButtons button {
+    border-color: rgba(255, 255, 255, 0.6);
+
+    background: transparent;
+    color: var(--on-accent);
+}
+
+:root[data-theme="noir"] #actionButtons button.primary {
+    background: #000;
+    border-color: #000;
+}
+
+:root[data-theme="noir"] #actionButtons button:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme="noir"] .die.high {
+    border-color: var(--accent);
+
+    color: var(--accent);
+}
+
+:root[data-theme="noir"] #safeZone {
+    border: 1px dashed var(--border-strong);
+
+    background: transparent;
+
+    font-family: var(--font-serif);
+    font-size: 16px;
+}
+
+:root[data-theme="noir"] .scrabble-letter {
+    font-family: var(--font-serif);
+    font-weight: 400;
+
+    box-shadow: none;
+}
+
+:root[data-theme="noir"] .word-underline {
+    height: 2px;
+
+    box-shadow: none;
 }
