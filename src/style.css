@@ -3329,3 +3329,15 @@ select.modal-input:disabled {
     color: var(--attention, var(--accent-hover));
     font-weight: 650;
 }
+
+/*
+ * The Runesmith's glyph counter looks like a menu row but isn't a button (its
+ * − and + are), so no theme gives it a button's shadow, frame or fill. Last in
+ * the file so it wins over the themes' button styles.
+ */
+:root #glyphCounter.roll-button {
+    border-color: transparent;
+
+    background: transparent;
+    box-shadow: none;
+}

@@ -332,7 +332,7 @@ const weaponNameInput = $("weaponNameInput");
 const weaponDieInput = $("weaponDieInput");
 
 classInput.replaceChildren(...Object.entries(CLASSES).map(([key, info]) => {
-    const option = element("option", null, `${info.name} (${info.role})`);
+    const option = element("option", null, info.name);
 
     option.value = key;
 
