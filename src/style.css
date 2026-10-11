@@ -1733,16 +1733,6 @@ div.feat-row {
     pointer-events: none;
 }
 
-.modal-input.needs-attention {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent);
-}
-
-.settings-heading .attention {
-    color: var(--accent-hover);
-    font-weight: 650;
-}
-
 /* =========================================================
    RANK POINTS (see character.js)
    ========================================================= */
@@ -2536,6 +2526,9 @@ select.modal-input:disabled {
     --pop-green: #6be675;
     --pop-pink: #f4787f;
 
+    /* Black is taken by the outlines, so things left to fill in are purple */
+    --attention: #7c3aed;
+
     --danger: #e5484d;
     --danger-text: #b42328;
     --danger-inset: #ffe3e1;
@@ -3077,4 +3070,24 @@ select.modal-input:disabled {
     opacity: 0.45;
 
     cursor: default;
+}
+
+/* =========================================================
+   REMINDERS: FIELDS LEFT TO FILL IN (see reminders.js)
+   ========================================================= */
+
+/*
+ * In the theme's main colour unless it sets --attention (Pop's main colour is
+ * black, like its outlines). After the themes, so it wins over their outlines.
+ */
+:root .modal-input.needs-attention {
+    border-color: var(--attention, var(--accent));
+    box-shadow: 0 0 0 1px var(--attention, var(--accent));
+
+    background: color-mix(in srgb, var(--attention, var(--accent)) 8%, var(--input));
+}
+
+.settings-heading .attention {
+    color: var(--attention, var(--accent-hover));
+    font-weight: 650;
 }
