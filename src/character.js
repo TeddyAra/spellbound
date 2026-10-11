@@ -38,6 +38,8 @@ import {
 import { rollDice } from "./dice.js";
 import { showInfoResult } from "./results.js";
 import { renderDeathSaves, deathSaveFailed, resetDeathSaves } from "./deathSaves.js";
+import { preference } from "./preferences.js";
+import { confirmAction } from "./confirm.js";
 import { unspentRanks } from "./reminders.js";
 
 /*
@@ -278,7 +280,19 @@ $("shortRestButton").addEventListener("click", async () => {
     showInfoResult("Short Rest", rows, { title: "Hit dice", values: rolls });
 });
 
-$("longRestButton").addEventListener("click", () => {
+$("longRestButton").addEventListener("click", async () => {
+    if (preference("confirmLongRest")) {
+        const confirmed = await confirmAction(
+            "Long Rest",
+            "Take a long rest? You regain all hit points and your signature ability's uses.",
+            "Rest"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+    }
+
     state.currentHealth = state.maxHealth;
     state.ward = 0;
     state.shortRests = 0;

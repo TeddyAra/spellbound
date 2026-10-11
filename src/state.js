@@ -73,6 +73,9 @@ export const state = {
     inventory: []
 };
 
+// A fresh character, for filling in whatever a save or file leaves out
+const DEFAULT_STATE = structuredClone(state);
+
 const capitalize = text => text.charAt(0).toUpperCase() + text.slice(1);
 
 /* A school's name as the player sees it ("Passion" is named after the passion). */
@@ -461,31 +464,77 @@ function rankPointsFromRanks(saved) {
     ]));
 }
 
+/* Replaces the whole character with saved data, filling in anything it's missing with the defaults. */
+function applySaved(saved) {
+    if (saved.ranks && !saved.rankPoints) {
+        saved.rankPoints = rankPointsFromRanks(saved);
+    }
+
+    const defaults = structuredClone(DEFAULT_STATE);
+
+    for (const key of Object.keys(state)) {
+        delete state[key];
+    }
+
+    Object.assign(state, defaults, saved);
+
+    state.rankPoints = { ...defaults.rankPoints, ...saved.rankPoints };
+    state.feats = { ...saved.feats };
+
+    delete state.ranks;
+    delete state.mortalLimits;
+}
+
 export function loadState() {
     const savedState = localStorage.getItem(STATE_STORAGE_KEY);
 
     if (savedState) {
         try {
-            const parsedState = JSON.parse(savedState);
-            const defaultPoints = { ...state.rankPoints };
-
-            if (parsedState.ranks && !parsedState.rankPoints) {
-                parsedState.rankPoints = rankPointsFromRanks(parsedState);
-            }
-
-            Object.assign(state, parsedState);
-
-            state.rankPoints = { ...defaultPoints, ...parsedState.rankPoints };
-            state.feats = { ...parsedState.feats };
-
-            delete state.ranks;
-            delete state.mortalLimits;
+            applySaved(JSON.parse(savedState));
         } catch (error) {
             console.error("Failed to load saved state:", error);
         }
     }
 
     normalizeState();
+}
+
+/*
+ * =========================================================
+ * CHARACTER FILES
+ * =========================================================
+ */
+
+const FILE_FORMAT = "spellbound-character";
+
+/* The character as a file's contents (see Settings). */
+export function exportCharacter() {
+    return JSON.stringify({ format: FILE_FORMAT, version: 1, character: state }, null, 2);
+}
+
+/* Reads a character file. Throws if it isn't one, before anything is replaced. */
+export function readCharacterFile(text) {
+    let data;
+
+    try {
+        data = JSON.parse(text);
+    } catch {
+        throw new Error("That file isn't a Spellbound character.");
+    }
+
+    const character = data?.format === FILE_FORMAT ? data.character : null;
+
+    if (!character || typeof character !== "object" || !CLASSES[character.className]) {
+        throw new Error("That file isn't a Spellbound character.");
+    }
+
+    return character;
+}
+
+/* Replaces the current character with one from a file (see readCharacterFile). */
+export function importCharacter(character) {
+    applySaved(structuredClone(character));
+    commit();
 }
 
 /*

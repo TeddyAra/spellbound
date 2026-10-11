@@ -10,7 +10,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Archivo:wdth,wght@125,900&family=Figtree:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&family=Instrument+Serif&family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&display=swap">
         <link rel="stylesheet" href="./src/style.css">
 
-        <!-- The chosen theme, set before the page draws so it doesn't flash the default first (see settings.js) -->
+        <!-- The chosen theme and display preferences, set before the page draws so nothing flashes or jumps (see settings.js, preferences.js) -->
         <script>
             try {
                 const theme = localStorage.getItem("spellboundTheme");
@@ -18,8 +18,17 @@
                 if (theme && theme !== "original") {
                     document.documentElement.dataset.theme = theme;
                 }
+
+                // See preferences.js
+                const preferences = JSON.parse(localStorage.getItem("spellboundPreferences")) || {};
+                const root = document.documentElement.dataset;
+
+                root.tileSize = preferences.tileSize || "normal";
+                root.textSize = preferences.textSize || "normal";
+                root.letterScores = preferences.letterScores === false ? "off" : "on";
+                root.wordUnderlines = preferences.wordUnderlines === false ? "off" : "on";
             } catch {
-                // No saved theme: the default it is
+                // Nothing saved: the defaults it is
             }
         </script>
     </head>
@@ -615,53 +624,144 @@
         </div>
 
         <!-- =====================================================
-            SETTINGS OVERLAY (see settings.js)
+            SETTINGS OVERLAY (see settings.js, diceSettings.js)
         ===================================================== -->
         <div id="settingsOverlay" class="overlay hidden">
             <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
                 <h2 id="settingsTitle">Settings</h2>
 
-                <div class="settings-heading">
-                    <h3>Theme</h3>
+                <div class="settings-columns">
+                    <div class="settings-column">
+                        <h3>Theme</h3>
+
+                        <div id="themeOptions" class="theme-options"></div>
+
+                        <hr class="roll-divider">
+
+                        <h3>Display</h3>
+
+                        <div class="settings-grid">
+                            <span class="settings-label">Text size</span>
+                            <div class="mode-buttons" data-preference="textSize">
+                                <button type="button" data-value="small">Small</button>
+                                <button type="button" data-value="normal">Normal</button>
+                                <button type="button" data-value="large">Large</button>
+                            </div>
+                        </div>
+
+                        <hr class="roll-divider">
+
+                        <h3>Character</h3>
+
+                        <p class="settings-note">Your character is only saved in this browser. Export it to keep a backup or move it to another device.</p>
+
+                        <div class="input-with-button">
+                            <button id="exportCharacterButton" type="button">Export to file</button>
+                            <button id="importCharacterButton" type="button">Import from file</button>
+                            <input id="importCharacterInput" type="file" accept=".json,application/json" class="hidden">
+                        </div>
+
+                        <p id="characterFileMessage" class="result-label small"></p>
+                    </div>
+
+                    <div class="settings-column">
+                        <!-- Dice (see diceSettings.js) -->
+                        <h3>Dice</h3>
+
+                        <div class="dice-color-row">
+                            <span>Dice</span>
+                            <div id="diceColorPicker"></div>
+                        </div>
+
+                        <label class="dice-two-tone">
+                            <input id="diceTwoTone" type="checkbox">
+                            <span>Two-tone: swirl a second colour through it</span>
+                        </label>
+
+                        <div id="diceColor2Row" class="dice-color-row hidden">
+                            <span>Second colour</span>
+                            <div id="diceColor2Picker"></div>
+                        </div>
+
+                        <div class="dice-color-row">
+                            <span>Numbers</span>
+                            <div id="diceLabelColorPicker"></div>
+                        </div>
+
+                        <div id="diceFinishes" class="dice-finishes"></div>
+
+                        <div class="settings-grid">
+                            <span class="settings-label">Animation</span>
+                            <div class="mode-buttons" data-preference="diceAnimation">
+                                <button type="button" data-value="full">Full</button>
+                                <button type="button" data-value="fast">Fast</button>
+                                <button type="button" data-value="off">Off</button>
+                            </div>
+                        </div>
+
+                        <label class="check-row">
+                            <input type="checkbox" data-preference="rememberDC">
+                            <span>Remember the DC from the last roll</span>
+                        </label>
+
+                        <hr class="roll-divider">
+
+                        <h3>Tiles</h3>
+
+                        <div class="settings-grid">
+                            <span class="settings-label">Tile size</span>
+                            <div class="mode-buttons" data-preference="tileSize">
+                                <button type="button" data-value="small">Small</button>
+                                <button type="button" data-value="normal">Normal</button>
+                                <button type="button" data-value="large">Large</button>
+                            </div>
+                        </div>
+
+                        <label class="check-row">
+                            <input type="checkbox" data-preference="letterScores">
+                            <span>Show letter scores</span>
+                        </label>
+
+                        <label class="check-row">
+                            <input type="checkbox" data-preference="wordUnderlines">
+                            <span>Underline words</span>
+                        </label>
+
+                        <hr class="roll-divider">
+
+                        <h3>Ask before</h3>
+
+                        <label class="check-row">
+                            <input type="checkbox" data-preference="confirmLongRest">
+                            <span>Taking a long rest</span>
+                        </label>
+
+                        <label class="check-row">
+                            <input type="checkbox" data-preference="confirmClearBoard">
+                            <span>Clearing the board</span>
+                        </label>
+                    </div>
                 </div>
-
-                <div id="themeOptions" class="theme-options"></div>
-
-                <hr class="roll-divider">
-
-                <!-- Dice (see diceSettings.js) -->
-                <div class="settings-heading">
-                    <h3>Dice</h3>
-                </div>
-
-                <div class="rolls-title">Colour</div>
-
-                <div class="dice-color-row">
-                    <span>Dice</span>
-                    <div id="diceColorPicker"></div>
-                </div>
-
-                <label class="dice-two-tone">
-                    <input id="diceTwoTone" type="checkbox">
-                    <span>Two-tone: swirl a second colour through it</span>
-                </label>
-
-                <div id="diceColor2Row" class="dice-color-row hidden">
-                    <span>Second colour</span>
-                    <div id="diceColor2Picker"></div>
-                </div>
-
-                <div class="dice-color-row">
-                    <span>Numbers</span>
-                    <div id="diceLabelColorPicker"></div>
-                </div>
-
-                <div class="rolls-title">Finish</div>
-                <div id="diceFinishes" class="dice-finishes"></div>
 
                 <div class="actions">
-                    <button id="testDiceButton" class="primary">Test roll</button>
+                    <button id="testDiceButton" class="primary">Test dice</button>
                     <button id="closeSettings">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            CONFIRMATION (see confirm.js)
+        ===================================================== -->
+        <div id="confirmOverlay" class="overlay hidden">
+            <div class="modal confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+                <h2 id="confirmTitle">Are you sure?</h2>
+
+                <p id="confirmMessage" class="settings-note"></p>
+
+                <div class="button-pair">
+                    <button id="confirmYes" class="primary">Confirm</button>
+                    <button id="confirmNo" class="danger">Cancel</button>
                 </div>
             </div>
         </div>

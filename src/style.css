@@ -235,7 +235,7 @@ button:disabled {
     width: 310px;
 
     /* On short screens the menu scrolls rather than being cut off */
-    max-height: calc(100vh - 96px);
+    max-height: calc(100vh / var(--ui-zoom, 1) - 96px);
     overflow-y: auto;
     scrollbar-width: none;
 
@@ -369,7 +369,7 @@ button:disabled {
 
 .modal {
     width: min(560px, 94vw);
-    max-height: 90vh;
+    max-height: calc(90vh / var(--ui-zoom, 1));
 
     overflow-y: auto;
 
@@ -1909,7 +1909,7 @@ select.modal-input:disabled {
 
 /* A tighter settings window */
 #characterOverlay .modal {
-    max-height: calc(100vh - 40px);
+    max-height: calc(100vh / var(--ui-zoom, 1) - 40px);
 
     --modal-padding-bottom: 18px;
 
@@ -2387,9 +2387,25 @@ select.modal-input:disabled {
    SETTINGS (see settings.js)
    ========================================================= */
 
-/* A little wider than other windows, so the themes fit three to a row */
+/* Two columns, like Character settings, so it fits without scrolling */
 #settingsOverlay .modal {
-    width: min(640px, 94vw);
+    width: min(1000px, 96vw);
+}
+
+#settingsOverlay .settings-column > h3 {
+    margin: 0 0 10px;
+}
+
+#settingsOverlay .settings-grid {
+    grid-template-columns: 100px 1fr;
+}
+
+#settingsOverlay .dice-finishes {
+    margin: 10px 0 4px;
+}
+
+#settingsOverlay .input-with-button button {
+    padding: 8px 14px;
 }
 
 .theme-options {
@@ -2996,4 +3012,61 @@ select.modal-input:disabled {
     height: 2px;
 
     box-shadow: none;
+}
+
+/* =========================================================
+   PREFERENCES (see preferences.js)
+   ========================================================= */
+
+/* Tile size: tiles.js uses the same sizes */
+:root[data-tile-size="small"] .scrabble-letter {
+    width: 40px;
+    height: 40px;
+
+    font-size: 22px;
+}
+
+:root[data-tile-size="large"] .scrabble-letter {
+    width: 60px;
+    height: 60px;
+
+    font-size: 34px;
+}
+
+:root[data-tile-size="large"] .scrabble-letter-value {
+    font-size: 12px;
+}
+
+:root[data-letter-scores="off"] .scrabble-letter-value,
+:root[data-word-underlines="off"] .word-underline {
+    display: none;
+}
+
+/*
+ * Text size scales the menus and windows, not the tile board, so dragging
+ * tiles still lines up with the mouse. Heights that fill the screen divide
+ * by --ui-zoom to stay on it.
+ */
+:root[data-text-size="small"] {
+    --ui-zoom: 0.9;
+}
+
+:root[data-text-size="large"] {
+    --ui-zoom: 1.15;
+}
+
+#mainScreen,
+#tileControls,
+#actionPanel,
+.modal {
+    zoom: var(--ui-zoom, 1);
+}
+
+/* The yes/no window (see confirm.js) */
+.confirm-modal {
+    width: min(440px, 94vw);
+}
+
+.confirm-modal .settings-note {
+    font-size: 15px;
 }

@@ -1,6 +1,7 @@
 import DiceBox from "@3d-dice/dice-box-threejs";
 import { $, show, hide } from "./dom.js";
 import { diceColorset, loadDiceStyle, DICE_FINISHES } from "./diceStyle.js";
+import { preference } from "./preferences.js";
 
 const animationOverlay = $("animationOverlay");
 
@@ -37,6 +38,23 @@ diceFactory.createMaterials = (...args) => {
     }
 
     return materials;
+};
+
+/*
+ * Fast animation: the library plays the throw back by stepping its physics for
+ * the time that passed since the last frame. Making it think more time passed
+ * plays the same throw faster, with the same result.
+ */
+const FAST_SPEED = 2.5;
+
+const animateThrow = diceBox.animateThrow;
+
+diceBox.animateThrow = function (...args) {
+    if (preference("diceAnimation") === "fast" && this.last_time) {
+        this.last_time -= (Date.now() - this.last_time) * (FAST_SPEED - 1);
+    }
+
+    return animateThrow.apply(this, args);
 };
 
 let diceBoxReady = false;
@@ -115,7 +133,27 @@ export async function rollPercentiles(count) {
 }
 
 /* Like rollDice, but keeps the values of each dice set (e.g. "2d100+2d10") separate. */
+/*
+ * Animation off: the same results without the 3D dice, e.g. "2d100+2d10".
+ * A d100 die shows the tens (10 to 100), like the library's.
+ */
+function rollWithoutDice(notation) {
+    return notation.split("+").map(part => {
+        const [count, sides] = part.split("d").map(Number);
+
+        return Array.from({ length: count }, () => {
+            const value = 1 + Math.floor(Math.random() * (sides === 100 ? 10 : sides));
+
+            return sides === 100 ? value * 10 : value;
+        });
+    });
+}
+
 export async function rollDiceSets(notation) {
+    if (preference("diceAnimation") === "off") {
+        return rollWithoutDice(notation);
+    }
+
     if (!diceBoxReady) {
         console.warn("DiceBox is not ready yet.");
 

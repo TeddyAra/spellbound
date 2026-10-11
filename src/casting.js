@@ -20,6 +20,7 @@ import {
     biggerDie
 } from "./rules.js";
 import { rollDice } from "./dice.js";
+import { preference, setPreference } from "./preferences.js";
 import { spawnScrabbleLetters } from "./tiles.js";
 import { showInfoResult } from "./results.js";
 import { updateCurrentHealth } from "./character.js";
@@ -187,12 +188,14 @@ function renderSetup() {
 /* Opens the roll window for a school, a weapon attack, or a saved spell (slotIndex). */
 export function openRollSetup(school, mode = "spell", slotIndex = null) {
     setup = { school, mode, slotIndex, extraDice: 0 };
-    dcInput.value = "";
+    dcInput.value = preference("rememberDC") ? preference("lastDC") : "";
 
     renderSetup();
     show(rollSetupOverlay);
 
+    // Selected, so typing a new DC replaces a remembered one
     dcInput.focus();
+    dcInput.select();
 }
 
 $("extraDiceMinus").addEventListener("click", () => {
@@ -209,6 +212,9 @@ $("cancelRoll").addEventListener("click", () => hide(rollSetupOverlay));
 
 async function confirmRoll() {
     hide(rollSetupOverlay);
+
+    // For "Remember the DC" in Settings
+    setPreference("lastDC", dcInput.value);
 
     const school = rollSchool(setup);
     const { sides } = castingPool(rank(school));

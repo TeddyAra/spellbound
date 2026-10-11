@@ -1,5 +1,7 @@
 import { $, show, hide } from "./dom.js";
 import { findWords } from "./words.js";
+import { preference } from "./preferences.js";
+import { confirmAction } from "./confirm.js";
 
 // Letter → [number of tiles in the bag, points]
 const SCRABBLE_LETTERS = {
@@ -34,7 +36,14 @@ const SCRABBLE_LETTERS = {
 
 const VOWELS = new Set(["A", "E", "I", "O", "U"]);
 
-const TILE_SIZE = 48;
+// Tile size setting → pixels; the stylesheet matches these (see the PREFERENCES section)
+const TILE_SIZES = {
+    small: 40,
+    normal: 48,
+    large: 60
+};
+
+const tileSize = () => TILE_SIZES[preference("tileSize")] ?? TILE_SIZES.normal;
 
 const scrabblePool = Object.entries(SCRABBLE_LETTERS)
     .flatMap(([letter, [count]]) => Array(count).fill(letter));
@@ -48,8 +57,8 @@ let scrabbleTileZIndex = 20;
 function tileCenters(tiles = allTiles()) {
     return tiles.map(tile => ({
         letter: tile.dataset.letter,
-        x: parseFloat(tile.style.left) + TILE_SIZE / 2,
-        y: parseFloat(tile.style.top) + TILE_SIZE / 2
+        x: parseFloat(tile.style.left) + tileSize() / 2,
+        y: parseFloat(tile.style.top) + tileSize() / 2
     }));
 }
 
@@ -71,16 +80,16 @@ function updateWordUnderlines() {
     const tiles = allTiles();
     const centers = tileCenters(tiles);
 
-    for (const word of findWords(centers, TILE_SIZE).words) {
+    for (const word of findWords(centers, tileSize()).words) {
         const first = centers[word.tiles[0]];
         const last = centers[word.tiles[word.tiles.length - 1]];
-        const bottom = Math.max(...word.tiles.map(index => centers[index].y)) + TILE_SIZE / 2;
+        const bottom = Math.max(...word.tiles.map(index => centers[index].y)) + tileSize() / 2;
 
         const line = document.createElement("div");
 
         line.className = "word-underline";
-        line.style.left = `${first.x - TILE_SIZE / 2}px`;
-        line.style.width = `${last.x - first.x + TILE_SIZE}px`;
+        line.style.left = `${first.x - tileSize() / 2}px`;
+        line.style.width = `${last.x - first.x + tileSize()}px`;
         line.style.top = `${bottom + 6}px`;
 
         letterBoard.appendChild(line);
@@ -129,8 +138,8 @@ function createScrabbleLetter(letter, index) {
     const horizontalPadding = 400;
     const verticalPadding = 50;
 
-    const maxX = Math.max(horizontalPadding, window.innerWidth - TILE_SIZE - horizontalPadding);
-    const maxY = Math.max(verticalPadding, window.innerHeight - TILE_SIZE - verticalPadding);
+    const maxX = Math.max(horizontalPadding, window.innerWidth - tileSize() - horizontalPadding);
+    const maxY = Math.max(verticalPadding, window.innerHeight - tileSize() - verticalPadding);
 
     tile.style.left = `${horizontalPadding + Math.random() * (maxX - horizontalPadding)}px`;
     tile.style.top = `${verticalPadding + Math.random() * (maxY - verticalPadding)}px`;
@@ -280,7 +289,18 @@ function tileIsInSafeZone(tile) {
     );
 }
 
-function clearTilesOutsideSafeZone() {
+async function clearTilesOutsideSafeZone() {
+    const cleared = allTiles().filter(tile => !tileIsInSafeZone(tile));
+
+    if (cleared.length && preference("confirmClearBoard")) {
+        const tiles = cleared.length === 1 ? "1 tile" : `${cleared.length} tiles`;
+        const confirmed = await confirmAction("Clear Board", `Remove ${tiles} outside the safe zone?`, "Clear");
+
+        if (!confirmed) {
+            return;
+        }
+    }
+
     for (const tile of allTiles()) {
         if (!tileIsInSafeZone(tile)) {
             tile.remove();
@@ -357,6 +377,9 @@ function sortTiles() {
 
 $("clearTilesButton").addEventListener("click", clearTilesOutsideSafeZone);
 $("sortTilesButton").addEventListener("click", sortTiles);
+
+// The underlines follow the tiles when their size changes
+document.addEventListener("preferenceschange", updateWordUnderlines);
 
 /*
  * =========================================================
