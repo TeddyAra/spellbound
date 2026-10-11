@@ -10,6 +10,7 @@ import "./diceSettings.js";
 import "./tiles.js";
 import "./overlays.js";
 import "./reminders.js";
+import "./settings.js";
 
 loadState();
 

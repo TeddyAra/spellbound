@@ -1,14 +1,81 @@
+/*
+ * Themes. Every colour in the dashboard comes from these variables. The
+ * original dark theme is the default; others are picked in Settings (see
+ * settings.js), which sets data-theme on <html>.
+ */
 :root {
     --bg: #101116;
+    --bg-glow: #1b1d2b;
     --panel: #1b1d25;
     --panel-2: #242733;
+    --button-hover: #303342;
+    --inset: #13151c;
+    --input: #11131a;
+
     --text: #f3f3f5;
     --muted: #a8abb7;
     --accent: #9d7cff;
     --accent-hover: #b094ff;
+    --on-accent: #fff;
     --highlight: #34baeb;
+
     --danger: #d35f6f;
+    --danger-text: #f09aa6;
+    --danger-inset: #1c1418;
+    --success: #4fbf73;
+    --success-text: #7fe0a0;
+
     --border: #3a3d4b;
+    --border-strong: #55596b;
+
+    --backdrop: rgba(0, 0, 0, 0.68);
+    --shadow-rgb: 0, 0, 0;
+
+    --tile-light: #d2dff0;
+    --tile-dark: #c3c0eb;
+    --tile-border: #8d7652;
+    --tile-text: #302616;
+}
+
+/* Blueprint: a drafting-table look, with cream graph paper, cobalt blue, charcoal ink and a little orange */
+:root[data-theme="blueprint"] {
+    --font-body: "Inter Tight", "Segoe UI", system-ui, sans-serif;
+    --font-heading: "Inter Tight", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", Consolas, monospace;
+    --font-hand: "Architects Daughter", "Segoe Print", cursive;
+
+    --bg: #ebe2cd;
+    --bg-glow: #ebe2cd;
+    --grid-line: rgba(45, 45, 45, 0.07);
+    --panel: #f3ecdc;
+    --panel-2: #f7f2e6;
+    --button-hover: #e4e9f7;
+    --inset: #fbf8f0;
+    --input: #fffdf7;
+
+    --text: #2d2d2d;
+    --muted: #6b6658;
+    --accent: #1f4fc9;
+    --accent-hover: #2b5fe0;
+    --on-accent: #f7f2e6;
+    --highlight: #e8592b;
+
+    --danger: #c8432b;
+    --danger-text: #9e2f1c;
+    --danger-inset: #f6e0d8;
+    --success: #2f7d4f;
+    --success-text: #23603c;
+
+    --border: #9a9483;
+    --border-strong: #2d2d2d;
+
+    --backdrop: rgba(24, 38, 82, 0.45);
+    --shadow-rgb: 24, 38, 82;
+
+    --tile-light: #fffdf6;
+    --tile-dark: #f1eadb;
+    --tile-border: #2d2d2d;
+    --tile-text: #2d2d2d;
 }
 
 * {
@@ -28,7 +95,7 @@ body {
     background:
         radial-gradient(
             circle at 50% 30%,
-            #1b1d2b 0%,
+            var(--bg-glow) 0%,
             var(--bg) 55%
         );
 
@@ -67,8 +134,8 @@ button {
 }
 
 button:hover {
-    background: #303342;
-    border-color: #474a5a;
+    background: var(--button-hover);
+    border-color: var(--border-strong);
 }
 
 button:active {
@@ -89,7 +156,7 @@ button:disabled {
 .primary {
     background: var(--accent);
     border-color: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
 }
 
 .primary:hover {
@@ -98,11 +165,11 @@ button:disabled {
 }
 
 .danger {
-    border-color: rgba(211, 95, 111, 0.45);
+    border-color: color-mix(in srgb, var(--danger) 45%, transparent);
 }
 
 .danger:hover {
-    border-color: rgba(211, 95, 111, 0.65);
+    border-color: color-mix(in srgb, var(--danger) 65%, transparent);
 }
 
 .roll-divider {
@@ -189,7 +256,7 @@ button:disabled {
     height: 34px;
 
     fill: none;
-    stroke: #fff;
+    stroke: var(--on-accent);
     stroke-width: 1.8;
     stroke-linejoin: round;
 
@@ -197,7 +264,7 @@ button:disabled {
 }
 
 .icon-button svg .pip {
-    fill: #fff;
+    fill: var(--on-accent);
     stroke: none;
 }
 
@@ -313,7 +380,7 @@ button:disabled {
 .quick-roll button:hover {
     background: var(--accent);
     border-color: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
 }
 
 /* Buttons in two columns: AC / Initiative, schools, dice */
@@ -338,7 +405,7 @@ button:disabled {
 
     padding: 20px;
 
-    background: rgba(0, 0, 0, 0.68);
+    background: var(--backdrop);
 }
 
 .modal {
@@ -358,7 +425,7 @@ button:disabled {
     border: 1px solid var(--border);
     border-radius: 14px;
 
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 24px 80px rgba(var(--shadow-rgb), 0.55);
 }
 
 .modal h2 {
@@ -375,7 +442,7 @@ button:disabled {
     border: 1px solid var(--border);
     border-radius: 7px;
 
-    background: #11131a;
+    background: var(--input);
     color: var(--text);
 }
 
@@ -481,7 +548,7 @@ button:disabled {
     padding: 10px 12px;
     margin: 10px 0;
 
-    background: #13151c;
+    background: var(--inset);
 
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -495,7 +562,7 @@ button:disabled {
     margin-top: 15px;
     padding: 12px;
 
-    background: #13151c;
+    background: var(--inset);
 
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -524,17 +591,17 @@ button:disabled {
     display: grid;
     place-items: center;
 
-    border: 1px solid #464a5a;
+    border: 1px solid var(--border-strong);
     border-radius: 6px;
 
-    background: #2c2f3c;
+    background: var(--panel-2);
 
     font-weight: 700;
 }
 
 .die.high {
     border-color: var(--accent);
-    color: #fff;
+    color: var(--text);
 }
 
 /* =========================================================
@@ -572,8 +639,8 @@ button:disabled {
 }
 
 #tileSelectionGrid label:hover {
-    background: #303342;
-    border-color: #55596b;
+    background: var(--button-hover);
+    border-color: var(--border-strong);
 }
 
 /* The checkbox itself is invisible; the whole label acts as the toggle */
@@ -588,7 +655,7 @@ button:disabled {
 #tileSelectionGrid label:has(input:checked) {
     background: var(--accent);
     border-color: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
 }
 
 @media (max-width: 520px) {
@@ -681,19 +748,19 @@ button:disabled {
     display: grid;
     place-items: center;
 
-    border: 1px solid #8d7652;
+    border: 1px solid var(--tile-border);
     border-radius: 5px;
 
-    background: linear-gradient(135deg, #d2dff0 0%, #c3c0eb 100%);
+    background: linear-gradient(135deg, var(--tile-light) 0%, var(--tile-dark) 100%);
 
-    color: #302616;
+    color: var(--tile-text);
 
     font-family: Georgia, "Times New Roman", serif;
 
     font-size: 27px;
     font-weight: 700;
 
-    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+    box-shadow: 0 3px 7px rgba(var(--shadow-rgb), 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35);
 
     user-select: none;
     -webkit-user-select: none;
@@ -716,7 +783,7 @@ button:disabled {
 
     transform: rotate(0deg) scale(1.08);
 
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+    box-shadow: 0 10px 22px rgba(var(--shadow-rgb), 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.4);
 }
 
 .scrabble-letter-value {
@@ -743,7 +810,7 @@ button:disabled {
 
     background: var(--accent);
 
-    box-shadow: 0 0 8px rgba(157, 124, 255, 0.6);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
 
     pointer-events: none;
 }
@@ -767,7 +834,7 @@ button:disabled {
     border: 2px dashed var(--accent);
     border-radius: 14px;
 
-    background: rgba(157, 124, 255, 0.08);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
 
     color: var(--muted);
 
@@ -784,7 +851,7 @@ button:disabled {
 #safeZone.active {
     border-style: solid;
 
-    background: rgba(157, 124, 255, 0.18);
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
 
     color: var(--text);
 }
@@ -809,7 +876,7 @@ button:disabled {
 
     padding: 8px 8px 8px 14px;
 
-    background: #13151c;
+    background: var(--inset);
 
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -906,7 +973,7 @@ button:disabled {
 
     padding: 10px 14px 12px;
 
-    background: #1c1418;
+    background: var(--danger-inset);
 
     border: 1px solid var(--danger);
     border-radius: 8px;
@@ -934,7 +1001,7 @@ button:disabled {
 }
 
 #deathSaveStatus[data-kind="stable"] {
-    color: #4fbf73;
+    color: var(--success);
 }
 
 #resetDeathSaves {
@@ -972,15 +1039,15 @@ button:disabled {
 }
 
 .death-save-boxes[data-kind="successes"] .death-save-box.checked {
-    border-color: #4fbf73;
-    background: #4fbf73;
-    box-shadow: inset 0 0 0 3px #1c1418;
+    border-color: var(--success);
+    background: var(--success);
+    box-shadow: inset 0 0 0 3px var(--danger-inset);
 }
 
 .death-save-boxes[data-kind="failures"] .death-save-box.checked {
     border-color: var(--danger);
     background: var(--danger);
-    box-shadow: inset 0 0 0 3px #1c1418;
+    box-shadow: inset 0 0 0 3px var(--danger-inset);
 }
 
 #rollDeathSave {
@@ -1063,7 +1130,7 @@ button:disabled {
     border: 1px solid var(--border);
     border-radius: 10px;
 
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 16px 40px rgba(var(--shadow-rgb), 0.6);
 }
 
 .color-grid {
@@ -1082,11 +1149,11 @@ button:disabled {
 }
 
 .color-tile:hover {
-    border-color: #fff;
+    border-color: var(--text);
 }
 
 .color-tile.selected {
-    border-color: #fff;
+    border-color: var(--text);
     box-shadow: 0 0 0 2px var(--accent);
 }
 
@@ -1153,7 +1220,7 @@ button:disabled {
 .dice-finish.selected {
     border-color: var(--accent);
     box-shadow: inset 0 0 0 1px var(--accent);
-    color: #fff;
+    color: var(--text);
 }
 
 /* =========================================================
@@ -1299,7 +1366,7 @@ button:disabled {
     border: 1px solid var(--accent);
     border-radius: 12px;
 
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 12px 40px rgba(var(--shadow-rgb), 0.5);
 
     z-index: 15;
 }
@@ -1483,7 +1550,7 @@ select.modal-input {
 .mode-buttons button.selected {
     background: var(--accent);
     border-color: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
 }
 
 #rollSetupDice {
@@ -1501,19 +1568,19 @@ select.modal-input {
 }
 
 .outcome.success {
-    background: rgba(79, 191, 115, 0.15);
-    border: 1px solid #4fbf73;
-    color: #7fe0a0;
+    background: color-mix(in srgb, var(--success) 15%, transparent);
+    border: 1px solid var(--success);
+    color: var(--success-text);
 }
 
 .outcome.failure {
-    background: rgba(211, 95, 111, 0.15);
+    background: color-mix(in srgb, var(--danger) 15%, transparent);
     border: 1px solid var(--danger);
-    color: #f09aa6;
+    color: var(--danger-text);
 }
 
 .outcome.unknown {
-    background: #13151c;
+    background: var(--inset);
     border: 1px solid var(--border);
     color: var(--muted);
 }
@@ -1532,11 +1599,11 @@ button.die {
 }
 
 button.die:disabled {
-    background: #2c2f3c;
+    background: var(--panel-2);
 }
 
 .die.meets-dc {
-    box-shadow: 0 0 0 2px #4fbf73;
+    box-shadow: 0 0 0 2px var(--success);
 }
 
 .die.rerolled {
@@ -1563,7 +1630,7 @@ button.die:disabled {
 .feature-card {
     padding: 10px 12px;
 
-    background: #13151c;
+    background: var(--inset);
 
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -1606,7 +1673,7 @@ button.die:disabled {
 
     padding: 8px 12px;
 
-    background: #13151c;
+    background: var(--inset);
 
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -1699,7 +1766,7 @@ div.feat-row {
     border-radius: 10px;
 
     background: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
 
     font-size: 11px;
     font-weight: 800;
@@ -2018,7 +2085,7 @@ select.modal-input:disabled {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: #55596b;
+    background-color: var(--border-strong);
 }
 
 ::-webkit-scrollbar-corner {
@@ -2049,4 +2116,327 @@ select.modal-input:disabled {
     padding: 12px var(--modal-padding) var(--modal-padding-bottom);
 
     background: var(--panel);
+}
+
+/* =========================================================
+   BLUEPRINT THEME
+   ========================================================= */
+
+/* Cream graph paper: a fine grid, with a heavier line every fifth square */
+:root[data-theme="blueprint"] body {
+    background-color: var(--bg);
+    background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(rgba(45, 45, 45, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(45, 45, 45, 0.05) 1px, transparent 1px);
+    background-size: 12px 12px, 12px 12px, 60px 60px, 60px 60px;
+
+    font-family: var(--font-body);
+}
+
+:root[data-theme="blueprint"] button,
+:root[data-theme="blueprint"] input,
+:root[data-theme="blueprint"] select {
+    font-family: var(--font-body);
+}
+
+/* Flat and nearly square, with thin ink outlines */
+:root[data-theme="blueprint"] button,
+:root[data-theme="blueprint"] .roll-button,
+:root[data-theme="blueprint"] .stat-box,
+:root[data-theme="blueprint"] .modal-input,
+:root[data-theme="blueprint"] .result-row,
+:root[data-theme="blueprint"] .rolls,
+:root[data-theme="blueprint"] .feature-card,
+:root[data-theme="blueprint"] .feat-row,
+:root[data-theme="blueprint"] .item-card,
+:root[data-theme="blueprint"] .die,
+:root[data-theme="blueprint"] .outcome {
+    border-radius: 3px;
+}
+
+:root[data-theme="blueprint"] button {
+    border-color: var(--border);
+}
+
+:root[data-theme="blueprint"] button:hover {
+    border-color: var(--border-strong);
+}
+
+:root[data-theme="blueprint"] .roll-button,
+:root[data-theme="blueprint"] .stat-box {
+    border-color: var(--border-strong);
+}
+
+/* Main buttons: cobalt, with monospace labels like the reference's call to action */
+:root[data-theme="blueprint"] .primary,
+:root[data-theme="blueprint"] .mode-buttons button.selected {
+    border-color: var(--accent);
+
+    font-family: var(--font-mono);
+    font-weight: 600;
+}
+
+/* Headings: a big, tight grotesk */
+:root[data-theme="blueprint"] .modal h2,
+:root[data-theme="blueprint"] .modal h3,
+:root[data-theme="blueprint"] #characterHeader strong,
+:root[data-theme="blueprint"] #actionTitle {
+    font-family: var(--font-heading);
+    font-weight: 600;
+
+    letter-spacing: -0.02em;
+}
+
+:root[data-theme="blueprint"] .modal h2 {
+    font-size: 30px;
+}
+
+:root[data-theme="blueprint"] #characterHeader strong {
+    font-size: 22px;
+}
+
+/* Small labels in monospace caps, like the reference's navigation */
+:root[data-theme="blueprint"] .rolls-title,
+:root[data-theme="blueprint"] .rank-grid-head,
+:root[data-theme="blueprint"] .stat-box > span,
+:root[data-theme="blueprint"] .death-saves-header > span:first-child,
+:root[data-theme="blueprint"] .school-rank small,
+:root[data-theme="blueprint"] #tileControls .roll-button,
+:root[data-theme="blueprint"] .dice-button span,
+:root[data-theme="blueprint"] #rollD100Button span {
+    font-family: var(--font-mono);
+
+    letter-spacing: 0.04em;
+}
+
+:root[data-theme="blueprint"] .rolls-title,
+:root[data-theme="blueprint"] .rank-grid-head,
+:root[data-theme="blueprint"] .stat-box > span {
+    color: var(--muted);
+
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+:root[data-theme="blueprint"] #tileControls .roll-button {
+    font-size: 14px;
+}
+
+/* Handwritten notes in the margins */
+:root[data-theme="blueprint"] #characterClassDisplay,
+:root[data-theme="blueprint"] .tile-hint,
+:root[data-theme="blueprint"] #safeZone,
+:root[data-theme="blueprint"] .settings-note {
+    font-family: var(--font-hand);
+
+    color: var(--muted);
+}
+
+:root[data-theme="blueprint"] #characterClassDisplay {
+    font-size: 15px;
+}
+
+:root[data-theme="blueprint"] .tile-hint {
+    font-size: 13px;
+}
+
+:root[data-theme="blueprint"] #safeZone {
+    color: var(--accent);
+
+    font-size: 17px;
+    letter-spacing: 0.08em;
+}
+
+/* Ink rules */
+:root[data-theme="blueprint"] .roll-divider {
+    height: 1px;
+
+    border: 0;
+
+    background: var(--border-strong);
+}
+
+/* The square icon buttons from the reference's logo: cobalt tiles with white icons */
+:root[data-theme="blueprint"] .icon-button {
+    border-radius: 4px;
+    border-color: var(--accent);
+
+    background: var(--accent);
+}
+
+:root[data-theme="blueprint"] .icon-button:hover {
+    border-color: var(--accent-hover);
+
+    background: var(--accent-hover);
+}
+
+:root[data-theme="blueprint"] .badge {
+    border-color: var(--bg);
+    border-radius: 3px;
+
+    background: var(--highlight);
+
+    font-family: var(--font-mono);
+}
+
+/* Windows: a sheet laid on the drawing board, with a hard offset shadow */
+:root[data-theme="blueprint"] .modal {
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+
+    box-shadow: 6px 6px 0 rgba(var(--shadow-rgb), 0.35);
+}
+
+:root[data-theme="blueprint"] .modal-input {
+    border-color: var(--border);
+}
+
+:root[data-theme="blueprint"] .modal-input:focus {
+    border-color: var(--accent);
+}
+
+:root[data-theme="blueprint"] .die.high {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+
+    color: var(--accent);
+}
+
+/* The current action: a cobalt panel, like the reference's illustration */
+:root[data-theme="blueprint"] #actionPanel {
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+
+    background: var(--accent);
+    color: var(--on-accent);
+
+    box-shadow: 6px 6px 0 rgba(var(--shadow-rgb), 0.3);
+}
+
+:root[data-theme="blueprint"] #actionPanel #actionTitle,
+:root[data-theme="blueprint"] #actionPanel #actionHint,
+:root[data-theme="blueprint"] #actionPanel .check-row,
+:root[data-theme="blueprint"] #actionPanel .item-discard {
+    color: var(--on-accent);
+}
+
+:root[data-theme="blueprint"] #actionButtons button {
+    border-color: var(--on-accent);
+
+    background: transparent;
+    color: var(--on-accent);
+}
+
+:root[data-theme="blueprint"] #actionButtons button.primary {
+    background: var(--on-accent);
+    color: var(--accent);
+}
+
+:root[data-theme="blueprint"] #actionButtons button:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+:root[data-theme="blueprint"] #actionButtons button.primary:hover {
+    background: #fff;
+}
+
+/* Letter tiles: little cards with ink outlines and a hard shadow */
+:root[data-theme="blueprint"] .scrabble-letter {
+    border-radius: 3px;
+
+    box-shadow: 2px 2px 0 rgba(var(--shadow-rgb), 0.35);
+}
+
+:root[data-theme="blueprint"] .scrabble-letter.dragging {
+    box-shadow: 5px 5px 0 rgba(var(--shadow-rgb), 0.35);
+}
+
+:root[data-theme="blueprint"] .word-underline {
+    height: 3px;
+
+    box-shadow: none;
+}
+
+:root[data-theme="blueprint"] #safeZone {
+    border-radius: 4px;
+}
+
+/* The cobalt frame around the sheet, as in the reference */
+:root[data-theme="blueprint"] body::after {
+    content: "";
+
+    position: fixed;
+    inset: 0;
+
+    z-index: 9998;
+
+    border: 6px solid var(--accent);
+
+    pointer-events: none;
+}
+
+/* Tile letters in the heading grotesk instead of a serif */
+:root[data-theme="blueprint"] .scrabble-letter {
+    font-family: var(--font-heading);
+    font-weight: 600;
+}
+
+/* =========================================================
+   SETTINGS (see settings.js)
+   ========================================================= */
+
+/* Five round buttons now share the menu's width */
+.icon-button {
+    width: 56px;
+    height: 56px;
+}
+
+.icon-button img,
+.icon-button svg {
+    width: 30px;
+    height: 30px;
+}
+
+.theme-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.theme-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+
+    padding: 12px;
+
+    text-align: left;
+}
+
+.theme-option.selected {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.theme-option .result-label {
+    font-size: 13px;
+}
+
+/* A little preview of the theme's colours */
+.theme-swatches {
+    display: flex;
+    gap: 4px;
+
+    margin-bottom: 6px;
+}
+
+.theme-swatch {
+    width: 22px;
+    height: 22px;
+
+    border: 1px solid rgba(128, 128, 128, 0.5);
+    border-radius: 4px;
 }
