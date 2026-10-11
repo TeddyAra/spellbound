@@ -1,6 +1,6 @@
 /*
  * Themes. Every colour in the dashboard comes from these variables. The
- * original dark theme is the default; others are picked in Settings (see
+ * dark theme is the default; others are picked in Settings (see
  * settings.js), which sets data-theme on <html>.
  */
 :root {
@@ -2444,7 +2444,7 @@ select.modal-input:disabled {
    LIGHT THEME
    ========================================================= */
 
-/* The original, flipped: light greys with the same violet */
+/* The dark theme, flipped: light greys with the same violet */
 :root[data-theme="light"] {
     --bg: #f5f5f9;
     --bg-glow: #ffffff;
@@ -3005,6 +3005,244 @@ select.modal-input:disabled {
     height: 2px;
 
     box-shadow: none;
+}
+
+/* =========================================================
+   BEYOND THEME
+   ========================================================= */
+
+/* Like the D&D Beyond character sheet: dark slate, framed boxes, condensed capitals and a bright blue */
+:root[data-theme="beyond"] {
+    --font-body: "Roboto", "Segoe UI", system-ui, sans-serif;
+    --font-label: "Roboto Condensed", "Arial Narrow", sans-serif;
+
+    --bg: #1d2229;
+    --bg-glow: #2a313a;
+    --panel: #262c34;
+    --panel-2: #1a1e24;
+    --button-hover: #2b333d;
+    --inset: #1b2027;
+    --input: #15191e;
+
+    --text: #eceef1;
+    --muted: #8d97a3;
+    --accent: #1b9af7;
+    --accent-hover: #47aef9;
+    --on-accent: #ffffff;
+    --highlight: #e40712;
+
+    --danger: #e5484d;
+    --danger-text: #ff8a8d;
+    --danger-inset: #2a1719;
+    --success: #3fb950;
+    --success-text: #7ee08f;
+
+    --border: #3d4855;
+    --border-strong: #56636f;
+
+    /* The frames' inner line */
+    --frame: #2f3842;
+
+    --backdrop: rgba(10, 12, 15, 0.7);
+    --shadow-rgb: 0, 0, 0;
+
+    --tile-light: #f4f6f8;
+    --tile-dark: #d9dee4;
+    --tile-border: #3d4855;
+    --tile-text: #1d2229;
+}
+
+/* The lighter band along the top, like the sheet's header */
+:root[data-theme="beyond"] body {
+    background: linear-gradient(var(--bg-glow) 0, var(--bg) 320px) fixed, var(--bg);
+
+    font-family: var(--font-body);
+}
+
+:root[data-theme="beyond"] button,
+:root[data-theme="beyond"] input,
+:root[data-theme="beyond"] select {
+    font-family: var(--font-body);
+}
+
+/* Framed boxes: an outer line, a gap, then a fainter inner line */
+:root[data-theme="beyond"] .roll-button,
+:root[data-theme="beyond"] .stat-box,
+:root[data-theme="beyond"] .result-row,
+:root[data-theme="beyond"] .rolls,
+:root[data-theme="beyond"] .feature-card,
+:root[data-theme="beyond"] .feat-row,
+:root[data-theme="beyond"] .item-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+
+    box-shadow: inset 0 0 0 2px var(--panel-2), inset 0 0 0 3px var(--frame);
+}
+
+:root[data-theme="beyond"] .result-row,
+:root[data-theme="beyond"] .rolls,
+:root[data-theme="beyond"] .feature-card,
+:root[data-theme="beyond"] .feat-row,
+:root[data-theme="beyond"] .item-card {
+    box-shadow: inset 0 0 0 2px var(--inset), inset 0 0 0 3px var(--frame);
+}
+
+:root[data-theme="beyond"] .roll-button:hover,
+:root[data-theme="beyond"] button.stat-box:hover {
+    border-color: var(--accent);
+}
+
+/* Condensed capitals for buttons and labels */
+:root[data-theme="beyond"] .roll-button,
+:root[data-theme="beyond"] .actions button,
+:root[data-theme="beyond"] .button-pair button,
+:root[data-theme="beyond"] .mode-buttons button,
+:root[data-theme="beyond"] #actionButtons button {
+    font-family: var(--font-label);
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/* A touch smaller, so labels like SHORT REST fit in capitals */
+:root[data-theme="beyond"] .roll-button {
+    font-size: 15px;
+}
+
+:root[data-theme="beyond"] .school-rank small,
+:root[data-theme="beyond"] #weaponDieDisplay {
+    text-transform: none;
+}
+
+:root[data-theme="beyond"] .rolls-title,
+:root[data-theme="beyond"] .rank-grid-head,
+:root[data-theme="beyond"] .stat-box > span,
+:root[data-theme="beyond"] .death-saves-header > span:first-child {
+    font-family: var(--font-label);
+    font-weight: 700;
+
+    color: var(--text);
+
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* Big bold numbers, like the sheet's stats */
+:root[data-theme="beyond"] #statGrid .stat-box strong {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+/* Hit points in the sheet's bright blue box */
+:root[data-theme="beyond"] #hpManagerButton {
+    border-color: var(--accent);
+
+    background: var(--accent);
+    box-shadow: none;
+}
+
+:root[data-theme="beyond"] #hpManagerButton > span,
+:root[data-theme="beyond"] #hpManagerButton strong,
+:root[data-theme="beyond"] #hpManagerButton .hp-max,
+:root[data-theme="beyond"] #hpManagerButton #wardDisplay {
+    color: #fff;
+}
+
+:root[data-theme="beyond"] #hpManagerButton:hover {
+    background: var(--accent-hover);
+}
+
+:root[data-theme="beyond"] #hpManagerButton.down {
+    border-color: var(--danger);
+
+    background: var(--danger);
+}
+
+:root[data-theme="beyond"] #hpManagerButton.down #hpCurrentDisplay {
+    color: #fff;
+}
+
+/* Names and window titles: plain and clean */
+:root[data-theme="beyond"] .modal h2,
+:root[data-theme="beyond"] #characterHeader strong,
+:root[data-theme="beyond"] #actionTitle {
+    font-weight: 500;
+}
+
+:root[data-theme="beyond"] .modal h3 {
+    font-family: var(--font-label);
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Header icons: plain white glyphs, no circles */
+:root[data-theme="beyond"] .icon-button {
+    border-color: transparent;
+
+    background: transparent;
+}
+
+:root[data-theme="beyond"] .icon-button:hover {
+    border-color: var(--border);
+
+    background: var(--button-hover);
+}
+
+:root[data-theme="beyond"] .badge {
+    border-color: var(--bg-glow);
+
+    background: var(--highlight);
+}
+
+:root[data-theme="beyond"] .roll-divider {
+    height: 1px;
+
+    border: 0;
+
+    background: var(--border);
+}
+
+:root[data-theme="beyond"] .modal {
+    border-color: var(--border);
+    border-radius: 8px;
+}
+
+:root[data-theme="beyond"] .die {
+    border-color: var(--border-strong);
+    border-radius: 6px;
+
+    background: var(--panel-2);
+}
+
+:root[data-theme="beyond"] .die.high {
+    border-color: var(--accent);
+
+    color: var(--accent);
+}
+
+:root[data-theme="beyond"] #actionPanel {
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+
+    box-shadow: inset 0 0 0 2px var(--panel), inset 0 0 0 3px var(--frame), 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="beyond"] #safeZone {
+    border-color: var(--border-strong);
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.02);
+
+    font-family: var(--font-label);
+}
+
+:root[data-theme="beyond"] .scrabble-letter {
+    font-family: var(--font-label);
+    font-weight: 700;
 }
 
 /* =========================================================

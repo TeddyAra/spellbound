@@ -19,14 +19,15 @@ const THEME_KEY = "spellboundTheme";
 
 // Theme key → name, a short description, and swatches for its preview
 const THEMES = {
+    // Saved as "original", from before it was renamed
     original: {
-        name: "Original",
+        name: "Dark",
         description: "Dark, with violet accents",
         swatches: ["#101116", "#1b1d25", "#9d7cff", "#f3f3f5"]
     },
     light: {
         name: "Light",
-        description: "The original, but light",
+        description: "The dark theme, but light",
         swatches: ["#f5f5f9", "#ffffff", "#7c5cf0", "#16171d"]
     },
     blueprint: {
@@ -38,6 +39,11 @@ const THEMES = {
         name: "Pop",
         description: "Sunny gradient and chunky outlines",
         swatches: ["#f4787f", "#fbef82", "#6be675", "#161616"]
+    },
+    beyond: {
+        name: "Beyond",
+        description: "Dark slate and blue, like D&D Beyond",
+        swatches: ["#1d2229", "#3d4855", "#1b9af7", "#e40712"]
     },
     noir: {
         name: "Noir",
