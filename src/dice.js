@@ -32,7 +32,12 @@ diceFactory.createMaterials = (...args) => {
 
     if (adjust) {
         for (const material of materials) {
-            Object.assign(material, adjust);
+            if (typeof adjust === "function") {
+                adjust(material);
+            } else {
+                Object.assign(material, adjust);
+            }
+
             material.needsUpdate = true;
         }
     }
@@ -169,6 +174,12 @@ export async function rollDiceSets(notation) {
     const style = loadDiceStyle();
 
     adjust = DICE_FINISHES[style.finish].adjust ?? null;
+
+    if (DICE_FINISHES[style.finish].shadows === false) {
+        diceBox.disableShadows();
+    } else {
+        diceBox.enableShadows();
+    }
 
     // The library remembers painted faces by their colour, and every two-tone swirl looks the same to it
     diceFactory.materials_cache = {};

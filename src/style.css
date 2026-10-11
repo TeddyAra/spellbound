@@ -3070,3 +3070,11 @@ select.modal-input:disabled {
 .confirm-modal .settings-note {
     font-size: 15px;
 }
+
+/* A window button that can't be used right now, e.g. Test dice with the animation off. Faded rather than recoloured, so it works in every theme */
+.actions button:disabled,
+.button-pair button:disabled {
+    opacity: 0.45;
+
+    cursor: default;
+}

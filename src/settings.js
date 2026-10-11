@@ -120,6 +120,12 @@ function renderThemeOptions() {
 const preferenceControls = settingsOverlay.querySelectorAll("[data-preference]");
 
 function renderPreferences() {
+    // No dice to show when the animation is off
+    const animationOff = preference("diceAnimation") === "off";
+
+    $("testDiceButton").disabled = animationOff;
+    $("testDiceButton").title = animationOff ? "Dice animation is off" : "";
+
     for (const control of preferenceControls) {
         const value = preference(control.dataset.preference);
 
@@ -141,7 +147,10 @@ for (const control of preferenceControls) {
     const key = control.dataset.preference;
 
     if (control.type === "checkbox") {
-        control.addEventListener("change", () => setPreference(key, control.checked));
+        control.addEventListener("change", () => {
+            setPreference(key, control.checked);
+            renderPreferences();
+        });
         continue;
     }
 

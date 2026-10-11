@@ -5,8 +5,9 @@
  *
  * A finish is one of the dice library's materials (how light plays on the dice)
  * with one of its textures (a pattern printed on them); the texture images are
- * in public/dice/textures. `adjust` changes the material after the library
- * made it (see dice.js).
+ * in public/dice/textures. `adjust` changes each material after the library
+ * made it (see dice.js): an object of properties, or a function for more.
+ * `shadows: false` turns off the shadows the dice cast.
  */
 
 const STYLE_KEY = "spellDiceStyle";
@@ -21,6 +22,18 @@ export const RANDOM_COLORS = [
     "#d81128"
 ];
 
+function cartoon(material) {
+    material.bumpMap = null;
+    material.bumpScale = 0;
+
+    material.emissive?.set(0xffffff);
+    material.emissiveMap = material.map;
+    material.emissiveIntensity = 0.6;
+
+    material.specular?.set(0x000000);
+    material.shininess = 0;
+}
+
 // material: "none" (plastic) | "metal" | "wood"
 export const DICE_FINISHES = {
     metal: { name: "Metal", material: "metal", texture: "none" },
@@ -32,7 +45,10 @@ export const DICE_FINISHES = {
     plastic: { name: "Plastic", material: "none", texture: "none" },
     steel: { name: "Brushed steel", material: "metal", texture: "metal" },
     wood: { name: "Wood", material: "wood", texture: "wood" },
-    stars: { name: "Starry", material: "none", texture: "stars" }
+
+    // Flat and simple: the numbers aren't embossed, the dice's own colours light them evenly so
+    // the shading mostly flattens out, nothing shines, and they cast no shadows
+    cartoon: { name: "Cartoon", material: "none", texture: "none", shadows: false, adjust: cartoon }
 };
 
 const DEFAULT_STYLE = { color: "random", twoTone: false, color2: "random", labelColor: "#ffffff", finish: "metal" };
