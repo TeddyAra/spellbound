@@ -1,0 +1,2052 @@
+:root {
+    --bg: #101116;
+    --panel: #1b1d25;
+    --panel-2: #242733;
+    --text: #f3f3f5;
+    --muted: #a8abb7;
+    --accent: #9d7cff;
+    --accent-hover: #b094ff;
+    --highlight: #34baeb;
+    --danger: #d35f6f;
+    --border: #3a3d4b;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    background:
+        radial-gradient(
+            circle at 50% 30%,
+            #1b1d2b 0%,
+            var(--bg) 55%
+        );
+
+    color: var(--text);
+
+    font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    overflow: hidden;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    color: var(--text);
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    background: var(--panel-2);
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s,
+        transform 0.08s,
+        border-color 0.15s;
+}
+
+button:hover {
+    background: #303342;
+    border-color: #474a5a;
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button:disabled {
+    cursor: default;
+
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+.danger {
+    border-color: rgba(211, 95, 111, 0.45);
+}
+
+.danger:hover {
+    border-color: rgba(211, 95, 111, 0.65);
+}
+
+.roll-divider {
+    width: 100%;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 22px;
+}
+
+/* Two side-by-side buttons, e.g. Damage / Heal or Cast / Cancel */
+.button-pair {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+
+    margin-top: 16px;
+}
+
+.actions button,
+.button-pair button {
+    min-width: 120px;
+    min-height: 42px;
+
+    padding: 10px 22px;
+}
+
+/* =========================================================
+   MAIN SCREEN
+   ========================================================= */
+
+#mainScreen {
+    position: relative;
+
+    width: 100vw;
+    height: 100vh;
+}
+
+/* The round buttons in the top left, spread over the width of the menu below */
+#topButtons {
+    position: absolute;
+    left: 18px;
+    top: 18px;
+
+    width: 310px;
+
+    display: flex;
+    justify-content: space-between;
+
+    z-index: 5;
+}
+
+.icon-button {
+    width: 62px;
+    height: 62px;
+
+    display: grid;
+    place-items: center;
+
+    padding: 0;
+
+    border-radius: 50%;
+
+    background: var(--panel);
+}
+
+.icon-button img {
+    display: block;
+
+    width: 34px;
+    height: 34px;
+
+    pointer-events: none;
+    user-select: none;
+}
+
+.icon-button svg {
+    width: 34px;
+    height: 34px;
+
+    fill: none;
+    stroke: #fff;
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+
+    pointer-events: none;
+}
+
+.icon-button svg .pip {
+    fill: #fff;
+    stroke: none;
+}
+
+#rollMenu {
+    position: absolute;
+    left: 18px;
+    top: 96px;
+
+    width: 310px;
+
+    /* On short screens the menu scrolls rather than being cut off */
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+    scrollbar-width: none;
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    padding-bottom: 18px;
+}
+
+.roll-button {
+    width: 100%;
+    min-height: 48px;
+
+    padding: 10px 14px;
+
+    text-align: left;
+
+    font-size: 16px;
+    font-weight: 650;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Slightly shorter buttons in the left menu so it fits on a 1080p screen */
+#rollMenu .roll-button {
+    min-height: 42px;
+
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.roll-button span:first-child {
+    min-width: 0;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.roll-button span:last-child {
+    flex-shrink: 0;
+
+    margin-left: 10px;
+}
+
+/* An empty spell slot, or a signature ability with no uses left */
+.roll-disabled {
+    color: var(--muted);
+    opacity: 0.65;
+}
+
+#wardDisplay {
+    margin-right: 6px;
+
+    color: var(--highlight);
+}
+
+/* =========================================================
+   DICE
+   ========================================================= */
+
+.dice-cell {
+    position: relative;
+}
+
+/* Hovering a die shows quick-roll buttons for 1–6 dice in the right part of its button */
+.quick-roll {
+    position: absolute;
+
+    top: 4px;
+    right: 5px;
+    bottom: 4px;
+
+    width: 66px;
+
+    display: none;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+}
+
+.dice-cell:hover .quick-roll,
+.quick-roll:focus-within {
+    display: grid;
+}
+
+.quick-roll button {
+    padding: 0;
+
+    font-size: 11px;
+
+    background: var(--panel);
+
+    border-radius: 5px;
+
+    font-weight: 700;
+}
+
+.quick-roll button:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+/* Buttons in two columns: AC / Initiative, schools, dice */
+.two-column {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* equal columns, even with long names */
+    gap: 8px;
+}
+
+/* =========================================================
+   OVERLAY
+   ========================================================= */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+
+    display: grid;
+    place-items: center;
+
+    z-index: 20;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.68);
+}
+
+.modal {
+    width: min(560px, 94vw);
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    --modal-padding: 22px;
+    --modal-padding-bottom: 22px;
+
+    padding: var(--modal-padding);
+    padding-bottom: var(--modal-padding-bottom);
+
+    background: var(--panel);
+
+    border: 1px solid var(--border);
+    border-radius: 14px;
+
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+
+.modal h2 {
+    margin: 0 0 18px;
+
+    font-size: 22px;
+}
+
+.modal-input {
+    width: 100%;
+
+    padding: 8px 9px;
+
+    border: 1px solid var(--border);
+    border-radius: 7px;
+
+    background: #11131a;
+    color: var(--text);
+}
+
+.modal-input:focus {
+    outline: none;
+
+    border-color: var(--accent);
+}
+
+.modal-input:disabled {
+    color: var(--muted);
+    opacity: 0.7;
+}
+
+.modal-element {
+    display: grid;
+
+    grid-template-columns: 1fr 110px;
+    margin: 8px 0;
+
+    align-items: center;
+}
+
+/* =========================================================
+   CHARACTER SETTINGS
+   ========================================================= */
+
+#characterSchoolGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 30px;
+
+    position: relative;
+}
+
+#characterSchoolGrid::after {
+    content: "";
+    position: absolute;
+
+    top: 0;
+    bottom: 0;
+    left: 50%;
+
+    width: 1px;
+
+    background: var(--border);
+}
+
+#characterSchoolGrid .modal-element {
+    margin: 0;
+}
+
+/* The Passion school's name, typed by the player, in place of a label */
+.school-name-input {
+    width: calc(100% - 8px);
+
+    padding: 5px 8px;
+}
+
+.spell-slot-settings {
+    display: grid;
+    gap: 12px;
+
+    margin: 10px 0 18px;
+}
+
+.spell-slot-setting {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 60px 80px;
+    gap: 8px;
+
+    align-items: center;
+}
+
+/* =========================================================
+   HEALTH POINTS
+   ========================================================= */
+
+#currentHP {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 8px;
+
+    margin: 20px 0 26px;
+
+    font-size: 18px;
+}
+
+#currentHP strong {
+    font-size: 32px;
+}
+
+/* =========================================================
+   RESULTS
+   ========================================================= */
+
+.result-row {
+    display: flex;
+
+    justify-content: space-between;
+
+    padding: 10px 12px;
+    margin: 10px 0;
+
+    background: #13151c;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.result-label {
+    color: var(--muted);
+}
+
+.rolls {
+    margin-top: 15px;
+    padding: 12px;
+
+    background: #13151c;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.rolls-title {
+    margin-bottom: 8px;
+
+    color: var(--muted);
+
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.dice-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.die {
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid #464a5a;
+    border-radius: 6px;
+
+    background: #2c2f3c;
+
+    font-weight: 700;
+}
+
+.die.high {
+    border-color: var(--accent);
+    color: #fff;
+}
+
+/* =========================================================
+   TILE SELECTION
+   ========================================================= */
+
+#tileSelectionGrid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 6px;
+
+    margin-top: 14px;
+}
+
+#tileSelectionGrid label {
+    position: relative;
+
+    min-height: 38px;
+
+    display: grid;
+    place-items: center;
+
+    padding: 5px;
+
+    border: 1px solid var(--border);
+    border-radius: 7px;
+
+    background: var(--panel-2);
+
+    cursor: pointer;
+
+    font-weight: 700;
+
+    user-select: none;
+}
+
+#tileSelectionGrid label:hover {
+    background: #303342;
+    border-color: #55596b;
+}
+
+/* The checkbox itself is invisible; the whole label acts as the toggle */
+#tileSelectionGrid input {
+    position: absolute;
+
+    opacity: 0;
+
+    pointer-events: none;
+}
+
+#tileSelectionGrid label:has(input:checked) {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+@media (max-width: 520px) {
+    .spell-slot-setting {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    #tileSelectionGrid {
+        grid-template-columns: repeat(7, 1fr);
+    }
+}
+
+/* =========================================================
+   FULL-SCREEN 3D DICE
+   ========================================================= */
+
+.dice-overlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 9999;
+
+    overflow: hidden;
+
+    background: transparent;
+}
+
+#diceBox {
+    position: absolute;
+    inset: 0;
+
+    overflow: hidden;
+
+    pointer-events: none;
+}
+
+#diceBox canvas {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    display: block;
+
+    width: 100% !important;
+    height: 100% !important;
+
+    max-width: none;
+    max-height: none;
+}
+
+/* =========================================================
+   TILE CONTROLS
+   ========================================================= */
+
+#tileControls {
+    position: fixed;
+
+    top: 20px;
+    right: 20px;
+
+    z-index: 15;
+}
+
+#tileControls .roll-button {
+    margin: 8px 0;
+}
+
+/* =========================================================
+   SCRABBLE TILES
+   ========================================================= */
+
+#letterBoard {
+    position: fixed;
+    inset: 0;
+
+    z-index: 10;
+
+    pointer-events: none;
+
+    overflow: hidden;
+}
+
+.scrabble-letter {
+    position: absolute;
+
+    width: 48px;
+    height: 48px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid #8d7652;
+    border-radius: 5px;
+
+    background: linear-gradient(135deg, #d2dff0 0%, #c3c0eb 100%);
+
+    color: #302616;
+
+    font-family: Georgia, "Times New Roman", serif;
+
+    font-size: 27px;
+    font-weight: 700;
+
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+
+    user-select: none;
+    -webkit-user-select: none;
+
+    cursor: grab;
+
+    pointer-events: auto;
+
+    touch-action: none;
+
+    transform: rotate(var(--rotation));
+
+    transition: box-shadow 0.12s, transform 0.12s;
+}
+
+.scrabble-letter.dragging {
+    cursor: grabbing;
+
+    z-index: 10000;
+
+    transform: rotate(0deg) scale(1.08);
+
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.scrabble-letter-value {
+    position: absolute;
+
+    right: 4px;
+    bottom: 2px;
+
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    line-height: 1;
+}
+
+/* Under tiles that spell a word (see words.js) */
+.word-underline {
+    position: absolute;
+
+    height: 4px;
+
+    border-radius: 2px;
+
+    background: var(--accent);
+
+    box-shadow: 0 0 8px rgba(157, 124, 255, 0.6);
+
+    pointer-events: none;
+}
+
+/* =========================================================
+   SAFE ZONE
+   ========================================================= */
+
+#safeZone {
+    position: fixed;
+
+    right: 20px;
+    bottom: 20px;
+
+    width: 260px;
+    height: 180px;
+
+    display: grid;
+    place-items: center;
+
+    border: 2px dashed var(--accent);
+    border-radius: 14px;
+
+    background: rgba(157, 124, 255, 0.08);
+
+    color: var(--muted);
+
+    font-size: 13px;
+    font-weight: 700;
+
+    letter-spacing: 0.1em;
+
+    pointer-events: none;
+
+    z-index: 9;
+}
+
+#safeZone.active {
+    border-style: solid;
+
+    background: rgba(157, 124, 255, 0.18);
+
+    color: var(--text);
+}
+
+/* =========================================================
+   INVENTORY
+   ========================================================= */
+
+#inventoryList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.item-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 8px 8px 8px 14px;
+
+    background: #13151c;
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.item-card.active {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.item-name {
+    flex: 1;
+    min-width: 0;
+
+    font-weight: 700;
+}
+
+.item-count {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 14px;
+}
+
+.item-count .modal-input {
+    width: 64px;
+}
+
+.item-card > button:not(.item-discard) {
+    width: 110px;
+
+    padding: 8px;
+}
+
+.item-discard {
+    width: 28px;
+    height: 28px;
+
+    flex-shrink: 0;
+
+    padding: 0;
+
+    border: none;
+
+    background: none;
+
+    color: var(--muted);
+}
+
+.item-discard:hover {
+    background: none;
+    color: var(--danger);
+}
+
+@media (max-width: 520px) {
+    .item-card {
+        flex-wrap: wrap;
+    }
+
+    .item-name {
+        flex-basis: 100%;
+    }
+}
+
+#addItemForm {
+    display: grid;
+    grid-template-columns: 1fr 70px auto;
+    gap: 10px;
+
+    align-items: center;
+}
+
+#addItemForm button {
+    padding: 8px 16px;
+}
+
+/* =========================================================
+   DEATH SAVES (at 0 HP; see deathSaves.js)
+   ========================================================= */
+
+#hpManagerButton.down {
+    border-color: var(--danger);
+}
+
+#hpManagerButton.down #hpCurrentDisplay {
+    color: var(--danger);
+}
+
+#deathSaves {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    padding: 10px 14px 12px;
+
+    background: #1c1418;
+
+    border: 1px solid var(--danger);
+    border-radius: 8px;
+}
+
+.death-saves-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.death-saves-header > span:first-child {
+    color: var(--muted);
+}
+
+#deathSaveStatus {
+    flex: 1;
+
+    color: var(--danger);
+}
+
+#deathSaveStatus[data-kind="stable"] {
+    color: #4fbf73;
+}
+
+#resetDeathSaves {
+    padding: 3px 9px;
+
+    font-size: 12px;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.death-save-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    font-size: 15px;
+    font-weight: 650;
+}
+
+.death-save-boxes {
+    display: flex;
+    gap: 8px;
+}
+
+.death-save-box {
+    width: 22px;
+    height: 22px;
+
+    padding: 0;
+
+    border: 2px solid var(--muted);
+    border-radius: 50%;
+
+    background: none;
+}
+
+.death-save-boxes[data-kind="successes"] .death-save-box.checked {
+    border-color: #4fbf73;
+    background: #4fbf73;
+    box-shadow: inset 0 0 0 3px #1c1418;
+}
+
+.death-save-boxes[data-kind="failures"] .death-save-box.checked {
+    border-color: var(--danger);
+    background: var(--danger);
+    box-shadow: inset 0 0 0 3px #1c1418;
+}
+
+#rollDeathSave {
+    padding: 8px;
+
+    font-weight: 650;
+}
+
+/* =========================================================
+   DICE SETTINGS (see diceSettings.js)
+   ========================================================= */
+
+#diceSettingsOverlay .rolls-title {
+    margin: 16px 0 10px;
+}
+
+.dice-color-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin: 8px 0;
+}
+
+.dice-two-tone {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin: 12px 0;
+
+    color: var(--muted);
+
+    cursor: pointer;
+}
+
+.dice-two-tone input {
+    width: 18px;
+    height: 18px;
+
+    accent-color: var(--accent);
+}
+
+/* =========================================================
+   COLOUR PICKER (see colorPicker.js)
+   ========================================================= */
+
+.color-button {
+    min-width: 150px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 6px 12px 6px 6px;
+
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+}
+
+.color-button-swatch {
+    width: 26px;
+    height: 26px;
+
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+}
+
+.color-popover {
+    position: fixed;
+
+    z-index: 30;
+
+    width: 244px;
+
+    padding: 10px;
+
+    background: var(--panel);
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+}
+
+.color-tile {
+    aspect-ratio: 1;
+
+    padding: 0;
+
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+}
+
+.color-tile:hover {
+    border-color: #fff;
+}
+
+.color-tile.selected {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px var(--accent);
+}
+
+.color-tile.color-random {
+    width: 100%;
+
+    aspect-ratio: auto;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 8px;
+    padding: 6px;
+
+    background: var(--panel-2);
+
+    font-size: 14px;
+}
+
+.color-custom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-top: 10px;
+    padding: 6px;
+
+    border-radius: 7px;
+
+    background: var(--panel-2);
+
+    cursor: pointer;
+
+    font-size: 14px;
+}
+
+.color-custom input {
+    width: 32px;
+    height: 26px;
+
+    padding: 0;
+
+    border: none;
+
+    background: none;
+
+    cursor: pointer;
+}
+
+/* The finishes in the dice window */
+.dice-finishes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.dice-finish {
+    padding: 8px 6px;
+
+    font-size: 14px;
+}
+
+.dice-finish.selected {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+    color: #fff;
+}
+
+/* =========================================================
+   MAIN SCREEN: CHARACTER
+   ========================================================= */
+
+#characterHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    padding: 2px 4px 4px;
+}
+
+#characterHeader strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-size: 18px;
+}
+
+#characterHeader span {
+    color: var(--muted);
+
+    font-size: 14px;
+}
+
+/* HP, armor, initiative and passive Reveal */
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+
+    padding: 6px 4px;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    background: var(--panel-2);
+
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.stat-box > span {
+    color: var(--muted);
+}
+
+.stat-box strong {
+    font-size: 20px;
+    letter-spacing: 0;
+}
+
+/* Hold the Line */
+.stat-box strong.boosted {
+    color: var(--highlight);
+}
+
+#signaturePanel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#signatureButton.active {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+#signatureButton.active #signatureUses,
+#roundsLeftDisplay {
+    color: var(--accent);
+}
+
+/* A number between - and + buttons */
+.counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.counter button {
+    width: 28px;
+    height: 28px;
+
+    padding: 0;
+
+    font-weight: 700;
+}
+
+.counter strong {
+    min-width: 28px;
+
+    text-align: center;
+}
+
+#glyphCounter {
+    cursor: default;
+}
+
+/* The pool and rank on a school or saved spell button */
+.school-rank small {
+    margin-right: 4px;
+
+    color: var(--muted);
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+#savedSpells {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#rollMenu > .rolls-title {
+    margin: 0 0 -2px 4px;
+}
+
+/* =========================================================
+   CURRENT ACTION (see casting.js)
+   ========================================================= */
+
+#actionPanel {
+    position: fixed;
+
+    top: 18px;
+    left: 50%;
+
+    width: min(520px, calc(100vw - 700px));
+    min-width: 320px;
+
+    padding: 12px 14px 14px;
+
+    transform: translateX(-50%);
+
+    background: var(--panel);
+
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+
+    z-index: 15;
+}
+
+#actionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+#actionHint {
+    margin: 4px 0 10px;
+
+    font-size: 14px;
+}
+
+#actionButtons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+#actionButtons button {
+    padding: 8px 14px;
+
+    font-weight: 650;
+}
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+
+.modal.wide {
+    width: min(680px, 94vw);
+}
+
+.modal h3 {
+    margin: 0;
+
+    font-size: 17px;
+}
+
+.settings-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+
+    margin-bottom: 10px;
+}
+
+.settings-heading .result-label {
+    font-size: 14px;
+}
+
+.warning {
+    color: var(--danger) !important;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px 12px;
+
+    align-items: center;
+
+    margin: 10px 0;
+}
+
+.settings-note {
+    margin: 10px 0;
+
+    color: var(--muted);
+
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+select.modal-input {
+    cursor: pointer;
+}
+
+.input-with-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.input-with-button .modal-input:first-child {
+    max-width: 110px;
+}
+
+#weaponNameInput {
+    max-width: none !important;
+}
+
+.input-with-button button {
+    padding: 7px 12px;
+}
+
+.input-with-button .result-label {
+    font-size: 13px;
+}
+
+#rankGrid {
+    display: grid;
+    grid-template-columns: 1fr 80px 70px 110px;
+    gap: 6px 12px;
+
+    align-items: center;
+}
+
+.rank-grid-head {
+    color: var(--muted);
+
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.rank-school {
+    font-weight: 650;
+}
+
+#spellSlotSettings {
+    display: grid;
+    gap: 8px;
+}
+
+#spellSlotSettings .spell-slot-setting {
+    grid-template-columns: 22px 1fr 130px 70px 28px;
+}
+
+.check-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin: 8px 0;
+
+    color: var(--muted);
+
+    cursor: pointer;
+}
+
+.check-row input {
+    width: 18px;
+    height: 18px;
+
+    accent-color: var(--accent);
+}
+
+#damageMessage {
+    min-height: 1.2em;
+
+    text-align: center;
+}
+
+/* =========================================================
+   PRE-TURN ROLL
+   ========================================================= */
+
+#rollSetupPool {
+    margin: -10px 0 14px;
+}
+
+.mode-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.mode-buttons button {
+    padding: 7px 12px;
+}
+
+.mode-buttons button.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+#rollSetupDice {
+    margin: 12px 0 0;
+
+    text-align: center;
+}
+
+.outcome {
+    padding: 10px 12px;
+
+    border-radius: 8px;
+
+    font-weight: 700;
+}
+
+.outcome.success {
+    background: rgba(79, 191, 115, 0.15);
+    border: 1px solid #4fbf73;
+    color: #7fe0a0;
+}
+
+.outcome.failure {
+    background: rgba(211, 95, 111, 0.15);
+    border: 1px solid var(--danger);
+    color: #f09aa6;
+}
+
+.outcome.unknown {
+    background: #13151c;
+    border: 1px solid var(--border);
+    color: var(--muted);
+}
+
+.result-note {
+    color: var(--muted);
+
+    font-weight: 500;
+}
+
+/* Result dice can be clicked to reroll them */
+button.die {
+    padding: 0;
+
+    color: var(--text);
+}
+
+button.die:disabled {
+    background: #2c2f3c;
+}
+
+.die.meets-dc {
+    box-shadow: 0 0 0 2px #4fbf73;
+}
+
+.die.rerolled {
+    border-style: dashed;
+    opacity: 0.8;
+}
+
+#rerollHint {
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* =========================================================
+   FEATURES AND FEATS (see features.js)
+   ========================================================= */
+
+#featureList,
+#featList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.feature-card {
+    padding: 10px 12px;
+
+    background: #13151c;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.feature-card.locked {
+    opacity: 0.45;
+}
+
+.feature-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.feature-level {
+    color: var(--muted);
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.feature-card p {
+    margin: 4px 0 0;
+
+    color: var(--muted);
+
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.feature-group {
+    margin: 10px 0 0;
+}
+
+.feat-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 8px 12px;
+
+    background: #13151c;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    cursor: pointer;
+}
+
+div.feat-row {
+    cursor: default;
+}
+
+.feat-row.taken {
+    border-color: var(--accent);
+}
+
+.feat-row.locked {
+    opacity: 0.45;
+}
+
+.feat-row input {
+    width: 18px;
+    height: 18px;
+
+    flex-shrink: 0;
+
+    accent-color: var(--accent);
+}
+
+.feat-text {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    font-size: 14px;
+}
+
+/* =========================================================
+   TILES
+   ========================================================= */
+
+.tile-hint {
+    width: 150px;
+    margin: 4px 0 0;
+
+    color: var(--muted);
+
+    font-size: 12px;
+}
+
+@media (max-width: 620px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #rankGrid {
+        grid-template-columns: 1fr 60px 50px 70px;
+    }
+
+    #spellSlotSettings .spell-slot-setting {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* =========================================================
+   REMINDERS (see reminders.js)
+   ========================================================= */
+
+/* Something left to choose behind a top button */
+.icon-button {
+    position: relative;
+}
+
+.badge {
+    position: absolute;
+
+    top: -2px;
+    right: -2px;
+
+    min-width: 20px;
+    height: 20px;
+
+    display: grid;
+    place-items: center;
+
+    padding: 0 5px;
+
+    border: 2px solid var(--bg);
+    border-radius: 10px;
+
+    background: var(--accent);
+    color: #fff;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    pointer-events: none;
+}
+
+.modal-input.needs-attention {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.settings-heading .attention {
+    color: var(--accent-hover);
+    font-weight: 650;
+}
+
+/* =========================================================
+   RANK POINTS (see character.js)
+   ========================================================= */
+
+#rankGrid {
+    grid-template-columns: 1fr 110px 50px 50px 60px 50px;
+}
+
+.rank-total {
+    font-size: 17px;
+}
+
+/* Hover shows where the limit comes from */
+.rank-limit {
+    cursor: help;
+}
+
+#rankChoices {
+    margin-top: 0;
+}
+
+#rankChoices .input-with-button,
+.trained-schools {
+    flex-wrap: wrap;
+}
+
+#rankChoices select {
+    width: auto;
+    max-width: none;
+}
+
+.settings-label {
+    font-weight: 400;
+}
+
+.result-label.small {
+    font-size: 13px;
+}
+
+.trained-schools {
+    display: flex;
+    gap: 6px;
+
+    margin-top: 6px;
+}
+
+.trained-schools select {
+    width: auto;
+}
+
+select.modal-input:disabled {
+    cursor: default;
+}
+
+.input-with-button .check-row {
+    margin: 0;
+
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#armorInput,
+#weaponDieInput {
+    width: auto;
+}
+
+@media (max-width: 620px) {
+    #rankGrid {
+        grid-template-columns: 1fr 100px 36px 36px 50px 36px;
+    }
+}
+
+/* =========================================================
+   FITTING A 1080P SCREEN
+   ========================================================= */
+
+/* Character settings in two columns */
+#characterOverlay .modal {
+    width: min(1120px, 96vw);
+}
+
+.settings-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 36px;
+
+    position: relative;
+}
+
+.settings-columns::after {
+    content: "";
+    position: absolute;
+
+    top: 0;
+    bottom: 0;
+    left: 50%;
+
+    width: 1px;
+
+    background: var(--border);
+}
+
+.settings-column > .settings-grid:first-child {
+    margin-top: 0;
+}
+
+.settings-column h3 {
+    margin-bottom: 10px;
+}
+
+#characterOverlay .actions {
+    margin-top: 0;
+}
+
+/* The points counters and Passion's dash sit under the middle of "Points" */
+#rankGrid > :nth-child(6n + 2) {
+    justify-self: center;
+}
+
+#rankGrid {
+    gap: 4px 12px;
+}
+
+#rankGrid .counter button {
+    width: 26px;
+    height: 26px;
+}
+
+@media (max-width: 900px) {
+    .settings-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-columns::after {
+        display: none;
+    }
+}
+
+/* The dice sit under the tile buttons on the right, so the left menu fits */
+/* As wide as the safe zone, so the quick-roll buttons leave room for the die names */
+#tileControls {
+    width: 260px;
+}
+
+#tileControls .roll-button:not(.dice-button) {
+    margin: 0 0 8px;
+}
+
+#tileControls .tile-hint {
+    width: auto;
+    margin: 0 0 14px;
+}
+
+#tileControls #diceGrid .roll-button {
+    margin: 0;
+    min-height: 42px;
+}
+
+/* Saved spells in two columns */
+#savedSpells {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* A tighter settings window */
+#characterOverlay .modal {
+    max-height: calc(100vh - 40px);
+
+    --modal-padding-bottom: 18px;
+
+    padding-top: 18px;
+}
+
+#characterOverlay .modal h2 {
+    margin-bottom: 12px;
+}
+
+#characterOverlay .modal-input {
+    padding: 6px 8px;
+}
+
+#characterOverlay .settings-grid {
+    gap: 6px 12px;
+    margin: 6px 0;
+}
+
+#characterOverlay .settings-note {
+    margin: 6px 0;
+}
+
+#characterOverlay .roll-divider {
+    margin: 10px 0;
+}
+
+#spellSlotSettings {
+    gap: 6px;
+}
+
+/* A tighter left menu */
+#rollMenu {
+    gap: 6px;
+}
+
+#rollMenu .roll-button {
+    min-height: 38px;
+
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+#rollMenu .roll-divider {
+    margin: 4px 0;
+}
+
+#savedSpells,
+#signaturePanel {
+    gap: 6px;
+}
+
+/* While downed: no turns, no weapon attacks, and the signature ability has ended */
+#rollMenu.downed #statGrid > :not(#hpManagerButton),
+#rollMenu.downed > #signaturePanel,
+#rollMenu.downed > #weaponButton {
+    display: none;
+}
+
+/* HP, armor, initiative and passive Reveal as a 2x2 grid */
+#statGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+
+#statGrid .stat-box {
+    padding: 5px 4px;
+}
+
+#statGrid .stat-box strong {
+    font-size: 19px;
+    line-height: 1.2;
+}
+
+.hp-max {
+    color: var(--muted);
+
+    font-size: 15px;
+}
+
+#wardDisplay {
+    margin: 0 0 0 4px;
+
+    font-size: 14px;
+}
+
+#wardDisplay:empty {
+    display: none;
+}
+
+/* Downed: HP takes the whole row */
+#rollMenu.downed #hpManagerButton {
+    grid-column: 1 / -1;
+}
+
+/* A die button has just its name, so no gap before it (see .roll-button span:last-child) */
+#diceGrid .roll-button span {
+    margin-left: 0;
+}
+
+/* =========================================================
+   SCROLLBARS
+   ========================================================= */
+
+/*
+ * Thin and dark, like the rest of the dashboard. Firefox only: Chrome and Edge
+ * ignore the rounded ::-webkit-scrollbar styles below when these are set.
+ */
+@supports not selector(::-webkit-scrollbar) {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
+}
+
+/* Chrome, Edge and Safari */
+::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+
+    background: var(--border) padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #55596b;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Windows have rounded corners: the scrollbar stops short of them */
+.modal::-webkit-scrollbar-track {
+    margin: 14px 0;
+}
+
+/*
+ * A window's buttons stay in the bottom right while its content scrolls
+ * underneath them, on the window's own background.
+ */
+.modal > .actions {
+    position: sticky;
+    bottom: calc(-1 * var(--modal-padding-bottom));
+
+    z-index: 1;
+
+    /* With the padding above the buttons, the same 22px gap as before */
+    margin-top: 10px;
+    margin-left: calc(-1 * var(--modal-padding));
+    margin-right: calc(-1 * var(--modal-padding));
+    margin-bottom: calc(-1 * var(--modal-padding-bottom));
+
+    padding: 12px var(--modal-padding) var(--modal-padding-bottom);
+
+    background: var(--panel);
+}

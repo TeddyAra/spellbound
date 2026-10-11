@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Spellbound Dashboard</title>
+        <link rel="icon" type="image/x-icon" href="./imgs/favicon.ico">
+        <link rel="stylesheet" href="./src/style.css">
+    </head>
+
+    <body>
+
+        <!-- =====================================================
+            MAIN SCREEN
+        ===================================================== -->
+        <div id="mainScreen">
+            <div id="topButtons">
+                <button id="characterButton" class="icon-button" aria-label="Open character settings" title="Character settings">
+                    <img src="./imgs/person.png" alt="">
+                </button>
+
+                <button id="featuresButton" class="icon-button" aria-label="Open features and feats" title="Features and feats">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 5.5c2.6-1.2 5.2-1.2 8 0.6v13c-2.8-1.8-5.4-1.8-8-0.6z" />
+                        <path d="M20 5.5c-2.6-1.2-5.2-1.2-8 0.6v13c2.8-1.8 5.4-1.8 8-0.6z" />
+                    </svg>
+                </button>
+
+                <button id="inventoryButton" class="icon-button" aria-label="Open inventory" title="Inventory">
+                    <img src="./imgs/backpack.png" alt="">
+                </button>
+
+                <button id="diceSettingsButton" class="icon-button" aria-label="Open dice settings" title="Dice settings">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3.5" y="3.5" width="17" height="17" rx="3.5" />
+                        <circle cx="8.5" cy="8.5" r="1.3" class="pip" />
+                        <circle cx="15.5" cy="8.5" r="1.3" class="pip" />
+                        <circle cx="12" cy="12" r="1.3" class="pip" />
+                        <circle cx="8.5" cy="15.5" r="1.3" class="pip" />
+                        <circle cx="15.5" cy="15.5" r="1.3" class="pip" />
+                    </svg>
+                </button>
+            </div>
+
+            <div id="rollMenu">
+                <div id="characterHeader">
+                    <strong id="characterNameDisplay">Unnamed</strong>
+                    <span id="characterClassDisplay">Level 1 Wordweaver</span>
+                </div>
+
+                <div id="statGrid">
+                    <button id="hpManagerButton" class="stat-box" title="Hit points: click to take damage or heal">
+                        <span>HP</span>
+                        <strong>
+                            <span id="hpCurrentDisplay">12</span><span class="hp-max"> / <span id="hpMaxDisplay">12</span></span>
+                            <span id="wardDisplay"></span>
+                        </strong>
+                    </button>
+
+                    <div class="stat-box" title="Armor reduces every instance of damage, to a minimum of 1">
+                        <span>Armor</span>
+                        <strong id="armorDisplay">0</strong>
+                    </div>
+
+                    <button id="initiativeButton" class="stat-box" title="Initiative: d20 + Move rank">
+                        <span>Initiative</span>
+                        <strong id="initiativeDisplay">+1</strong>
+                    </button>
+
+                    <div class="stat-box" title="Passive Reveal: you notice hidden things with a concealment level up to this">
+                        <span>Passive Reveal</span>
+                        <strong id="passiveRevealDisplay">1</strong>
+                    </div>
+                </div>
+
+                <!-- At 0 HP (see deathSaves.js) -->
+                <div id="deathSaves" class="hidden" aria-label="Death rolls">
+                    <div class="death-saves-header">
+                        <span>Death rolls</span>
+                        <span id="deathSaveStatus"></span>
+                        <button id="resetDeathSaves" type="button" title="Clear all death rolls">Reset</button>
+                    </div>
+
+                    <div class="death-save-row">
+                        <span>Successes</span>
+                        <div class="death-save-boxes" data-kind="successes"></div>
+                    </div>
+
+                    <div class="death-save-row">
+                        <span>Failures</span>
+                        <div class="death-save-boxes" data-kind="failures"></div>
+                    </div>
+
+                    <button id="rollDeathSave" class="primary" title="d20 at the start of every round: 10 or higher succeeds, 1 is two failures, 20 wakes you with 1 HP">Roll death roll</button>
+                </div>
+
+                <!-- The class's signature ability (see signature.js) -->
+                <div id="signaturePanel">
+                    <button id="signatureButton" class="roll-button">
+                        <span id="signatureName">Torrent of Words</span>
+                        <span id="signatureUses">2 / 2</span>
+                    </button>
+
+                    <div id="glyphCounter" class="roll-button hidden">
+                        <span>Glyphs</span>
+                        <span class="counter">
+                            <button id="glyphMinus" type="button" aria-label="Remove a glyph">−</button>
+                            <strong id="glyphCount">0 / 1</strong>
+                            <button id="glyphPlus" type="button" aria-label="Place a glyph">+</button>
+                        </span>
+                    </div>
+
+                    <button id="nextRoundButton" class="roll-button hidden" title="Counts down your signature ability">
+                        <span>Next round</span>
+                        <span id="roundsLeftDisplay">3 rounds left</span>
+                    </button>
+                </div>
+
+                <button id="weaponButton" class="roll-button" title="Weapon attack: a mundane Harm action">
+                    <span id="weaponNameDisplay">Dagger</span>
+                    <span id="weaponDieDisplay">d4</span>
+                </button>
+
+                <hr class="roll-divider">
+
+                <div id="schoolGrid" class="two-column">
+                    <button class="roll-button school-button" data-school="harm"></button>
+                    <button class="roll-button school-button" data-school="aid"></button>
+                    <button class="roll-button school-button" data-school="change"></button>
+                    <button class="roll-button school-button" data-school="move"></button>
+                    <button class="roll-button school-button" data-school="control"></button>
+                    <button class="roll-button school-button" data-school="reveal"></button>
+                    <button class="roll-button school-button" data-school="create"></button>
+                    <button class="roll-button school-button" data-school="passion"></button>
+                </div>
+
+                <hr class="roll-divider">
+
+                <div class="rolls-title">Saved spells</div>
+
+                <div id="savedSpells"></div>
+
+                <hr class="roll-divider">
+
+                <div class="two-column">
+                    <button id="shortRestButton" class="roll-button" title="Roll half your level in hit dice and heal that much. Two a day.">
+                        <span>Short rest</span>
+                        <span id="shortRestsDisplay">0 / 2</span>
+                    </button>
+
+                    <button id="longRestButton" class="roll-button" title="Regain all hit points and uses of your signature ability">
+                        <span>Long rest</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            CURRENT ACTION (after a successful pre-turn; see casting.js)
+        ===================================================== -->
+        <div id="actionPanel" class="hidden">
+            <div id="actionHeader">
+                <span id="actionTitle">Level 1 Harm spell</span>
+                <button id="closeActionPanel" class="item-discard" aria-label="Done" title="Done">×</button>
+            </div>
+
+            <div id="actionHint" class="result-label"></div>
+
+            <div id="actionButtons"></div>
+        </div>
+
+        <!-- =====================================================
+            LETTERS
+        ===================================================== -->
+
+        <div id="letterBoard" aria-label="Scrabble letters"></div>
+
+        <div id="safeZone">
+            <span>SAFE ZONE</span>
+        </div>
+
+        <div id="tileControls">
+            <button id="clearTilesButton" class="roll-button">
+                Clear Board
+            </button>
+
+            <button id="getTilesButton" class="roll-button">
+                Get Tiles
+            </button>
+
+            <button id="sortTilesButton" class="roll-button">
+                Sort Tiles
+            </button>
+
+            <p class="tile-hint">Double-click a tile to return it to the pile</p>
+
+            <!-- Clicking a die asks how many to roll; hovering it shows quick buttons for 1–6 dice -->
+            <div id="diceGrid" class="two-column">
+                <div class="dice-cell" data-sides="2"></div>
+                <div class="dice-cell" data-sides="4"></div>
+                <div class="dice-cell" data-sides="6"></div>
+                <div class="dice-cell" data-sides="8"></div>
+                <div class="dice-cell" data-sides="10"></div>
+                <div class="dice-cell" data-sides="12"></div>
+                <div class="dice-cell" data-sides="20"></div>
+
+                <div class="dice-cell">
+                    <button id="rollD100Button" class="roll-button">
+                        <span>D100</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            CHARACTER SETTINGS OVERLAY
+        ===================================================== -->
+        <div id="characterOverlay" class="overlay hidden">
+            <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="characterTitle">
+                <h2 id="characterTitle">Character Settings</h2>
+
+                <!-- Two columns, so the window fits on a 1080p screen without scrolling -->
+                <div class="settings-columns">
+                    <div class="settings-column">
+
+                        <div class="settings-grid">
+                            <label for="nameInput">Name</label>
+                            <input class="modal-input" id="nameInput" type="text" maxlength="40" spellcheck="false">
+
+                            <label for="classInput">Class</label>
+                            <select class="modal-input" id="classInput"></select>
+
+                            <label for="subclassInput">Subclass</label>
+                            <select class="modal-input" id="subclassInput"></select>
+
+                            <label for="levelInput">Level</label>
+                            <input class="modal-input" id="levelInput" type="number" min="1" max="12" step="1" value="1">
+
+                            <label for="passionNameInput">Passion</label>
+                            <input class="modal-input" id="passionNameInput" type="text" maxlength="20" placeholder="e.g. the sea, music, the undead" spellcheck="false">
+                        </div>
+
+                        <p id="classSummary" class="settings-note"></p>
+
+                        <hr class="roll-divider">
+
+                        <div class="settings-heading">
+                            <h3>Ranks</h3>
+                            <span id="rankSummary" class="result-label"></span>
+                        </div>
+
+                        <!-- The class's "any school" bonus ranks, and a Trickster's Expert schools (see character.js) -->
+                        <div id="rankChoices" class="settings-grid"></div>
+
+                        <div id="rankGrid">
+                            <span class="rank-grid-head">School</span>
+                            <span class="rank-grid-head" title="Your rank points: 10 at level 1, one more every level">Points</span>
+                            <span class="rank-grid-head" title="Bonus ranks from your class">Class</span>
+                            <span class="rank-grid-head" title="1 + points + class bonus, up to the cap for your level">Rank</span>
+                            <span class="rank-grid-head">Pool</span>
+                            <span class="rank-grid-head" title="Highest level a mundane action can reach. Hover a number to see where it comes from.">Limit</span>
+                        </div>
+
+                    </div>
+
+                    <div class="settings-column">
+
+                        <h3>Health and equipment</h3>
+
+                        <div class="settings-grid">
+                            <label for="maxHPInput">Max HP</label>
+                            <span class="input-with-button">
+                                <input class="modal-input" id="maxHPInput" type="number" min="1" step="1" value="12" disabled>
+                                <label class="check-row">
+                                    <input id="rolledHPInput" type="checkbox">
+                                    <span>I rolled my hit points</span>
+                                </label>
+                            </span>
+
+                            <label for="armorInput">Armor</label>
+                            <span class="input-with-button">
+                                <select class="modal-input" id="armorInput"></select>
+                                <label id="shieldRow" class="check-row">
+                                    <input id="shieldInput" type="checkbox">
+                                    <span>Shield (+1)</span>
+                                </label>
+                            </span>
+
+                            <span></span>
+                            <span id="armorNote" class="result-label small"></span>
+
+                            <label for="weaponNameInput">Weapon</label>
+                            <span class="input-with-button">
+                                <input class="modal-input" id="weaponNameInput" type="text" maxlength="30" spellcheck="false">
+                                <select class="modal-input" id="weaponDieInput" aria-label="Weapon type"></select>
+                            </span>
+
+                            <span class="settings-label" title="Highest level a weapon attack can reach">Weapon limit</span>
+                            <span id="weaponLimitDisplay" class="result-label small"></span>
+                        </div>
+
+                        <hr class="roll-divider">
+
+                        <div class="settings-heading">
+                            <h3>Spell slots</h3>
+                            <span id="slotSummary" class="result-label"></span>
+                        </div>
+
+                        <div id="spellSlotSettings"></div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button id="closeCharacter">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            FEATURES AND FEATS OVERLAY (see features.js)
+        ===================================================== -->
+        <div id="featuresOverlay" class="overlay hidden">
+            <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="featuresTitle">
+                <h2 id="featuresTitle">Features</h2>
+
+                <div id="featureList"></div>
+
+                <hr class="roll-divider">
+
+                <div class="settings-heading">
+                    <h3>Feats</h3>
+                    <span id="featSummary" class="result-label"></span>
+                </div>
+
+                <div id="featList"></div>
+
+                <div class="actions">
+                    <button id="closeFeatures">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            HP MANAGER OVERLAY
+        ===================================================== -->
+        <div id="hpManagerOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="hpTitle">
+                <h2 id="hpTitle">Hit Points</h2>
+
+                <hr class="roll-divider">
+
+                <div id="currentHP">
+                    <span>Current HP</span>
+
+                    <strong id="hpModalCurrent">12</strong>
+                    <span>/</span>
+                    <strong id="hpModalMax">12</strong>
+                </div>
+
+                <div class="modal-element">
+                    <label for="healthAmountInput">
+                        Amount
+                    </label>
+
+                    <input class="modal-input" id="healthAmountInput" type="number" min="1" step="1" value="1">
+                </div>
+
+                <label class="check-row">
+                    <input id="applyArmorInput" type="checkbox" checked>
+                    <span>Armor reduces damage (<span id="armorHint">0</span>, minimum 1)</span>
+                </label>
+
+                <label class="check-row">
+                    <input id="halveDamageInput" type="checkbox">
+                    <span>Halve damage (saved, Spellfury, Slippery…)</span>
+                </label>
+
+                <div id="hpActions" class="button-pair">
+                    <button id="damageHPButton" class="danger">
+                        Damage
+                    </button>
+
+                    <button id="healHPButton" class="primary">
+                        Heal
+                    </button>
+                </div>
+
+                <p id="damageMessage" class="result-label"></p>
+
+                <div class="modal-element">
+                    <label for="wardInput" title="Absorbs damage first, until your next turn. Only the strongest ward counts.">
+                        Ward
+                    </label>
+
+                    <input class="modal-input" id="wardInput" type="number" min="0" step="1" value="0">
+                </div>
+
+                <div class="actions">
+                    <button id="closeHPManager">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            PRE-TURN: WHAT ARE YOU ROLLING FOR? (see casting.js)
+        ===================================================== -->
+        <div id="rollSetupOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rollSetupTitle">
+                <h2 id="rollSetupTitle">Harm</h2>
+
+                <p id="rollSetupPool" class="result-label"></p>
+
+                <div id="rollModes" class="mode-buttons"></div>
+
+                <p id="rollModeHint" class="settings-note"></p>
+
+                <div class="modal-element">
+                    <label for="dcInput" title="Leave empty if the DM keeps it secret">
+                        DC <span class="result-label">(optional)</span>
+                    </label>
+
+                    <input class="modal-input" id="dcInput" type="number" min="1" max="12" step="1" placeholder="?">
+                </div>
+
+                <div class="modal-element">
+                    <label title="E.g. an ally's Battle Hymn (+1), or Hold the Line against you (−1)">
+                        Extra dice
+                    </label>
+
+                    <span class="counter">
+                        <button id="extraDiceMinus" type="button" aria-label="One die fewer">−</button>
+                        <strong id="extraDiceDisplay">0</strong>
+                        <button id="extraDicePlus" type="button" aria-label="One more die">+</button>
+                    </span>
+                </div>
+
+                <p id="rollSetupDice" class="result-label"></p>
+
+                <div class="button-pair">
+                    <button id="confirmRoll" class="primary">Roll</button>
+                    <button id="cancelRoll" class="danger">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            PRE-TURN RESULT
+        ===================================================== -->
+        <div id="rollResultOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rollResultTitle">
+                <h2 id="rollResultTitle">Result</h2>
+
+                <div id="rollOutcome"></div>
+
+                <div id="rollResultRows"></div>
+
+                <div class="rolls">
+                    <div class="rolls-title">
+                        Your dice <span id="rerollHint">· click a die to reroll it</span>
+                    </div>
+
+                    <div id="rollResultDice" class="dice-list"></div>
+                </div>
+
+                <div id="rollResultActions" class="button-pair"></div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            SAVE SPELL OVERLAY
+        ===================================================== -->
+        <div id="saveSpellOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="saveSpellTitle">
+                <h2 id="saveSpellTitle">Save Spell</h2>
+
+                <p id="saveSpellInfo" class="settings-note"></p>
+
+                <form id="saveSpellForm" autocomplete="off">
+                    <div class="modal-element">
+                        <label for="saveSpellInput">Spell</label>
+                        <input class="modal-input" id="saveSpellInput" type="text" maxlength="40" placeholder="EMBER RAIN" spellcheck="false">
+                    </div>
+
+                    <p id="saveSpellMessage" class="result-label"></p>
+
+                    <div class="button-pair">
+                        <button type="submit" class="primary">Save</button>
+                        <button id="cancelSaveSpell" type="button" class="danger">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            GET TILES OVERLAY
+        ===================================================== -->
+        <div id="tileCountOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tileCountTitle">
+                <h2 id="tileCountTitle">Get Tiles</h2>
+
+                <hr class="roll-divider">
+
+                <div class="modal-element">
+                    <label for="tileCountInput">
+                        Amount
+                    </label>
+
+                    <input class="modal-input" id="tileCountInput" type="number" min="1" step="1" value="1">
+                </div>
+
+                <div id="tileSelectionGrid" aria-label="Choose specific tiles"></div>
+
+                <div id="tileCountActions" class="button-pair">
+                    <button id="getTiles" class="primary">
+                        Get tiles
+                    </button>
+
+                    <button id="cancelTiles" class="danger">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            ROLL DICE OVERLAY
+        ===================================================== -->
+        <div id="rollDiceOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rollDiceTitle">
+                <h2 id="rollDiceTitle">Roll d6</h2>
+
+                <hr class="roll-divider">
+
+                <div class="modal-element">
+                    <label for="rollDiceInput">
+                        Amount
+                    </label>
+
+                    <input class="modal-input" id="rollDiceInput" type="number" min="1" step="1" value="1">
+                </div>
+
+                <div class="button-pair">
+                    <button id="confirmRollDice" class="primary">
+                        Roll
+                    </button>
+
+                    <button id="cancelRollDice" class="danger">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            INVENTORY OVERLAY
+        ===================================================== -->
+        <div id="inventoryOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="inventoryTitle">
+                <h2 id="inventoryTitle">Inventory</h2>
+
+                <hr class="roll-divider">
+
+                <div id="inventoryList" aria-label="Items"></div>
+
+                <p id="inventoryEmpty" class="result-label hidden">Your inventory is empty.</p>
+
+                <hr class="roll-divider">
+
+                <form id="addItemForm" autocomplete="off">
+                    <input class="modal-input" id="addItemInput" type="text" placeholder="Item, e.g. Rope or Potion of Healing" aria-label="Item name">
+                    <input class="modal-input" id="addItemCount" type="number" min="1" step="1" value="1" aria-label="Amount">
+                    <button type="submit" class="primary">Add</button>
+                </form>
+
+                <div class="actions">
+                    <button id="closeInventory">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            GENERIC RESULT OVERLAY
+        ===================================================== -->
+        <div id="infoResultOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="infoResultTitle">
+                <h2 id="infoResultTitle">Result</h2>
+
+                <hr class="roll-divider">
+
+                <div id="infoResultRows"></div>
+
+                <div id="infoResultListBox" class="rolls hidden">
+                    <div id="infoResultListTitle" class="rolls-title"></div>
+
+                    <div id="infoResultList" class="dice-list"></div>
+                </div>
+
+                <div class="actions">
+                    <button id="closeInfoResult">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            DICE SETTINGS OVERLAY (see diceSettings.js)
+        ===================================================== -->
+        <div id="diceSettingsOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="diceSettingsTitle">
+                <h2 id="diceSettingsTitle">Dice</h2>
+
+                <hr class="roll-divider">
+
+                <div class="rolls-title">Colour</div>
+
+                <div class="dice-color-row">
+                    <span>Dice</span>
+                    <div id="diceColorPicker"></div>
+                </div>
+
+                <label class="dice-two-tone">
+                    <input id="diceTwoTone" type="checkbox">
+                    <span>Two-tone: swirl a second colour through it</span>
+                </label>
+
+                <div id="diceColor2Row" class="dice-color-row hidden">
+                    <span>Second colour</span>
+                    <div id="diceColor2Picker"></div>
+                </div>
+
+                <div class="dice-color-row">
+                    <span>Numbers</span>
+                    <div id="diceLabelColorPicker"></div>
+                </div>
+
+                <div class="rolls-title">Finish</div>
+                <div id="diceFinishes" class="dice-finishes"></div>
+
+                <div class="actions">
+                    <button id="testDiceButton" class="primary">Test roll</button>
+                    <button id="closeDiceSettings">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            DICE
+        ===================================================== -->
+        <div id="animationOverlay" class="dice-overlay hidden">
+            <div id="diceBox"></div>
+        </div>
+
+        <script type="module" src="./src/main.js"></script>
+    </body>
+</html>
