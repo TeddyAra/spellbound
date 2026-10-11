@@ -171,13 +171,6 @@ export function spawnScrabbleLetters(amount) {
     spawnLetters(Array.from({ length: toTileCount(amount) }, randomScrabbleLetter));
 }
 
-/* Spawns `amount` copies of each of the given letters. */
-function spawnSelectedScrabbleLetters(letters, amount) {
-    const count = toTileCount(amount);
-
-    spawnLetters(letters.flatMap(letter => Array(count).fill(letter)));
-}
-
 /*
  * =========================================================
  * DRAGGING
@@ -385,52 +378,127 @@ document.addEventListener("preferenceschange", updateWordUnderlines);
  * =========================================================
  * GET TILES OVERLAY
  * =========================================================
+ *
+ * Two ways to get tiles, drawn together: an amount of random tiles, and
+ * specific letters, counted up one click (or key press) at a time.
  */
 
 const tileCountOverlay = $("tileCountOverlay");
 const tileCountInput = $("tileCountInput");
+const getTilesButton = $("getTiles");
 
-// A toggle per letter, to get specific tiles
-$("tileSelectionGrid").replaceChildren(...Object.keys(SCRABBLE_LETTERS).map(letter => {
-    const label = document.createElement("label");
-    const checkbox = document.createElement("input");
-    const text = document.createElement("span");
+// Letter → how many of it to get
+let chosenLetters = {};
 
-    checkbox.type = "checkbox";
-    checkbox.value = letter;
-    text.textContent = letter;
+const randomTileCount = () => toTileCount(tileCountInput.value);
 
-    label.append(checkbox, text);
+const chosenTileCount = () => Object.values(chosenLetters).reduce((total, count) => total + count, 0);
 
-    return label;
-}));
+function changeLetter(letter, change) {
+    const count = Math.max(0, (chosenLetters[letter] ?? 0) + change);
 
-function tileCheckboxes() {
-    return Array.from(document.querySelectorAll("#tileSelectionGrid input[type='checkbox']"));
-}
-
-$("getTilesButton").addEventListener("click", () => {
-    tileCountInput.value = 1;
-
-    for (const checkbox of tileCheckboxes()) {
-        checkbox.checked = false;
+    if (count) {
+        chosenLetters[letter] = count;
+    } else {
+        delete chosenLetters[letter];
     }
 
+    renderTileChoice();
+}
+
+// A button per letter (blank tiles are "_"), with its count and a − to take one away
+const letterCells = Object.keys(SCRABBLE_LETTERS).map(letter => {
+    const cell = document.createElement("div");
+    const add = document.createElement("button");
+    const remove = document.createElement("button");
+    const count = document.createElement("span");
+    const name = letter === "_" ? "blank tile" : letter;
+
+    cell.className = "letter-pick";
+
+    add.type = "button";
+    add.className = "letter-add";
+    add.textContent = letter;
+    add.setAttribute("aria-label", `Add a ${name}`);
+
+    count.className = "letter-count";
+
+    remove.type = "button";
+    remove.className = "letter-remove";
+    remove.textContent = "−";
+    remove.setAttribute("aria-label", `One ${name} fewer`);
+
+    add.append(count);
+    cell.append(add, remove);
+
+    add.addEventListener("click", () => changeLetter(letter, 1));
+    remove.addEventListener("click", () => changeLetter(letter, -1));
+
+    add.addEventListener("contextmenu", event => {
+        event.preventDefault();
+        changeLetter(letter, -1);
+    });
+
+    return { letter, cell, count };
+});
+
+$("tileSelectionGrid").replaceChildren(...letterCells.map(({ cell }) => cell));
+
+function renderTileChoice() {
+    for (const { letter, cell, count } of letterCells) {
+        const chosen = chosenLetters[letter] ?? 0;
+
+        cell.classList.toggle("chosen", chosen > 0);
+        count.textContent = chosen || "";
+    }
+
+    const total = randomTileCount() + chosenTileCount();
+
+    getTilesButton.textContent = total === 1 ? "Get 1 tile" : `Get ${total} tiles`;
+    getTilesButton.disabled = total === 0;
+
+    $("clearLetterChoice").disabled = chosenTileCount() === 0;
+}
+
+tileCountInput.addEventListener("input", renderTileChoice);
+
+$("clearLetterChoice").addEventListener("click", () => {
+    chosenLetters = {};
+    renderTileChoice();
+});
+
+// Typing a letter adds it, unless the amount box has the focus
+document.addEventListener("keydown", event => {
+    if (tileCountOverlay.classList.contains("hidden") || event.target === tileCountInput) {
+        return;
+    }
+
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+        return;
+    }
+
+    const letter = event.key.toUpperCase();
+
+    if (/^[A-Z]$/.test(letter)) {
+        event.preventDefault();
+        changeLetter(letter, 1);
+    }
+});
+
+$("getTilesButton").addEventListener("click", () => {
+    tileCountInput.value = 0;
+    chosenLetters = {};
+
+    renderTileChoice();
     show(tileCountOverlay);
 });
 
 $("cancelTiles").addEventListener("click", () => hide(tileCountOverlay));
 
-$("getTiles").addEventListener("click", () => {
-    const selectedLetters = tileCheckboxes()
-        .filter(checkbox => checkbox.checked)
-        .map(checkbox => checkbox.value);
+getTilesButton.addEventListener("click", () => {
+    const letters = Object.entries(chosenLetters).flatMap(([letter, count]) => Array(count).fill(letter));
 
-    if (selectedLetters.length === 0) {
-        spawnScrabbleLetters(tileCountInput.value);
-    } else {
-        spawnSelectedScrabbleLetters(selectedLetters, tileCountInput.value);
-    }
+    spawnLetters([...letters, ...Array.from({ length: randomTileCount() }, randomScrabbleLetter)]);
 
     hide(tileCountOverlay);
 });

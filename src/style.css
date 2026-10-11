@@ -564,57 +564,107 @@ button:disabled {
 }
 
 /* =========================================================
-   TILE SELECTION
+   GET TILES (see tiles.js)
    ========================================================= */
+
+/* Random tiles and specific letters, each in its own box so they don't look like one control */
+.tile-section {
+    margin-top: 14px;
+    padding: 12px 14px;
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    background: var(--inset);
+}
+
+.tile-section h3 {
+    margin: 0;
+}
+
+.tile-section .modal-element {
+    margin: 8px 0 0;
+}
+
+.tile-section .settings-heading {
+    margin-bottom: 0;
+}
+
+.tile-section .settings-heading button {
+    padding: 4px 12px;
+}
+
+.tile-section .settings-note {
+    margin: 6px 0 10px;
+}
 
 #tileSelectionGrid {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
     gap: 6px;
-
-    margin-top: 14px;
 }
 
-#tileSelectionGrid label {
+.letter-pick {
     position: relative;
+}
 
-    min-height: 38px;
-
-    display: grid;
-    place-items: center;
+/* Click to add one */
+.letter-add {
+    width: 100%;
+    min-height: 40px;
 
     padding: 5px;
 
-    border: 1px solid var(--border);
     border-radius: 7px;
 
     background: var(--panel-2);
-
-    cursor: pointer;
 
     font-weight: 700;
 
     user-select: none;
 }
 
-#tileSelectionGrid label:hover {
-    background: var(--button-hover);
-    border-color: var(--border-strong);
-}
-
-/* The checkbox itself is invisible; the whole label acts as the toggle */
-#tileSelectionGrid input {
-    position: absolute;
-
-    opacity: 0;
-
-    pointer-events: none;
-}
-
-#tileSelectionGrid label:has(input:checked) {
+.letter-pick.chosen .letter-add {
     background: var(--accent);
     border-color: var(--accent);
     color: var(--on-accent);
+}
+
+/* How many, in the top right corner */
+.letter-count {
+    position: absolute;
+
+    top: 2px;
+    right: 4px;
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+/* − in the top left corner, once there's at least one */
+.letter-remove {
+    position: absolute;
+
+    top: -6px;
+    left: -6px;
+
+    width: 20px;
+    height: 20px;
+
+    display: none;
+    place-items: center;
+
+    padding: 0;
+
+    border-radius: 50%;
+
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.letter-pick.chosen .letter-remove {
+    display: grid;
 }
 
 @media (max-width: 520px) {
@@ -1881,9 +1931,10 @@ select.modal-input:disabled {
     margin: 0 0 8px;
 }
 
+/* The same space above as below (the margin above overlaps the Sort Tiles button's) */
 #tileControls .tile-hint {
     width: auto;
-    margin: 0 0 14px;
+    margin: 14px 0;
 }
 
 #tileControls #diceGrid .roll-button {
@@ -2646,8 +2697,9 @@ select.modal-input:disabled {
     font-weight: 700;
 }
 
-/* The class line under the name: grey and thin was hard to read on the gradient */
-:root[data-theme="pop"] #characterClassDisplay {
+/* Small grey text was hard to read on the gradient */
+:root[data-theme="pop"] #characterClassDisplay,
+:root[data-theme="pop"] .tile-hint {
     color: var(--text);
 
     font-weight: 600;

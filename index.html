@@ -520,26 +520,30 @@
             <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tileCountTitle">
                 <h2 id="tileCountTitle">Get Tiles</h2>
 
-                <hr class="roll-divider">
+                <!-- Random tiles and chosen letters are drawn together (see tiles.js) -->
+                <section class="tile-section">
+                    <h3>Random tiles</h3>
 
-                <div class="modal-element">
-                    <label for="tileCountInput">
-                        Amount
-                    </label>
+                    <div class="modal-element">
+                        <label for="tileCountInput">Amount</label>
+                        <input class="modal-input" id="tileCountInput" type="number" min="0" step="1" value="0">
+                    </div>
+                </section>
 
-                    <input class="modal-input" id="tileCountInput" type="number" min="1" step="1" value="1">
-                </div>
+                <section class="tile-section">
+                    <div class="settings-heading">
+                        <h3>Specific letters</h3>
+                        <button id="clearLetterChoice" type="button">Clear</button>
+                    </div>
 
-                <div id="tileSelectionGrid" aria-label="Choose specific tiles"></div>
+                    <p class="settings-note">Click a letter (or type it) to add one. Right-click it or press − to take one away.</p>
+
+                    <div id="tileSelectionGrid" aria-label="Choose specific letters"></div>
+                </section>
 
                 <div id="tileCountActions" class="button-pair">
-                    <button id="getTiles" class="primary">
-                        Get tiles
-                    </button>
-
-                    <button id="cancelTiles" class="danger">
-                        Cancel
-                    </button>
+                    <button id="getTiles" class="primary">Get tiles</button>
+                    <button id="cancelTiles" class="danger">Cancel</button>
                 </div>
             </div>
         </div>
