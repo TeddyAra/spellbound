@@ -2290,10 +2290,9 @@ select.modal-input:disabled {
     --tile-text: #242528;
 }
 
-/* The dark header band across the top (it grows with the text size, like the menu below it), over a cool, frosty grey */
+/* A cool, frosty grey */
 :root[data-theme="crimson"] body {
     background:
-        linear-gradient(var(--header) 0, var(--header) calc(86px * var(--ui-zoom, 1)), transparent 0),
         radial-gradient(ellipse at 65% 25%, var(--bg-glow), var(--bg) 70%) fixed,
         var(--bg);
 
