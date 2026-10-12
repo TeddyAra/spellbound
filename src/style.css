@@ -2245,309 +2245,247 @@ select.modal-input:disabled {
 }
 
 /* =========================================================
-   BLUEPRINT THEME
+   CRIMSON THEME
    ========================================================= */
 
-/* A drafting-table look: cream graph paper, cobalt blue, charcoal ink and a little orange */
-:root[data-theme="blueprint"] {
-    --font-body: "Inter Tight", "Segoe UI", system-ui, sans-serif;
-    --font-heading: "Inter Tight", "Segoe UI", system-ui, sans-serif;
-    --font-mono: "IBM Plex Mono", Consolas, monospace;
-    --font-hand: "Architects Daughter", "Segoe Print", cursive;
+/* A character sheet: a dark header band, white panels in crimson frames, condensed capitals */
+:root[data-theme="crimson"] {
+    --font-body: "Roboto", "Segoe UI", system-ui, sans-serif;
+    --font-label: "Roboto Condensed", "Arial Narrow", sans-serif;
 
-    --bg: #ebe2cd;
-    --bg-glow: #ebe2cd;
-    --grid-line: rgba(45, 45, 45, 0.07);
-    --panel: #f3ecdc;
-    --panel-2: #f7f2e6;
-    --button-hover: #e4e9f7;
-    --inset: #fbf8f0;
-    --input: #fffdf7;
+    --bg: #e3e7eb;
+    --bg-glow: #f3f5f7;
+    --header: #262626;
+    --panel: #ffffff;
+    --panel-2: #ffffff;
+    --button-hover: #fbefef;
+    --inset: #f7f8f9;
+    --input: #ffffff;
 
-    --text: #2d2d2d;
-    --muted: #6b6658;
-    --accent: #1f4fc9;
-    --accent-hover: #2b5fe0;
-    --on-accent: #f7f2e6;
-    --highlight: #e8592b;
+    --text: #242528;
+    --muted: #6b6f75;
+    --accent: #c53131;
+    --accent-hover: #a82525;
+    --on-accent: #ffffff;
+    --highlight: #c53131;
 
-    --danger: #c8432b;
-    --danger-text: #9e2f1c;
-    --danger-inset: #f6e0d8;
-    --success: #2f7d4f;
-    --success-text: #23603c;
+    --danger: #c53131;
+    --danger-text: #a82525;
+    --danger-inset: #fbe9e9;
+    --success: #2e8540;
+    --success-text: #246a33;
 
-    --border: #9a9483;
-    --border-strong: #2d2d2d;
+    --border: #c9cdd2;
+    --border-strong: #8b9096;
 
-    --backdrop: rgba(24, 38, 82, 0.45);
-    --shadow-rgb: 24, 38, 82;
+    /* The frames around every box */
+    --frame: #c53131;
 
-    --tile-light: #fffdf6;
-    --tile-dark: #f1eadb;
-    --tile-border: #2d2d2d;
-    --tile-text: #2d2d2d;
+    --backdrop: rgba(20, 20, 20, 0.55);
+    --shadow-rgb: 0, 0, 0;
+
+    --tile-light: #ffffff;
+    --tile-dark: #f1f2f4;
+    --tile-border: #3a3c40;
+    --tile-text: #242528;
 }
 
-/* Cream graph paper: a fine grid, with a heavier line every fifth square */
-:root[data-theme="blueprint"] body {
-    background-color: var(--bg);
-    background-image:
-        linear-gradient(var(--grid-line) 1px, transparent 1px),
-        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
-        linear-gradient(rgba(45, 45, 45, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(45, 45, 45, 0.05) 1px, transparent 1px);
-    background-size: 12px 12px, 12px 12px, 60px 60px, 60px 60px;
+/* The dark header band across the top (it grows with the text size, like the menu below it), over a cool, frosty grey */
+:root[data-theme="crimson"] body {
+    background:
+        linear-gradient(var(--header) 0, var(--header) calc(86px * var(--ui-zoom, 1)), transparent 0),
+        radial-gradient(ellipse at 65% 25%, var(--bg-glow), var(--bg) 70%) fixed,
+        var(--bg);
 
     font-family: var(--font-body);
 }
 
-:root[data-theme="blueprint"] button,
-:root[data-theme="blueprint"] input,
-:root[data-theme="blueprint"] select {
+:root[data-theme="crimson"] button,
+:root[data-theme="crimson"] input,
+:root[data-theme="crimson"] select {
     font-family: var(--font-body);
 }
 
-/* Flat and nearly square, with thin ink outlines */
-:root[data-theme="blueprint"] button,
-:root[data-theme="blueprint"] .roll-button,
-:root[data-theme="blueprint"] .stat-box,
-:root[data-theme="blueprint"] .modal-input,
-:root[data-theme="blueprint"] .result-row,
-:root[data-theme="blueprint"] .rolls,
-:root[data-theme="blueprint"] .feature-card,
-:root[data-theme="blueprint"] .feat-row,
-:root[data-theme="blueprint"] .item-card,
-:root[data-theme="blueprint"] .die,
-:root[data-theme="blueprint"] .outcome {
-    border-radius: 3px;
+/* Framed boxes: a crimson line, a white gap, then a fainter crimson line inside */
+:root[data-theme="crimson"] .roll-button,
+:root[data-theme="crimson"] .stat-box,
+:root[data-theme="crimson"] .result-row,
+:root[data-theme="crimson"] .rolls,
+:root[data-theme="crimson"] .feature-card,
+:root[data-theme="crimson"] .feat-row,
+:root[data-theme="crimson"] .item-card {
+    border: 1.5px solid var(--frame);
+    border-radius: 6px;
+
+    background: var(--panel);
+    box-shadow: inset 0 0 0 2px var(--panel), inset 0 0 0 3px color-mix(in srgb, var(--frame) 30%, transparent);
 }
 
-:root[data-theme="blueprint"] button {
-    border-color: var(--border);
+:root[data-theme="crimson"] .roll-button:hover,
+:root[data-theme="crimson"] button.stat-box:hover {
+    background: var(--button-hover);
 }
 
-:root[data-theme="blueprint"] button:hover {
-    border-color: var(--border-strong);
-}
+/* Condensed capitals for buttons and labels */
+:root[data-theme="crimson"] .roll-button,
+:root[data-theme="crimson"] .actions button,
+:root[data-theme="crimson"] .button-pair button,
+:root[data-theme="crimson"] .mode-buttons button,
+:root[data-theme="crimson"] #actionButtons button {
+    font-family: var(--font-label);
+    font-weight: 700;
 
-:root[data-theme="blueprint"] .roll-button,
-:root[data-theme="blueprint"] .stat-box {
-    border-color: var(--border-strong);
-}
-
-/* Main buttons: cobalt, with monospace labels like the reference's call to action */
-:root[data-theme="blueprint"] .primary,
-:root[data-theme="blueprint"] .mode-buttons button.selected {
-    border-color: var(--accent);
-
-    font-family: var(--font-mono);
-    font-weight: 600;
-}
-
-/* Headings: a big, tight grotesk */
-:root[data-theme="blueprint"] .modal h2,
-:root[data-theme="blueprint"] .modal h3,
-:root[data-theme="blueprint"] #characterHeader strong,
-:root[data-theme="blueprint"] #actionTitle {
-    font-family: var(--font-heading);
-    font-weight: 600;
-
-    letter-spacing: -0.02em;
-}
-
-:root[data-theme="blueprint"] .modal h2 {
-    font-size: 30px;
-}
-
-:root[data-theme="blueprint"] #characterHeader strong {
-    font-size: 22px;
-}
-
-/* Small labels in monospace caps, like the reference's navigation */
-:root[data-theme="blueprint"] .rolls-title,
-:root[data-theme="blueprint"] .rank-grid-head,
-:root[data-theme="blueprint"] .stat-box > span,
-:root[data-theme="blueprint"] .death-saves-header > span:first-child,
-:root[data-theme="blueprint"] .school-rank small,
-:root[data-theme="blueprint"] #tileControls .roll-button,
-:root[data-theme="blueprint"] .dice-button span,
-:root[data-theme="blueprint"] #rollD100Button span {
-    font-family: var(--font-mono);
-
-    letter-spacing: 0.04em;
-}
-
-:root[data-theme="blueprint"] .rolls-title,
-:root[data-theme="blueprint"] .rank-grid-head,
-:root[data-theme="blueprint"] .stat-box > span {
-    color: var(--muted);
-
-    font-size: 11px;
     text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
 
-:root[data-theme="blueprint"] #tileControls .roll-button {
-    font-size: 14px;
-}
-
-/* Handwritten notes in the margins */
-:root[data-theme="blueprint"] #characterClassDisplay,
-:root[data-theme="blueprint"] .tile-hint,
-:root[data-theme="blueprint"] #safeZone,
-:root[data-theme="blueprint"] .settings-note {
-    font-family: var(--font-hand);
-
-    color: var(--muted);
-}
-
-:root[data-theme="blueprint"] #characterClassDisplay {
+/* A touch smaller, so labels like SHORT REST fit in capitals */
+:root[data-theme="crimson"] .roll-button {
     font-size: 15px;
 }
 
-:root[data-theme="blueprint"] .tile-hint {
+:root[data-theme="crimson"] .school-rank small,
+:root[data-theme="crimson"] #weaponDieDisplay {
+    text-transform: none;
+}
+
+:root[data-theme="crimson"] .rolls-title,
+:root[data-theme="crimson"] .rank-grid-head,
+:root[data-theme="crimson"] .stat-box > span,
+:root[data-theme="crimson"] .death-saves-header > span:first-child {
+    font-family: var(--font-label);
+    font-weight: 700;
+
+    color: var(--text);
+
     font-size: 13px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
 }
 
-:root[data-theme="blueprint"] #safeZone {
-    color: var(--accent);
-
-    font-size: 17px;
-    letter-spacing: 0.08em;
+/* Big black numbers, like the sheet's scores */
+:root[data-theme="crimson"] #statGrid .stat-box strong {
+    font-size: 24px;
+    font-weight: 500;
 }
 
-/* Ink rules */
-:root[data-theme="blueprint"] .roll-divider {
-    height: 1px;
-
-    border: 0;
-
-    background: var(--border-strong);
-}
-
-/* The square icon buttons from the reference's logo: cobalt tiles with white icons */
-:root[data-theme="blueprint"] .icon-button {
-    border-radius: 4px;
+/* Main buttons: filled crimson, like the sheet's selected tab */
+:root[data-theme="crimson"] .primary,
+:root[data-theme="crimson"] .mode-buttons button.selected {
     border-color: var(--accent);
 
     background: var(--accent);
+    color: var(--on-accent);
 }
 
-:root[data-theme="blueprint"] .icon-button:hover {
+:root[data-theme="crimson"] .primary:hover {
     border-color: var(--accent-hover);
 
     background: var(--accent-hover);
 }
 
-:root[data-theme="blueprint"] .badge {
-    border-color: var(--bg);
-    border-radius: 3px;
+/* Danger buttons: crimson outline on white, like the sheet's Damage button */
+:root[data-theme="crimson"] .danger {
+    border-color: var(--danger);
 
-    background: var(--highlight);
-
-    font-family: var(--font-mono);
+    background: var(--panel);
+    color: var(--danger);
 }
 
-/* Windows: a sheet laid on the drawing board, with a hard offset shadow */
-:root[data-theme="blueprint"] .modal {
-    border: 1px solid var(--border-strong);
-    border-radius: 4px;
-
-    box-shadow: 6px 6px 0 rgba(var(--shadow-rgb), 0.35);
+:root[data-theme="crimson"] .danger:hover {
+    background: var(--danger-inset);
 }
 
-:root[data-theme="blueprint"] .modal-input {
+/* Headings */
+:root[data-theme="crimson"] .modal h2,
+:root[data-theme="crimson"] #characterHeader strong,
+:root[data-theme="crimson"] #actionTitle {
+    font-weight: 500;
+}
+
+:root[data-theme="crimson"] .modal h3 {
+    font-family: var(--font-label);
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Header buttons: dark, with a crimson outline and white icons */
+:root[data-theme="crimson"] .icon-button {
+    border: 1.5px solid var(--accent);
+    border-radius: 6px;
+
+    background: var(--header);
+}
+
+:root[data-theme="crimson"] .icon-button:hover {
+    background: #3a2222;
+}
+
+:root[data-theme="crimson"] .badge {
+    border-color: var(--header);
+
+    background: var(--accent);
+}
+
+:root[data-theme="crimson"] .roll-divider {
+    height: 1px;
+
+    border: 0;
+
+    background: var(--border);
+}
+
+/* Windows: white sheets in a crimson frame */
+:root[data-theme="crimson"] .modal {
+    border: 2px solid var(--frame);
+    border-radius: 8px;
+
+    box-shadow: inset 0 0 0 3px var(--panel), inset 0 0 0 4px color-mix(in srgb, var(--frame) 30%, transparent), 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="crimson"] .modal-input {
     border-color: var(--border);
 }
 
-:root[data-theme="blueprint"] .modal-input:focus {
+:root[data-theme="crimson"] .modal-input:focus {
     border-color: var(--accent);
 }
 
-:root[data-theme="blueprint"] .die.high {
+:root[data-theme="crimson"] .die {
+    border-color: var(--border-strong);
+    border-radius: 6px;
+
+    background: var(--panel);
+}
+
+:root[data-theme="crimson"] .die.high {
     border-color: var(--accent);
-    box-shadow: inset 0 0 0 1px var(--accent);
 
     color: var(--accent);
 }
 
-/* The current action: a cobalt panel, like the reference's illustration */
-:root[data-theme="blueprint"] #actionPanel {
-    border: 1px solid var(--accent);
-    border-radius: 4px;
+:root[data-theme="crimson"] #actionPanel {
+    border: 2px solid var(--frame);
+    border-radius: 8px;
 
-    background: var(--accent);
-    color: var(--on-accent);
-
-    box-shadow: 6px 6px 0 rgba(var(--shadow-rgb), 0.3);
+    box-shadow: inset 0 0 0 3px var(--panel), inset 0 0 0 4px color-mix(in srgb, var(--frame) 30%, transparent), 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 
-:root[data-theme="blueprint"] #actionPanel #actionTitle,
-:root[data-theme="blueprint"] #actionPanel #actionHint,
-:root[data-theme="blueprint"] #actionPanel .check-row,
-:root[data-theme="blueprint"] #actionPanel .item-discard {
-    color: var(--on-accent);
-}
+:root[data-theme="crimson"] #safeZone {
+    border-color: var(--accent);
+    border-radius: 8px;
 
-:root[data-theme="blueprint"] #actionButtons button {
-    border-color: var(--on-accent);
-
-    background: transparent;
-    color: var(--on-accent);
-}
-
-:root[data-theme="blueprint"] #actionButtons button.primary {
-    background: var(--on-accent);
+    background: rgba(255, 255, 255, 0.4);
     color: var(--accent);
+
+    font-family: var(--font-label);
 }
 
-:root[data-theme="blueprint"] #actionButtons button:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-:root[data-theme="blueprint"] #actionButtons button.primary:hover {
-    background: #fff;
-}
-
-/* Letter tiles: little cards with ink outlines and a hard shadow */
-:root[data-theme="blueprint"] .scrabble-letter {
-    border-radius: 3px;
-
-    box-shadow: 2px 2px 0 rgba(var(--shadow-rgb), 0.35);
-}
-
-:root[data-theme="blueprint"] .scrabble-letter.dragging {
-    box-shadow: 5px 5px 0 rgba(var(--shadow-rgb), 0.35);
-}
-
-:root[data-theme="blueprint"] .word-underline {
-    height: 3px;
-
-    box-shadow: none;
-}
-
-:root[data-theme="blueprint"] #safeZone {
-    border-radius: 4px;
-}
-
-/* The cobalt frame around the sheet, as in the reference */
-:root[data-theme="blueprint"] body::after {
-    content: "";
-
-    position: fixed;
-    inset: 0;
-
-    z-index: 9998;
-
-    border: 6px solid var(--accent);
-
-    pointer-events: none;
-}
-
-/* Tile letters in the heading grotesk instead of a serif */
-:root[data-theme="blueprint"] .scrabble-letter {
-    font-family: var(--font-heading);
-    font-weight: 600;
+:root[data-theme="crimson"] .scrabble-letter {
+    font-family: var(--font-label);
+    font-weight: 700;
 }
 
 /* =========================================================
@@ -3857,9 +3795,9 @@ select.modal-input:disabled {
     cursor: default;
 }
 
-/* Blueprint: ink outlines and nearly square */
-:root[data-theme="blueprint"] {
-    --check-radius: 2px;
+/* Crimson: the sheet's small rounded boxes, ticked in crimson */
+:root[data-theme="crimson"] {
+    --check-radius: 3px;
 }
 
 /* Pop: chunky outline with a hard shadow, green when ticked, black tick */
@@ -3890,8 +3828,7 @@ select.modal-input:disabled {
     --check-radius: 3px;
 }
 
-/* On the solid-colour action panels (Blueprint and Noir), the box is drawn in the panel's text colour */
-:root[data-theme="blueprint"] #actionPanel input[type="checkbox"],
+/* On Noir's solid-colour action panel, the box is drawn in the panel's text colour */
 :root[data-theme="noir"] #actionPanel input[type="checkbox"] {
     --check-mark: var(--accent);
 
@@ -3900,7 +3837,6 @@ select.modal-input:disabled {
     background: transparent;
 }
 
-:root[data-theme="blueprint"] #actionPanel input[type="checkbox"]:checked,
 :root[data-theme="noir"] #actionPanel input[type="checkbox"]:checked {
     background: var(--on-accent);
 }
@@ -3929,8 +3865,7 @@ select.modal-input:disabled {
     padding: 0;
 }
 
-/* On the solid-colour action panels the label takes the panel's text colour */
-:root[data-theme="blueprint"] #actionPanel .target-counter .result-label,
+/* On Noir's solid-colour action panel the label takes the panel's text colour */
 :root[data-theme="noir"] #actionPanel .target-counter .result-label {
     color: var(--on-accent);
 }
@@ -3954,8 +3889,7 @@ select.modal-input:disabled {
     border-bottom: 1px solid var(--border);
 }
 
-/* On the solid-colour action panels (Blueprint and Noir), in the panel's text colour */
-:root[data-theme="blueprint"] #actionPanel .target-controls > .target-counter:first-child,
+/* On Noir's solid-colour action panel, in the panel's text colour */
 :root[data-theme="noir"] #actionPanel .target-controls > .target-counter:first-child {
     border-bottom-color: color-mix(in srgb, var(--on-accent) 40%, transparent);
 }

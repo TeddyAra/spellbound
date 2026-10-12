@@ -30,10 +30,10 @@ const THEMES = {
         description: "The dark theme, but light",
         swatches: ["#f5f5f9", "#ffffff", "#7c5cf0", "#16171d"]
     },
-    blueprint: {
-        name: "Blueprint",
-        description: "Cream graph paper and cobalt ink",
-        swatches: ["#ebe2cd", "#f3ecdc", "#1f4fc9", "#e8592b"]
+    crimson: {
+        name: "Crimson",
+        description: "White sheets in crimson frames",
+        swatches: ["#262626", "#ffffff", "#c53131", "#e3e7eb"]
     },
     pop: {
         name: "Pop",
@@ -57,6 +57,11 @@ const settingsOverlay = $("settingsOverlay");
 function savedTheme() {
     try {
         const theme = localStorage.getItem(THEME_KEY);
+
+        // Blueprint was replaced by Crimson
+        if (theme === "blueprint") {
+            return "crimson";
+        }
 
         return THEMES[theme] ? theme : "original";
     } catch {

@@ -13,7 +13,9 @@
         <!-- The chosen theme and display preferences, set before the page draws so nothing flashes or jumps (see settings.js, preferences.js) -->
         <script>
             try {
-                const theme = localStorage.getItem("spellboundTheme");
+                // Blueprint was replaced by Crimson (see settings.js)
+                const saved = localStorage.getItem("spellboundTheme");
+                const theme = saved === "blueprint" ? "crimson" : saved;
 
                 if (theme && theme !== "original") {
                     document.documentElement.dataset.theme = theme;
