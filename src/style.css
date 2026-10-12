@@ -3571,16 +3571,36 @@ select.modal-input:disabled {
 
 /* Tighter than other cards, so all three columns fit */
 #referenceContent .reference-card {
-    padding: 8px 12px 10px;
+    padding: 6px 10px 8px;
+}
+
+#referenceContent .reference-card h3 {
+    margin-bottom: 4px;
+
+    font-size: 14px;
+}
+
+#referenceContent .reference-card > p,
+#referenceContent .reference-card ol {
+    margin-top: 4px;
+
+    font-size: 13.5px;
+    line-height: 1.35;
+}
+
+#referenceContent .reference-card ol {
+    margin-top: 0;
+    gap: 3px;
 }
 
 #referenceContent .reference-table {
     font-size: 13.5px;
+    line-height: 1.3;
 }
 
 #referenceContent .reference-table th,
 #referenceContent .reference-table td {
-    padding: 4px 8px;
+    padding: 3px 8px;
 }
 
 .reference-column {
@@ -3601,22 +3621,11 @@ select.modal-input:disabled {
 
 /*
  * The columns without the glossary share out their spare height between
- * their cards, so all three columns end level. Tables stretch their rows
- * to fill their card.
+ * their text sections, as blank space below the text, so all three columns
+ * end level. Tables keep their own height.
  */
-.reference-column:not(:has(.glossary-card)) .reference-card {
+.reference-column:not(:has(.glossary-card)) .reference-card.stretch {
     flex-grow: 1;
-
-    display: flex;
-    flex-direction: column;
-}
-
-.reference-column:not(:has(.glossary-card)) .reference-scroll {
-    flex: 1;
-}
-
-.reference-column:not(:has(.glossary-card)) .reference-table {
-    height: 100%;
 }
 
 .glossary-card {

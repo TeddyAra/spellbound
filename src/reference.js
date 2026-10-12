@@ -1,4 +1,5 @@
 import { $, show, hide, element } from "./dom.js";
+import { TONGUES } from "./rules.js";
 
 /*
  * The rulebook's Appendix A, the quick reference, in three columns that fit
@@ -62,7 +63,8 @@ function tableSection({ title, head, rows, note, firstColumnHead = false }) {
 
 /* A heading and a few lines of text, or a numbered list. */
 function textSection(title, lines, ordered = false) {
-    const card = element("section", "feature-card reference-card");
+    // Text sections take the spare height, so the columns end level (see style.css)
+    const card = element("section", "feature-card reference-card stretch");
 
     card.append(element("h3", null, title));
 
@@ -180,14 +182,21 @@ const SECTIONS = {
         ]
     }),
 
+    tongues: () => tableSection({
+        title: "Tongues",
+        head: ["Tongue", "Perk"],
+        rows: Object.values(TONGUES).map(tongue => [tongue.name, tongue.short]),
+        note: "Needed to lip-read or copy a spell, and for Duet. Nothing else needs one."
+    }),
+
     glossary: () => glossaryPreview()
 };
 
 /* Three columns of about the same height; the glossary fills what's left of the last. */
 const COLUMNS = [
-    ["coreLoop", "castingPools", "difficulty", "mundane", "lastingEffects"],
-    ["effectDice", "savingThrows", "deathRolls"],
-    ["volume", "everyDie", "glossary"]
+    ["coreLoop", "castingPools", "difficulty", "volume", "mundane"],
+    ["effectDice", "savingThrows", "lastingEffects", "deathRolls"],
+    ["everyDie", "tongues", "glossary"]
 ];
 
 /*

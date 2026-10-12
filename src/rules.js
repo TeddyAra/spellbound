@@ -143,7 +143,8 @@ export const SUBCLASS_LEVEL = 2;
  * =========================================================
  *
  * The grammar a spell is cast in. Knowing a spell's Tongue lets you read
- * or copy its magic; each Tongue you know also gives a small perk.
+ * or copy its magic; each Tongue you know also gives a small perk (`short`
+ * is its one-line version, for the quick reference).
  * Everyone starts with two (the first is their native Tongue), and Polyglot
  * teaches one more each time it's taken.
  */
@@ -155,36 +156,42 @@ export const TONGUES = {
         name: "Hearthspeech",
         spokenBy: "Common folk, most travellers",
         perk: "Small Comforts",
+        short: "Trivial magic outside combat",
         text: "Outside of combat, do trivial magic without rolling or drawing tiles: light a candle, warm a meal, clean a muddy cloak. It can't harm anyone, and isn't a spell you can save."
     },
     deepcant: {
         name: "Deepcant",
         spokenBy: "Dwarves, underground creatures",
         perk: "Stone Echo",
+        short: "Sense stone spaces within 30 ft",
         text: "Tap a stone surface and listen: you learn the shape of the tunnels, rooms and hollow spaces within 30 feet, even in total darkness. It doesn't reveal creatures."
     },
     leafweave: {
         name: "Leafweave",
         spokenBy: "Elves, fey, druids",
         perk: "Green Words",
+        short: "Simple ideas with animals and plants",
         text: "Share simple ideas with animals and plants, like \"danger\" or \"which way did they go?\" They understand you, but don't have to obey."
     },
     ashen: {
         name: "Ashen",
         spokenBy: "Dragons, giants, demons",
         perk: "Old Authority",
+        short: "Ancient creatures listen, weak ones fear",
         text: "Dragons and other ancient creatures that know Ashen will hear you out before they attack, and weaker creatures easily become frightened."
     },
     drowned: {
         name: "Drowned Tongue",
         spokenBy: "Sailors, merfolk, sea witches",
         perk: "Deep Voice",
+        short: "Speak and cast underwater",
         text: "You can speak, and cast spoken spells, underwater. You still can't breathe there."
     },
     hollow: {
         name: "Hollow Tongue",
         spokenBy: "The undead, cultists, things from beyond",
         perk: "Death's Ear",
+        short: "Hear how close a speaker is to death",
         text: "When a creature speaks, you can tell how close it is to death: unhurt, wounded, badly hurt, or barely standing."
     }
 };
