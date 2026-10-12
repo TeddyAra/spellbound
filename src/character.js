@@ -18,11 +18,16 @@ import {
     maxArmor,
     canUseShield,
     allowedWeaponDice,
-    baseArmor,
     effectiveArmor,
     initiativeBonus,
     weaponDie,
-    hasFeat
+    hasFeat,
+    subclassIs,
+    endSignature,
+    spellfuryActive,
+    hasConstruct,
+    constructMaxHealth,
+    constructHealth
 } from "./state.js";
 import {
     CLASSES,
@@ -30,6 +35,7 @@ import {
     MAGIC_SCHOOLS,
     MAX_LEVEL,
     SUBCLASS_LEVEL,
+    TONGUES,
     ARMOR_TYPES,
     WEAPON_TYPES,
     rankCap,
@@ -67,22 +73,25 @@ function renderHP() {
 }
 
 /*
- * Damage hits the ward first, then hit points. Damage at 0 HP is a failed
- * death roll; any healing from 0 HP wakes you up and clears them.
+ * Damage is reduced in the rulebook's order: halving and Parry first
+ * (beforeWard), then the ward absorbs what it can, then armor (afterWard).
+ * Damage at 0 HP is a failed death roll; any healing from 0 HP wakes you up
+ * and clears them.
  */
-export function updateCurrentHealth(amount, reduce = damage => damage) {
+export function updateCurrentHealth(amount, { beforeWard = damage => damage, afterWard = damage => damage } = {}) {
     const wasDown = state.currentHealth === 0;
-    const result = { absorbed: 0, taken: 0 };
+    const result = { reduced: 0, absorbed: 0, taken: 0 };
 
     if (amount < 0) {
-        let damage = -amount;
+        let damage = beforeWard(-amount);
+
+        result.reduced = damage;
 
         const wardDamage = Math.min(state.ward, damage);
 
         state.ward -= wardDamage;
 
-        // Only what gets past the ward is reduced (armor, halving)
-        damage = damage > wardDamage ? reduce(damage - wardDamage) : 0;
+        damage = damage > wardDamage ? afterWard(damage - wardDamage) : 0;
 
         result.absorbed = wardDamage;
         result.taken = damage;
@@ -95,7 +104,7 @@ export function updateCurrentHealth(amount, reduce = damage => damage) {
 
         // Every signature ability ends early when you're downed
         if (state.currentHealth === 0) {
-            state.signature.roundsLeft = 0;
+            endSignature();
         }
     } else {
         state.currentHealth = clamp(state.currentHealth + amount, 0, state.maxHealth);
@@ -110,19 +119,23 @@ export function updateCurrentHealth(amount, reduce = damage => damage) {
     return result;
 }
 
-/* Halving first, then armor, which never brings a hit below 1. */
-function damageAfterReductions(amount) {
-    let damage = amount;
+/* Armor never brings a hit below 1. */
+export const armorReduces = armor => damage => damage > 0 ? Math.max(1, damage - armor) : 0;
 
-    if ($("halveDamageInput").checked) {
-        damage = Math.floor(damage / 2);
-    }
+/* Parry (Spellblade, level 3; Spellguard, level 2): the weapon die, rolled twice with a shield. */
+function canParry() {
+    return state.className === "spellblade" && (state.level >= 3 || subclassIs("spellguard"));
+}
 
-    if ($("applyArmorInput").checked && damage > 0) {
-        damage = Math.max(1, damage - effectiveArmor());
-    }
+const parryDice = () => `${state.shield ? 2 : 1}d${weaponDie()}`;
 
-    return damage;
+function renderDamageOptions() {
+    $("halveDamageLabel").textContent = spellfuryActive()
+        ? "Halve damage (Spellfury: only against spells)"
+        : "Halve damage (saved, Slippery, Uncanny Dodge, Last Bastion…)";
+
+    $("parryRow").classList.toggle("hidden", !canParry());
+    $("parryLabel").textContent = `Parry: roll ${parryDice()} and take that much less${state.shield ? " (shield)" : ""}`;
 }
 
 function healthAmount() {
@@ -131,34 +144,78 @@ function healthAmount() {
 
 $("hpManagerButton").addEventListener("click", () => {
     healthAmountInput.value = 1;
-    $("halveDamageInput").checked = false;
+
+    // Spellfury halves damage from spells, which is most of what hits a Spellblade in it
+    $("halveDamageInput").checked = spellfuryActive();
+    $("parryInput").checked = false;
     $("damageMessage").textContent = "";
 
+    renderDamageOptions();
     renderHP();
     show(hpManagerOverlay);
 });
 
 $("closeHPManager").addEventListener("click", () => hide(hpManagerOverlay));
 
-$("damageHPButton").addEventListener("click", () => {
+$("damageHPButton").addEventListener("click", async () => {
     const amount = healthAmount();
 
     if (Number.isNaN(amount) || amount < 0) {
         return;
     }
 
-    const { absorbed, taken } = updateCurrentHealth(-amount, damageAfterReductions);
+    const halve = $("halveDamageInput").checked;
+    const halved = halve ? Math.floor(amount / 2) : amount;
+    let parried = 0;
+
+    if (canParry() && $("parryInput").checked) {
+        hide(hpManagerOverlay);
+
+        const rolls = await rollDice(parryDice());
+
+        show(hpManagerOverlay);
+
+        if (!rolls) {
+            return;
+        }
+
+        parried = sum(rolls);
+
+        // Once per round
+        $("parryInput").checked = false;
+    }
+
+    const { reduced, absorbed, taken } = updateCurrentHealth(-amount, {
+        beforeWard: () => Math.max(0, halved - parried),
+        afterWard: $("applyArmorInput").checked ? armorReduces(effectiveArmor()) : damage => damage
+    });
 
     const parts = [];
+
+    if (halve) {
+        parts.push(`Halved to ${halved}.`);
+    }
+
+    if (parried) {
+        parts.push(reduced === 0 ? `Parried ${parried}: no damage!` : `Parried ${parried}.`);
+    }
 
     if (absorbed) {
         parts.push(`Ward absorbed ${absorbed}.`);
     }
 
-    const passed = amount - absorbed;
+    const passed = reduced - absorbed;
 
     if (passed > 0) {
-        parts.push(taken === passed ? `Took ${taken} damage.` : `Took ${taken} damage (${passed} before reductions).`);
+        parts.push(taken === passed ? `Took ${taken} damage.` : `Took ${taken} damage (${passed} before armor).`);
+    }
+
+    if (amount > 0 && reduced === 0 && parried && hasFeat("arcaneRiposte")) {
+        parts.push("Arcane Riposte: make a level 1 weapon attack against the attacker.");
+    }
+
+    if (amount > 0 && reduced === 0 && parried && subclassIs("spellguard") && state.level >= 5) {
+        parts.push(`Absorb: if it was a spell, draw ${halved} tiles.`);
     }
 
     $("damageMessage").textContent = parts.join(" ") || "No damage.";
@@ -179,6 +236,8 @@ wardInput.addEventListener("input", () => {
     commit();
 });
 
+const constructName = () => state.construct.name.trim() || "Construct";
+
 /*
  * =========================================================
  * MAIN SCREEN STATS
@@ -197,7 +256,6 @@ function renderStats() {
     $("characterClassDisplay").textContent = classLine();
 
     $("armorDisplay").textContent = effectiveArmor();
-    $("armorDisplay").classList.toggle("boosted", effectiveArmor() > baseArmor());
     $("initiativeDisplay").textContent = formatModifier(initiativeBonus());
     $("passiveRevealDisplay").textContent = rank("reveal");
 
@@ -277,6 +335,20 @@ $("shortRestButton").addEventListener("click", async () => {
 
     rows.push(["Healed", healing], ["HP", `${state.currentHealth} / ${state.maxHealth}`]);
 
+    // A construct recovers during rests like you do: its own roll of your hit dice
+    if (hasConstruct() && !state.construct.destroyed && state.construct.damage > 0) {
+        const constructRolls = await rollDice(`${count}d${hitDie}`);
+
+        if (constructRolls) {
+            const constructHealing = sum(constructRolls) + medic;
+
+            state.construct.damage = Math.max(0, state.construct.damage - constructHealing);
+            commit();
+
+            rows.push([`${constructName()} healed`, constructHealing], [`${constructName()} HP`, `${constructHealth()} / ${constructMaxHealth()}`]);
+        }
+    }
+
     showInfoResult("Short Rest", rows, { title: "Hit dice", values: rolls });
 });
 
@@ -293,18 +365,31 @@ $("longRestButton").addEventListener("click", async () => {
         }
     }
 
+    // Glyphs fade after a day, or a week with Lasting Glyphs (Glyphwarden)
+    const glyphs = characterClass().signature.glyphs;
+    const glyphsLast = glyphs && subclassIs("glyphwarden");
+
     state.currentHealth = state.maxHealth;
     state.ward = 0;
     state.shortRests = 0;
-    state.signature = { used: 0, roundsLeft: 0 };
+    state.signature = { used: glyphsLast ? state.signature.used : 0, roundsLeft: 0, ongoing: false };
+
+    const rows = [
+        ["HP", `${state.currentHealth} / ${state.maxHealth}`],
+        [characterClass().signature.name, glyphs ? (glyphsLast ? "Last a week" : "Faded") : "All uses back"]
+    ];
+
+    // A construct heals fully, and a destroyed one can be rebuilt
+    if (hasConstruct()) {
+        rows.push([constructName(), state.construct.destroyed ? "Rebuilt" : "Full HP"]);
+
+        state.construct = { ...state.construct, damage: 0, destroyed: false, colossusRounds: 0, colossusUsed: false };
+    }
 
     resetDeathSaves();
     commit();
 
-    showInfoResult("Long Rest", [
-        ["HP", `${state.currentHealth} / ${state.maxHealth}`],
-        [characterClass().signature.name, characterClass().signature.glyphs ? "Faded" : "All uses back"]
-    ]);
+    showInfoResult("Long Rest", rows);
 });
 
 /*
@@ -538,11 +623,16 @@ function renderEquipment() {
     const extras = [];
 
     if (hasFeat("ironHide")) extras.push("Iron Hide +1");
-    if (hasFeat("duelist")) extras.push(state.shield ? "Duelist (not with a shield)" : "Duelist +1");
 
-    $("armorNote").textContent = `Armor value ${baseArmor()}` + (extras.length ? ` (${extras.join(", ")})` : "");
+    if (hasFeat("duelist")) {
+        extras.push(state.shield ? "Duelist: not with a shield" : state.weapon.twoHanded ? "Duelist: not with a two-handed weapon" : "Duelist +1");
+    }
+
+    $("armorNote").textContent = `Armor value ${effectiveArmor()}` + (extras.length ? ` (${extras.join(", ")})` : "");
 
     setValue(weaponNameInput, state.weapon.name);
+    $("weaponRangedInput").checked = state.weapon.ranged;
+    $("weaponTwoHandedInput").checked = state.weapon.twoHanded;
 
     fillSelect(
         weaponDieInput,
@@ -566,8 +656,42 @@ function renderSettings() {
         `${info.role}. Hit die d${info.hitDie} (take ${info.fixedHP} when levelling up). ` +
         `${info.gear} Bonus ranks: ${info.bonusRanks}`;
 
+    renderTongues();
     renderRanks();
     renderEquipment();
+}
+
+/*
+ * One dropdown per Tongue the character knows: two to start, one more per
+ * Polyglot. A Tongue picked in one dropdown isn't offered in the others.
+ */
+function renderTongues() {
+    const container = $("tongueChoices");
+
+    container.replaceChildren(...state.tongues.map((choice, index) => {
+        const select = element("select", "modal-input");
+        const takenElsewhere = state.tongues.filter((other, otherIndex) => other && otherIndex !== index);
+        const placeholder = index === 0 ? "Native Tongue" : "Choose a Tongue";
+
+        select.setAttribute("aria-label", index === 0 ? "Native Tongue" : `Tongue ${index + 1}`);
+
+        fillSelect(select, [
+            ["", placeholder],
+            ...Object.entries(TONGUES)
+                .filter(([key]) => !takenElsewhere.includes(key))
+                .map(([key, tongue]) => [key, tongue.name])
+        ], choice);
+
+        select.classList.toggle("needs-attention", !choice);
+        select.title = TONGUES[choice] ? `${TONGUES[choice].perk}: ${TONGUES[choice].text}` : "";
+
+        select.addEventListener("change", () => {
+            state.tongues[index] = select.value;
+            commit();
+        });
+
+        return select;
+    }));
 }
 
 nameInput.addEventListener("input", () => {
@@ -579,7 +703,7 @@ classInput.addEventListener("change", () => {
     state.className = classInput.value;
     state.subclass = "";
     state.bonusChoices = [];
-    state.signature = { used: 0, roundsLeft: 0 };
+    state.signature = { used: 0, roundsLeft: 0, ongoing: false };
     commit();
 });
 
@@ -635,11 +759,32 @@ armorInput.addEventListener("change", () => {
 
 shieldInput.addEventListener("change", () => {
     state.shield = shieldInput.checked;
+
+    if (state.shield) {
+        state.weapon.twoHanded = false;
+    }
+
     commit();
 });
 
 weaponNameInput.addEventListener("input", () => {
     state.weapon.name = weaponNameInput.value.slice(0, 30);
+    commit();
+});
+
+$("weaponRangedInput").addEventListener("change", event => {
+    state.weapon.ranged = event.target.checked;
+    commit();
+});
+
+/* A two-handed weapon leaves no hand for a shield (and turns Duelist off). */
+$("weaponTwoHandedInput").addEventListener("change", event => {
+    state.weapon.twoHanded = event.target.checked;
+
+    if (state.weapon.twoHanded) {
+        state.shield = false;
+    }
+
     commit();
 });
 

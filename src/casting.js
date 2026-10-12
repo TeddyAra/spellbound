@@ -10,7 +10,13 @@ import {
     subclassIs,
     hasFeat,
     weaponDie,
-    weaponExtraDice
+    weaponExtraDice,
+    battleHymnOnSelf,
+    enchantedArrows,
+    effectiveArmor,
+    constructRank,
+    constructDie,
+    colossusActive
 } from "./state.js";
 import {
     castingPool,
@@ -20,7 +26,7 @@ import {
     biggerDie,
     splitDice
 } from "./rules.js";
-import { rollDice } from "./dice.js";
+import { rollDice, rollDiceSets } from "./dice.js";
 import { preference, setPreference } from "./preferences.js";
 import { spawnScrabbleLetters } from "./tiles.js";
 import { showInfoResult } from "./results.js";
@@ -38,6 +44,10 @@ import { openSaveSpell, hasEmptySlot } from "./spellSlots.js";
  *   weapon    a mundane Harm action that rolls the weapon die per level
  *   save      a saving throw: only success matters
  *   counter   Prepare: each surge lowers an enemy spell's level
+ *
+ * A Runesmith's construct rolls its own pool (see construct.js):
+ *   constructWeapon   its weapon attack
+ *   constructAction   a mundane action in any school (Golemwright)
  */
 
 const MODES = {
@@ -47,6 +57,11 @@ const MODES = {
     save: { label: "Saving throw" },
     counter: { label: "Counter" }
 };
+
+const isConstruct = ({ mode }) => mode === "constructWeapon" || mode === "constructAction";
+
+/* Rolls that deal weapon damage, the character's or the construct's. */
+const isWeaponMode = mode => mode === "weapon" || mode === "constructWeapon";
 
 const rollSetupOverlay = $("rollSetupOverlay");
 const rollResultOverlay = $("rollResultOverlay");
@@ -77,11 +92,29 @@ function modesFor(school) {
 }
 
 /* The school a roll uses: weapon attacks always roll Harm. */
-const rollSchool = ({ school, mode }) => mode === "weapon" ? "harm" : school;
+const rollSchool = ({ school, mode }) => isWeaponMode(mode) ? "harm" : school;
+
+/* The rank whose pool is rolled: the school's, or the construct's own. */
+function poolRank(options) {
+    // Early Apprentice: the construct's mundane actions stay at rank 2. Deep Runes only raises its attack.
+    if (options.mode === "constructAction") {
+        return 2;
+    }
+
+    return options.mode === "constructWeapon" ? constructRank() : rank(rollSchool(options));
+}
 
 /* Dice added by feats: [label, count]. */
 function automaticDice({ school, mode }) {
     const dice = [];
+
+    if (isConstruct({ mode })) {
+        return dice;
+    }
+
+    if (battleHymnOnSelf()) {
+        dice.push(["Battle Hymn", 1]);
+    }
 
     if (mode === "mundane" && school === "control" && hasFeat("persuasive")) {
         dice.push(["Persuasive", 1]);
@@ -99,15 +132,19 @@ function automaticDice({ school, mode }) {
 }
 
 function diceCount(options) {
-    const pool = castingPool(rank(rollSchool(options)));
+    const pool = castingPool(poolRank(options));
     const extra = sum(automaticDice(options).map(([, count]) => count)) + options.extraDice;
 
     // A pool never drops below one die
     return Math.max(1, pool.count + extra);
 }
 
-/* The highest level this roll can reach. */
+/* The highest level this roll can reach. A construct's actions are mundane, so they stop at 3. */
 function levelCap({ school, mode }) {
+    if (isConstruct({ mode })) {
+        return Math.min(poolRank({ mode }), 3);
+    }
+
     if (mode === "mundane") {
         return Math.min(rank(school), mortalLimit(school));
     }
@@ -144,24 +181,33 @@ function modeHint() {
             return `Resists: ${SAVING_THROWS[school]}. Against a spell, the DC is its level + 3.`;
         case "counter":
             return "Each surge lowers the spell's level by 1. Below level 1, it fizzles.";
+        case "constructWeapon":
+            return `Damage: d${constructDie()} per level. Mortal limit 3.` +
+                (colossusActive() ? " Colossus: it also hits one target next to it." : "");
+        case "constructAction":
+            return "Any school, as a mundane action. No tiles, mortal limit 3.";
     }
 }
 
 function renderSetup() {
     const school = rollSchool(setup);
-    const { sides } = castingPool(rank(school));
+    const { sides } = castingPool(poolRank(setup));
 
     $("rollSetupTitle").textContent = setup.mode === "saved"
         ? state.spellSlots[setup.slotIndex].name.toUpperCase()
         : setup.mode === "weapon"
             ? state.weapon.name.trim() || "Weapon attack"
-            : schoolName(setup.school);
+            : isConstruct(setup)
+                ? `${constructName()} ${setup.mode === "constructWeapon" ? "attack" : "action"}`
+                : schoolName(setup.school);
 
-    $("rollSetupPool").textContent = `${schoolName(school)} rank ${rank(school)}`;
+    $("rollSetupPool").textContent = isConstruct(setup)
+        ? `Construct rank ${poolRank(setup)}`
+        : `${schoolName(school)} rank ${rank(school)}`;
 
     const modes = $("rollModes");
 
-    if (setup.mode === "saved") {
+    if (setup.mode === "saved" || isConstruct(setup)) {
         modes.replaceChildren();
     } else {
         modes.replaceChildren(...modesFor(setup.school).map(mode => {
@@ -218,7 +264,7 @@ async function confirmRoll() {
     setPreference("lastDC", dcInput.value);
 
     const school = rollSchool(setup);
-    const { sides } = castingPool(rank(school));
+    const { sides } = castingPool(poolRank(setup));
     const rolls = await rollDice(`${diceCount(setup)}d${sides}`);
 
     if (!rolls) {
@@ -262,7 +308,8 @@ $("weaponButton").addEventListener("click", () => openRollSetup("harm", "weapon"
  */
 
 function readRoll() {
-    const threshold = surgeThreshold();
+    // Torrent of Words is the Wordweaver's, not their construct's
+    const threshold = isConstruct(roll) ? 5 : surgeThreshold();
     const surges = roll.rolls.filter(value => value >= threshold).length;
     const cap = levelCap(roll);
 
@@ -376,7 +423,9 @@ function renderResult() {
     switch (roll.mode) {
         case "spell":
         case "mundane":
-        case "weapon": {
+        case "weapon":
+        case "constructWeapon":
+        case "constructAction": {
             const capNote = reading.surges > reading.cap
                 ? roll.mode === "spell" ? `(capped at rank ${reading.cap})` : `(capped at ${reading.cap})`
                 : roll.overchannel ? "(Overchannel +1)" : null;
@@ -429,12 +478,12 @@ function renderResult() {
                 close();
                 castSavedSpell(reading.level);
             }));
-        } else if (roll.mode === "weapon") {
+        } else if (isWeaponMode(roll.mode)) {
             // Damage straight away; the panel stays up for extras like Ambush
             actions.push(actionButton("Roll damage", "primary", () => {
                 close();
                 openActionPanel(reading.level);
-                rollWeaponDamage(reading.level);
+                rollWeaponDamage(reading.level, roll.mode);
             }));
         } else {
             actions.push(actionButton("Act", "primary", () => {
@@ -541,24 +590,32 @@ let action = null;
  * targets, each with its own total. A bonus per die (e.g. Healing Hymn's +1)
  * follows the dice: 2d8 + 2 and 1d8 + 1.
  */
-async function rollEffect(title, count, sides, { split = [count], bonusPerDie = 0, bonusLabel = null } = {}) {
-    const rolls = await rollDice(`${count}d${sides}`);
+async function rollEffect(title, count, sides, { split = [count], bonusPerDie = 0, bonusLabel = null, extra = null } = {}) {
+    // An extra die of another size, e.g. War Chant's 1d4: { sides, label }
+    const sets = await rollDiceSets(`${count}d${sides}` + (extra ? `+1d${extra.sides}` : ""));
 
-    if (!rolls) {
+    if (!sets) {
         return;
     }
 
+    const rolls = sets[0];
+
     if (split.length === 1) {
         const bonus = bonusPerDie * count;
+        const extraRoll = extra ? sum(sets[1]) : 0;
         const rows = [[`${count}d${sides}`, sum(rolls)]];
 
         if (bonus) {
             rows.push([bonusLabel, `+${bonus}`]);
         }
 
-        rows.push(["Total", sum(rolls) + bonus]);
+        if (extra) {
+            rows.push([`${extra.label} (1d${extra.sides})`, `+${extraRoll}`]);
+        }
 
-        showInfoResult(title, rows, { title: "Effect dice", values: rolls });
+        rows.push(["Total", sum(rolls) + bonus + extraRoll]);
+
+        showInfoResult(title, rows, { title: "Effect dice", values: sets.flat() });
 
         return;
     }
@@ -579,9 +636,16 @@ async function rollEffect(title, count, sides, { split = [count], bonusPerDie = 
     showInfoResult(`${title} (${split.length} targets)`, rows, { title: "Effect dice", values: rolls });
 }
 
-/* The weapon die once per level, plus Spellfury's extra die. */
-function rollWeaponDamage(level) {
-    return rollEffect("Weapon Damage", level + weaponExtraDice(), weaponDie());
+/* War Chant (Skald): while Battle Hymn lasts, weapon attacks deal an extra 1d4. */
+const warChant = () => battleHymnOnSelf() ? { sides: 4, label: "War Chant" } : null;
+
+/* The weapon die once per level, plus Spellfury's extra die. A construct rolls its own die. */
+function rollWeaponDamage(level, mode = "weapon") {
+    if (mode === "constructWeapon") {
+        return rollEffect(`${constructName()} Damage`, level, constructDie());
+    }
+
+    return rollEffect("Weapon Damage", level + weaponExtraDice(), weaponDie(), { extra: warChant() });
 }
 
 /* Harm, Aid and Passion spells can share their dice between targets (see splitDice in rules.js). */
@@ -681,8 +745,10 @@ function targetControls() {
 /* "3d8" for one target, "2d8 + 1d8" for two */
 const splitLabel = (split, sides) => split.map(dice => `${dice}d${sides}`).join(" + ");
 
+const constructName = () => state.construct.name.trim() || "Construct";
+
 function preciseWording() {
-    return action.mode !== "mundane" && action.mode !== "weapon"
+    return ["spell", "saved"].includes(action.mode)
         && subclassIs("lexicographer") && state.level >= 5
         && action.precise;
 }
@@ -691,8 +757,9 @@ function preciseWording() {
 function effectDie(school, base) {
     let sides = base;
 
+    // Burning Passion (Devotee): one size bigger, and it adds up with Spell Focus
     if (school === "passion" && subclassIs("devotee") && state.level >= 5) {
-        sides = 8;
+        sides = biggerDie(sides);
     }
 
     const focus = { harm: "spellFocusHarm", aid: "spellFocusAid", passion: "spellFocusPassion" }[school];
@@ -732,9 +799,16 @@ function effectButtons() {
     const add = (label, onClick, className = null) => buttons.push(actionButton(label, className, onClick));
 
     // Weapon damage is rolled straight away (see renderResult)
-    if (mode === "weapon") {
+    if (mode === "constructWeapon") {
+        add(`Damage again ${level}d${constructDie()}`, () => rollWeaponDamage(level, mode));
+    } else if (mode === "weapon") {
         if (state.className === "spellblade") {
             add(`Bladeword: draw ${action.highest} tiles`, () => spawnScrabbleLetters(action.highest));
+        }
+
+        // Volley (Arcane Archer): a second target, its damage rolled separately
+        if (enchantedArrows() && state.level >= 5) {
+            add(`Volley: second target ${level + weaponExtraDice()}d${weaponDie()}`, () => rollWeaponDamage(level));
         }
     } else if (mode === "mundane") {
         if (school === "aid") {
@@ -774,11 +848,31 @@ function effectButtons() {
     return buttons;
 }
 
+/* Aegis (Warden, level 6): anyone you protect with Aid also gains ward points equal to your armor. */
+function aegisHint() {
+    return state.className === "warden" && state.level >= 6
+        ? ` Aegis: everyone you protect also gains ${effectiveArmor()} ward points until your next turn.`
+        : "";
+}
+
 function actionHint() {
     const { school, mode, level } = action;
 
+    if (mode === "constructWeapon") {
+        return `Damage: ${level}d${constructDie()}.` + (colossusActive() ? " Colossus: it also hits one target next to it." : "");
+    }
+
+    if (mode === "constructAction") {
+        return `Describe what ${constructName()} does. ${SPELL_LEVEL_SCALE[level]}.`;
+    }
+
     if (mode === "weapon") {
-        const parts = [`Damage: ${level + weaponExtraDice()}d${weaponDie()}${weaponExtraDice() ? " (Spellfury +1 die)" : ""}.`];
+        const extras = [
+            weaponExtraDice() ? "Spellfury +1 die" : null,
+            warChant() ? "War Chant +1d4" : null
+        ].filter(Boolean);
+
+        const parts = [`Damage: ${level + weaponExtraDice()}d${weaponDie()}${warChant() ? " + 1d4" : ""}${extras.length ? ` (${extras.join(", ")})` : ""}.`];
 
         // Bladeword: 4 letters, 5 from Weapon Mastery, one more with Charged Blade, no limit from Spellstorm
         if (state.className === "spellblade") {
@@ -791,7 +885,7 @@ function actionHint() {
     }
 
     if (mode === "mundane") {
-        return school === "aid" ? "Describe what you do." : `Describe what you do. ${SPELL_LEVEL_SCALE[level]}.`;
+        return school === "aid" ? `Describe what you do.${aegisHint()}` : `Describe what you do. ${SPELL_LEVEL_SCALE[level]}.`;
     }
 
     if (school === "create") {
@@ -800,9 +894,11 @@ function actionHint() {
 
     // Damage and healing scale with the dice, so the level's "several targets" doesn't apply
     if (hasTargets(action)) {
-        return level === 1
+        const sharing = level === 1
             ? "One die, so one target."
             : `Share the ${level} dice between up to ${level} targets, at least one die each.`;
+
+        return school === "aid" ? sharing + aegisHint() : sharing;
     }
 
     return `${SPELL_LEVEL_SCALE[level]}.`;
@@ -815,7 +911,9 @@ function renderActionPanel() {
         spell: `${schoolName(school)} spell`,
         saved: state.spellSlots[action.slotIndex]?.name.toUpperCase() ?? "Saved spell",
         mundane: `mundane ${schoolName(school)} action`,
-        weapon: state.weapon.name.trim() ? `${state.weapon.name.trim()} attack` : "weapon attack"
+        weapon: state.weapon.name.trim() ? `${state.weapon.name.trim()} attack` : "weapon attack",
+        constructWeapon: `${constructName()} attack`,
+        constructAction: `${constructName()} action`
     }[mode];
 
     $("actionTitle").textContent = `Level ${level} ${what}`;
@@ -824,7 +922,7 @@ function renderActionPanel() {
     const buttons = effectButtons();
 
     // Lexicographer: Precise Wording
-    if (mode !== "mundane" && mode !== "weapon" && subclassIs("lexicographer") && state.level >= 5
+    if (["spell", "saved"].includes(mode) && subclassIs("lexicographer") && state.level >= 5
         && ["harm", "aid", "passion"].includes(school)) {
         const toggle = element("label", "check-row");
         const input = element("input");

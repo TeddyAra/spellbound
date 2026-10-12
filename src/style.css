@@ -186,9 +186,10 @@ button:disabled {
     z-index: 5;
 }
 
+/* Five of them share the menu's 310px, with room to breathe between them */
 .icon-button {
-    width: 62px;
-    height: 62px;
+    width: 56px;
+    height: 56px;
 
     display: grid;
     place-items: center;
@@ -203,16 +204,16 @@ button:disabled {
 .icon-button img {
     display: block;
 
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
 
     pointer-events: none;
     user-select: none;
 }
 
 .icon-button svg {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
 
     fill: none;
     stroke: var(--on-accent);
@@ -480,7 +481,8 @@ button:disabled {
    HEALTH POINTS
    ========================================================= */
 
-#currentHP {
+#currentHP,
+.current-hp {
     display: flex;
     justify-content: center;
     align-items: baseline;
@@ -491,7 +493,8 @@ button:disabled {
     font-size: 18px;
 }
 
-#currentHP strong {
+#currentHP strong,
+.current-hp strong {
     font-size: 32px;
 }
 
@@ -1329,8 +1332,78 @@ button:disabled {
     text-align: center;
 }
 
-#glyphCounter {
+#glyphCounter,
+#runeCounter {
     cursor: default;
+}
+
+/*
+ * Runesmith: the construct, in its own column to the right of the menu,
+ * level with the weapon button (see construct.js). Folded away, it's just a
+ * small square button with an arrow.
+ */
+#constructPanel {
+    position: absolute;
+    left: calc(18px + 310px + 12px);
+    top: 96px;
+
+    width: 190px;
+
+    z-index: 5;
+}
+
+#constructBody {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#constructPanel.folded #constructBody,
+#constructPanel:not(.folded) #constructExpand {
+    display: none;
+}
+
+#constructPanel .roll-button {
+    min-height: 38px;
+
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+/* Open, the column's first button folds it away again, and carries its name */
+#constructCollapse > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#constructPanel .square-button {
+    width: 38px;
+    min-height: 0;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    padding: 0;
+
+    justify-content: center;
+
+    font-size: 16px;
+    line-height: 1;
+}
+
+#constructPanel.destroyed #constructHPDisplay {
+    color: var(--danger-text);
+}
+
+#colossusButton.active {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+#colossusButton.active #colossusDisplay,
+#colossusRoundsDisplay {
+    color: var(--accent);
 }
 
 /* The pool and rank on a school or saved spell button */
@@ -1351,6 +1424,53 @@ button:disabled {
 
 #rollMenu > .rolls-title {
     margin: 0 0 -2px 4px;
+}
+
+/*
+ * A heading that folds the list under it open or shut (Saved spells). It
+ * looks like the plain heading in every theme, so the id beats the themes'
+ * button styles.
+ */
+:root #rollMenu > .fold-toggle,
+:root #rollMenu > .fold-toggle:hover {
+    width: calc(100% - 4px);
+    min-height: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 2px 0;
+
+    background: none;
+    border: none;
+    box-shadow: none;
+
+    text-align: left;
+
+    cursor: pointer;
+}
+
+#rollMenu > .fold-toggle:hover,
+#rollMenu > .fold-toggle:focus-visible {
+    color: var(--text);
+}
+
+.fold-arrow {
+    display: inline-block;
+
+    width: 1em;
+
+    transition: transform 0.15s;
+}
+
+.fold-toggle.folded .fold-arrow {
+    transform: rotate(-90deg);
+}
+
+.fold-count {
+    margin-left: auto;
+    margin-right: 4px;
 }
 
 /* =========================================================
@@ -1466,6 +1586,18 @@ select.modal-input {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+/* Wraps once Polyglot adds more */
+.tongue-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+}
+
+.tongue-choices .modal-input {
+    width: auto;
+    flex: 1 1 140px;
 }
 
 .input-with-button .modal-input:first-child {
@@ -3384,15 +3516,261 @@ select.modal-input:disabled {
 }
 
 /*
- * The Runesmith's glyph counter looks like a menu row but isn't a button (its
- * − and + are), so no theme gives it a button's shadow, frame or fill. Last in
+ * The Runesmith's glyph and rune counters look like menu rows but aren't buttons
+ * (their − and + are), so no theme gives them a button's shadow, frame or fill. Last in
  * the file so it wins over the themes' button styles.
  */
-:root #glyphCounter.roll-button {
+:root #glyphCounter.roll-button,
+:root #runeCounter.roll-button {
     border-color: transparent;
 
     background: transparent;
     box-shadow: none;
+}
+
+/* =========================================================
+   QUICK REFERENCE (Appendix A; see reference.js)
+   ========================================================= */
+
+/*
+ * Each table sits in a feature card, and its headers use the rank grid's
+ * style, so every theme frames and letters them like its other windows.
+ */
+/*
+ * Three columns as tall as the window, so nothing scrolls. The glossary
+ * takes whatever height the last column has left, and is cut off there.
+ */
+#referenceOverlay .modal {
+    width: min(1500px, 96vw);
+    height: calc(94vh / var(--ui-zoom, 1));
+    max-height: none;
+
+    display: flex;
+    flex-direction: column;
+
+    --modal-padding: 20px;
+    --modal-padding-bottom: 18px;
+}
+
+#referenceOverlay .modal h2 {
+    margin-bottom: 14px;
+}
+
+#referenceOverlay .actions {
+    margin-top: 14px;
+}
+
+#referenceContent {
+    flex: 1;
+    min-height: 0;
+
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+/* Tighter than other cards, so all three columns fit */
+#referenceContent .reference-card {
+    padding: 8px 12px 10px;
+}
+
+#referenceContent .reference-table {
+    font-size: 13.5px;
+}
+
+#referenceContent .reference-table th,
+#referenceContent .reference-table td {
+    padding: 4px 8px;
+}
+
+.reference-column {
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    /* Only on screens too short for it all: a column scrolls rather than spilling over */
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.reference-card {
+    flex-shrink: 0;
+}
+
+/*
+ * The columns without the glossary share out their spare height between
+ * their cards, so all three columns end level. Tables stretch their rows
+ * to fill their card.
+ */
+.reference-column:not(:has(.glossary-card)) .reference-card {
+    flex-grow: 1;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.reference-column:not(:has(.glossary-card)) .reference-scroll {
+    flex: 1;
+}
+
+.reference-column:not(:has(.glossary-card)) .reference-table {
+    height: 100%;
+}
+
+.glossary-card {
+    flex: 1 1 0;
+    min-height: 140px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+}
+
+.glossary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    margin-bottom: 6px;
+}
+
+.glossary-header h3 {
+    margin: 0;
+}
+
+.glossary-header button {
+    padding: 5px 12px;
+
+    font-size: 13px;
+}
+
+/* Cut off at the bottom of the column, fading out so it's clear there's more */
+.glossary-preview {
+    flex: 1;
+    min-height: 0;
+
+    overflow: hidden;
+
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
+}
+
+.glossary-list {
+    margin: 0;
+
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.glossary-list dt {
+    margin-top: 8px;
+
+    font-weight: 650;
+}
+
+.glossary-list dt:first-child {
+    margin-top: 0;
+}
+
+.glossary-list dd {
+    margin: 2px 0 0;
+
+    color: var(--muted);
+}
+
+#glossaryContent .glossary-list {
+    font-size: 15px;
+}
+
+/* Narrow screens: one column, which scrolls after all */
+@media (max-width: 1000px) {
+    #referenceOverlay .modal {
+        height: auto;
+        max-height: calc(90vh / var(--ui-zoom, 1));
+
+        display: block;
+    }
+
+    #referenceContent {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .glossary-card {
+        flex: none;
+        height: 320px;
+    }
+}
+
+.reference-card h3 {
+    margin: 0 0 6px;
+
+    font-size: 15px;
+}
+
+.reference-card > p {
+    margin: 6px 0 0;
+}
+
+.reference-card ol {
+    margin: 0;
+    padding-left: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.reference-scroll {
+    overflow-x: auto;
+}
+
+.reference-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.reference-table th,
+.reference-table td {
+    padding: 6px 8px;
+
+    text-align: left;
+    vertical-align: top;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.reference-table thead th {
+    border-bottom-color: var(--border-strong);
+
+    white-space: nowrap;
+}
+
+.reference-table tbody tr:last-child > * {
+    border-bottom: none;
+}
+
+.reference-table tbody tr:nth-child(even) {
+    background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+.reference-table td:first-child {
+    font-weight: 600;
+}
+
+/* Casting Pools reads across: one column per rank */
+.reference-table tbody th {
+    white-space: nowrap;
 }
 
 /* =========================================================

@@ -11,7 +11,10 @@ import {
     rankPoints,
     baseSpellSlots,
     biggerDie,
-    signatureUses
+    signatureUses,
+    runesAllowed,
+    TONGUES,
+    STARTING_TONGUES
 } from "./rules.js";
 
 export const state = {
@@ -42,6 +45,9 @@ export const state = {
     // A school for every time the Trained feat was taken
     trainedSchools: [],
 
+    // Tongues known (see TONGUES in rules.js), "" while not chosen. The first is the native Tongue.
+    tongues: [],
+
     // Entries: { name, school, level }. An empty slot has no name.
     spellSlots: [],
 
@@ -52,7 +58,7 @@ export const state = {
     armor: 0,
     shield: false,
 
-    weapon: { name: "Dagger", die: 4 },
+    weapon: { name: "Dagger", die: 4, ranged: false, twoHanded: false },
 
     // Max HP follows the class and level, unless the player rolled for it
     rolledHP: false,
@@ -61,8 +67,16 @@ export const state = {
     ward: 0,
 
     // Signature ability: uses spent since the last long rest (glyphs placed for a Runesmith),
-    // and the rounds left while it's active
-    signature: { used: 0, roundsLeft: 0 },
+    // and the rounds left while it's active. One that lasts until the end of the combat
+    // (Spellfury) is `ongoing` instead, until it's clicked off.
+    signature: { used: 0, roundsLeft: 0, ongoing: false },
+
+    // Runesmith: runes stored in objects
+    runes: 0,
+
+    // Runesmith: the construct companion (see construct.js). Damage is kept rather than hit points,
+    // so it keeps up when its maximum changes (a new level, Colossus). Destroyed at 0 HP until the next long rest.
+    construct: { name: "", damage: 0, destroyed: false, colossusRounds: 0, colossusUsed: false },
 
     shortRests: 0,
 
@@ -242,13 +256,71 @@ export const maxSignatureUses = () => signatureUses(state.className, state.level
     + (subclassIs("glyphwarden") ? 1 : 0)
     + (subclassIs("mimic") && state.level >= 10 ? 1 : 0);
 
-export const signatureActive = () => state.signature.roundsLeft > 0;
+export const signatureActive = () => state.signature.roundsLeft > 0 || state.signature.ongoing;
 
 const signatureOn = className => state.className === className && signatureActive();
+
+/* Ends the signature ability, e.g. when downed or when the combat ends. */
+export function endSignature() {
+    state.signature.roundsLeft = 0;
+    state.signature.ongoing = false;
+}
 
 /* Torrent of Words: a 4 is a surge too. */
 export function surgeThreshold() {
     return signatureOn("wordweaver") ? 4 : 5;
+}
+
+/* Spellfury: weapon attacks deal one extra weapon die, and spells deal half damage. */
+export const spellfuryActive = () => signatureOn("spellblade");
+
+/* Skald (War Chant): your own Battle Hymn adds a die to your pool and 1d4 to your weapon attacks. */
+export const battleHymnOnSelf = () => subclassIs("skald") && signatureOn("loresinger");
+
+/*
+ * =========================================================
+ * RUNES AND CONSTRUCT (Runesmith)
+ * =========================================================
+ */
+
+/* Living Workshop: 2 more runes. */
+export const maxRunes = () => runesAllowed(state.level) + (hasFeat("livingWorkshop") ? 2 : 0);
+
+/* Construct at level 3, or level 2 for a Golemwright (Early Apprentice). */
+export function hasConstruct() {
+    return state.className === "runesmith" && (state.level >= 3 || subclassIs("golemwright"));
+}
+
+export const colossusActive = () => state.construct.colossusRounds > 0;
+
+/* 10 + 3 per level, and 2 more per level with Reinforced Construct. Before Colossus. */
+export function constructBaseHealth() {
+    return 10 + (hasFeat("reinforcedConstruct") ? 5 : 3) * state.level;
+}
+
+/* Colossus doubles it. */
+export const constructMaxHealth = () => constructBaseHealth() * (colossusActive() ? 2 : 1);
+
+export const constructHealth = () => state.construct.destroyed ? 0 : constructMaxHealth() - state.construct.damage;
+
+/*
+ * When Colossus ends, the extra hit points go first: what's left of its
+ * damage can't take it below 1 hit point. Doesn't save or redraw.
+ */
+export function endColossus() {
+    state.construct.colossusRounds = 0;
+    state.construct.damage = Math.min(state.construct.damage, constructBaseHealth() - 1);
+}
+
+export const constructArmor = () => hasFeat("reinforcedConstruct") ? 2 : 1;
+
+/* Deep Runes: rank 3 and a d8 from level 6. Colossus makes the die one size bigger. */
+export const constructRank = () => state.level >= 6 ? 3 : 2;
+
+export function constructDie() {
+    const die = state.level >= 6 ? 8 : 6;
+
+    return colossusActive() ? biggerDie(die) : die;
 }
 
 /*
@@ -274,31 +346,30 @@ export function allowedWeaponDice() {
     return [...dice].sort((a, b) => a - b);
 }
 
-/* Armor, shield, Iron Hide and Duelist (with no shield), plus Hold the Line while it lasts. */
-export function baseArmor() {
+/* Armor, shield, Iron Hide, and Duelist (one one-handed weapon, so no shield or two-handed weapon). */
+export function effectiveArmor() {
     return state.armor
         + (state.shield ? 1 : 0)
         + (hasFeat("ironHide") ? 1 : 0)
-        + (hasFeat("duelist") && !state.shield ? 1 : 0);
-}
-
-export function effectiveArmor() {
-    return baseArmor() + (signatureOn("warden") ? 2 : 0);
+        + (hasFeat("duelist") && !state.shield && !state.weapon.twoHanded ? 1 : 0);
 }
 
 export function initiativeBonus() {
     return rank("move") + (hasFeat("alert") ? 5 : 0);
 }
 
-/* Spellblade: Weapon Mastery makes the weapon die one size bigger. */
+/* Arcane Archer: Enchanted Arrows makes a ranged weapon die one size bigger. */
+export const enchantedArrows = () => subclassIs("arcaneArcher") && state.weapon.ranged;
+
+/* Spellblade: Weapon Mastery and Enchanted Arrows each make the weapon die one size bigger. */
 export function weaponDie() {
     const masterful = state.className === "spellblade" && state.level >= 6;
 
-    return masterful ? biggerDie(state.weapon.die) : state.weapon.die;
+    return biggerDie(state.weapon.die, (masterful ? 1 : 0) + (enchantedArrows() ? 1 : 0));
 }
 
 /* Spellfury: weapon attacks deal one extra weapon die. */
-export const weaponExtraDice = () => signatureOn("spellblade") ? 1 : 0;
+export const weaponExtraDice = () => spellfuryActive() ? 1 : 0;
 
 /*
  * =========================================================
@@ -387,6 +458,26 @@ function schoolChoices(choices, length) {
     });
 }
 
+/* Two Tongues, and one more for every time Polyglot was taken, up to every Tongue there is. */
+export const tongueCount = () => Math.min(Object.keys(TONGUES).length, STARTING_TONGUES + featCount("polyglot"));
+
+/* A list of `length` Tongues (or "" for not chosen yet), keeping what was picked and never one twice. */
+function tongueChoices(choices, length) {
+    const seen = new Set();
+
+    return Array.from({ length }, (_, index) => {
+        const choice = Array.isArray(choices) ? choices[index] : "";
+
+        if (!TONGUES[choice] || seen.has(choice)) {
+            return "";
+        }
+
+        seen.add(choice);
+
+        return choice;
+    });
+}
+
 /* Keeps every value in range, e.g. after loading a save or changing level. */
 export function normalizeState() {
     if (!CLASSES[state.className]) {
@@ -407,6 +498,7 @@ export function normalizeState() {
     state.bonusChoices = schoolChoices(state.bonusChoices, characterClass().bonusChoices ?? 0);
     state.expertSchools = schoolChoices(state.expertSchools, state.className === "trickster" ? 2 : 0);
     state.trainedSchools = schoolChoices(state.trainedSchools, featCount("trained"));
+    state.tongues = tongueChoices(state.tongues, tongueCount());
 
     state.armor = clamp(Math.floor(Number(state.armor) || 0), 0, Math.min(maxArmor(), ARMOR_TYPES.length - 1));
     state.shield = Boolean(state.shield) && canUseShield();
@@ -417,8 +509,15 @@ export function normalizeState() {
         name: typeof state.weapon?.name === "string" ? state.weapon.name : "",
         die: WEAPON_TYPES[state.weapon?.die] && weaponDice.includes(Number(state.weapon.die))
             ? Number(state.weapon.die)
-            : weaponDice[0]
+            : weaponDice[0],
+        ranged: Boolean(state.weapon?.ranged),
+        twoHanded: Boolean(state.weapon?.twoHanded)
     };
+
+    // A two-handed weapon leaves no hand for a shield
+    if (state.weapon.twoHanded) {
+        state.shield = false;
+    }
 
     state.rolledHP = Boolean(state.rolledHP);
 
@@ -437,10 +536,27 @@ export function normalizeState() {
     state.currentHealth = clamp(Number(state.currentHealth) || 0, 0, state.maxHealth);
     state.ward = Math.max(0, Number(state.ward) || 0);
 
+    const signature = characterClass().signature;
+    const ongoing = Boolean(state.signature?.ongoing) && Boolean(signature.untilCombatEnds);
+
     state.signature = {
         used: clamp(Number(state.signature?.used) || 0, 0, maxSignatureUses()),
-        roundsLeft: clamp(Number(state.signature?.roundsLeft) || 0, 0, 3)
+        roundsLeft: clamp(Number(state.signature?.roundsLeft) || 0, 0, signature.rounds ?? 0),
+        ongoing
     };
+
+    state.runes = state.className === "runesmith" ? clamp(Number(state.runes) || 0, 0, maxRunes()) : 0;
+
+    const construct = state.construct ?? {};
+
+    state.construct = {
+        name: typeof construct.name === "string" ? construct.name : "",
+        destroyed: Boolean(construct.destroyed),
+        colossusRounds: subclassIs("golemwright") && state.level >= 10 ? clamp(Number(construct.colossusRounds) || 0, 0, 3) : 0,
+        colossusUsed: Boolean(construct.colossusUsed)
+    };
+
+    state.construct.damage = state.construct.destroyed ? 0 : clamp(Math.floor(Number(construct.damage) || 0), 0, constructMaxHealth());
 
     state.deathSaves = {
         successes: clamp(Number(state.deathSaves?.successes) || 0, 0, 3),
@@ -480,6 +596,7 @@ function applySaved(saved) {
 
     state.rankPoints = { ...defaults.rankPoints, ...saved.rankPoints };
     state.feats = { ...saved.feats };
+    state.construct = { ...defaults.construct, ...saved.construct };
 
     delete state.ranks;
     delete state.mortalLimits;

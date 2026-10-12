@@ -68,6 +68,10 @@ function characterReminders() {
         reminders.push("Name your passion");
     }
 
+    if (unchosen(state.tongues)) {
+        reminders.push(`Choose ${plural(unchosen(state.tongues), "Tongue")}`);
+    }
+
     return reminders;
 }
 

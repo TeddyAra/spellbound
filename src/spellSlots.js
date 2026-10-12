@@ -13,6 +13,7 @@ import {
 } from "./state.js";
 import { MAGIC_SCHOOLS, baseSpellSlots } from "./rules.js";
 import { openRollSetup } from "./casting.js";
+import { preference, setPreference } from "./preferences.js";
 
 /*
  * Saved spells: a spell you liked, kept in a spell slot at level 1. Casting it
@@ -27,7 +28,26 @@ export const hasEmptySlot = () => state.spellSlots.some(isEmptySlot);
  * =========================================================
  */
 
+/* The list folds shut under its heading, which keeps a count of the saved spells. */
+function renderFold() {
+    const open = preference("savedSpellsOpen");
+    const saved = state.spellSlots.filter(slot => !isEmptySlot(slot)).length;
+
+    $("savedSpells").classList.toggle("hidden", !open);
+    $("savedSpellsToggle").setAttribute("aria-expanded", String(open));
+    $("savedSpellsToggle").classList.toggle("folded", !open);
+    $("savedSpellsToggle").title = open ? "Fold your saved spells away" : "Show your saved spells";
+    $("savedSpellsCount").textContent = `${saved} / ${state.spellSlots.length}`;
+}
+
+$("savedSpellsToggle").addEventListener("click", () => {
+    setPreference("savedSpellsOpen", !preference("savedSpellsOpen"));
+    renderFold();
+});
+
 function renderSavedSpells() {
+    renderFold();
+
     $("savedSpells").replaceChildren(...state.spellSlots.map((slot, index) => {
         const button = element("button", "roll-button");
 

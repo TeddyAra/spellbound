@@ -51,6 +51,13 @@
                     </svg>
                 </button>
 
+                <button id="referenceButton" class="icon-button" aria-label="Open the quick reference" title="Quick reference">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="4" y="4" width="16" height="16" rx="2" />
+                        <path d="M4 9.5h16M4 14.8h16M10 9.5V20" />
+                    </svg>
+                </button>
+
                 <button id="inventoryButton" class="icon-button" aria-label="Open inventory" title="Inventory">
                     <img src="./imgs/backpack.png" alt="">
                 </button>
@@ -132,6 +139,15 @@
                         </span>
                     </div>
 
+                    <div id="runeCounter" class="roll-button hidden" title="Spells stored in objects. Anyone holding one releases it as a bonus action, and it fades.">
+                        <span>Runes</span>
+                        <span class="counter">
+                            <button id="runeMinus" type="button" aria-label="Use up a rune">−</button>
+                            <strong id="runeCount">0 / 1</strong>
+                            <button id="runePlus" type="button" aria-label="Inscribe a rune">+</button>
+                        </span>
+                    </div>
+
                     <button id="nextRoundButton" class="roll-button hidden" title="Counts down your signature ability">
                         <span>Next round</span>
                         <span id="roundsLeftDisplay">3 rounds left</span>
@@ -158,7 +174,12 @@
 
                 <hr class="roll-divider">
 
-                <div class="rolls-title">Saved spells</div>
+                <!-- Folds open or shut (see spellSlots.js) -->
+                <button id="savedSpellsToggle" class="rolls-title fold-toggle" aria-expanded="true" aria-controls="savedSpells">
+                    <span class="fold-arrow" aria-hidden="true">▾</span>
+                    <span>Saved spells</span>
+                    <span id="savedSpellsCount" class="fold-count"></span>
+                </button>
 
                 <div id="savedSpells"></div>
 
@@ -172,6 +193,45 @@
 
                     <button id="longRestButton" class="roll-button" title="Regain all hit points and uses of your signature ability">
                         <span>Long rest</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Runesmith: the construct, to the right of the menu. Folds away to a small square button (see construct.js) -->
+            <div id="constructPanel" class="hidden">
+                <button id="constructExpand" class="roll-button square-button" aria-label="Show your construct" aria-controls="constructBody" aria-expanded="false">
+                    <span aria-hidden="true">▸</span>
+                </button>
+
+                <div id="constructBody">
+                    <button id="constructCollapse" class="roll-button" aria-controls="constructBody" aria-expanded="true" title="Fold away">
+                        <span id="constructNameDisplay">Construct</span>
+                        <span aria-hidden="true">◂</span>
+                    </button>
+
+                    <button id="constructHPButton" class="roll-button" title="Damage, heal or rename your construct">
+                        <span>Hit points</span>
+                        <span id="constructHPDisplay">4 / 4</span>
+                    </button>
+
+                    <button id="constructAttackButton" class="roll-button" title="Your construct attacks right after you, on your casting turn">
+                        <span>Attack</span>
+                        <span id="constructAttackDisplay">2d6 · d6</span>
+                    </button>
+
+                    <button id="constructActionButton" class="roll-button hidden" title="Early Apprentice: a mundane action in any school, with a rank 2 casting pool">
+                        <span>Action</span>
+                        <span>2d6</span>
+                    </button>
+
+                    <button id="colossusButton" class="roll-button hidden">
+                        <span>Colossus</span>
+                        <span id="colossusDisplay">1 / 1</span>
+                    </button>
+
+                    <button id="colossusRoundButton" class="roll-button hidden" title="Counts down Colossus">
+                        <span>Next round</span>
+                        <span id="colossusRoundsDisplay">3 rounds left</span>
                     </button>
                 </div>
             </div>
@@ -260,6 +320,10 @@
 
                             <label for="passionNameInput">Passion</label>
                             <input class="modal-input" id="passionNameInput" type="text" maxlength="20" placeholder="e.g. the sea, music, the undead" spellcheck="false">
+
+                            <!-- Native Tongue first, then the rest (see character.js) -->
+                            <span class="settings-label" title="The grammars of magic you can read. Your first is your native Tongue, the one you cast in unless you say otherwise.">Tongues</span>
+                            <span id="tongueChoices" class="tongue-choices"></span>
                         </div>
 
                         <p id="classSummary" class="settings-note"></p>
@@ -315,6 +379,18 @@
                             <span class="input-with-button">
                                 <input class="modal-input" id="weaponNameInput" type="text" maxlength="30" spellcheck="false">
                                 <select class="modal-input" id="weaponDieInput" aria-label="Weapon type"></select>
+                            </span>
+
+                            <span></span>
+                            <span class="input-with-button">
+                                <label class="check-row" title="A bow, sling or thrown weapon. Arcane Archers' Enchanted Arrows make its die one size bigger.">
+                                    <input id="weaponRangedInput" type="checkbox">
+                                    <span>Ranged</span>
+                                </label>
+                                <label class="check-row" title="Held in both hands, so no shield and no Duelist">
+                                    <input id="weaponTwoHandedInput" type="checkbox">
+                                    <span>Two-handed</span>
+                                </label>
                             </span>
 
                             <span class="settings-label" title="Highest level a weapon attack can reach">Weapon limit</span>
@@ -394,7 +470,13 @@
 
                 <label class="check-row">
                     <input id="halveDamageInput" type="checkbox">
-                    <span>Halve damage (saved, Spellfury, Slippery…)</span>
+                    <span id="halveDamageLabel">Halve damage (saved, Slippery, Uncanny Dodge, Last Bastion…)</span>
+                </label>
+
+                <!-- Spellblade: rolled when you press Damage (see character.js) -->
+                <label id="parryRow" class="check-row hidden">
+                    <input id="parryInput" type="checkbox">
+                    <span id="parryLabel">Parry</span>
                 </label>
 
                 <div id="hpActions" class="button-pair">
@@ -419,6 +501,81 @@
 
                 <div class="actions">
                     <button id="closeHPManager">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            CONSTRUCT OVERLAY (Runesmith; see construct.js)
+        ===================================================== -->
+        <div id="constructOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="constructTitle">
+                <h2 id="constructTitle">Construct</h2>
+
+                <p id="constructInfo" class="settings-note"></p>
+
+                <div class="modal-element">
+                    <label for="constructNameInput">Name</label>
+                    <input class="modal-input" id="constructNameInput" type="text" maxlength="30" placeholder="e.g. Cog, Old Bolts" spellcheck="false">
+                </div>
+
+                <hr class="roll-divider">
+
+                <div id="constructHP" class="current-hp">
+                    <span>Current HP</span>
+
+                    <strong id="constructModalCurrent">4</strong>
+                    <span>/</span>
+                    <strong id="constructModalMax">4</strong>
+                </div>
+
+                <div class="modal-element">
+                    <label for="constructAmountInput">Amount</label>
+                    <input class="modal-input" id="constructAmountInput" type="number" min="1" step="1" value="1">
+                </div>
+
+                <label class="check-row">
+                    <input id="constructArmorInput" type="checkbox" checked>
+                    <span>Armor reduces damage (<span id="constructArmorHint">1</span>, minimum 1)</span>
+                </label>
+
+                <div class="button-pair">
+                    <button id="constructDamageButton" class="danger">Damage</button>
+                    <button id="constructHealButton" class="primary">Heal</button>
+                </div>
+
+                <p id="constructMessage" class="result-label"></p>
+
+                <div class="actions">
+                    <button id="closeConstruct">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            QUICK REFERENCE OVERLAY (Appendices A and B; see reference.js)
+        ===================================================== -->
+        <div id="referenceOverlay" class="overlay hidden">
+            <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="referenceTitle">
+                <h2 id="referenceTitle">Quick Reference</h2>
+
+                <div id="referenceContent"></div>
+
+                <div class="actions">
+                    <button id="closeReference">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- The whole glossary, opened from the quick reference -->
+        <div id="glossaryOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="glossaryTitle">
+                <h2 id="glossaryTitle">Glossary</h2>
+
+                <div id="glossaryContent"></div>
+
+                <div class="actions">
+                    <button id="closeGlossary">Close</button>
                 </div>
             </div>
         </div>

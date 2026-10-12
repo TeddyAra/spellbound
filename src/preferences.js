@@ -24,7 +24,11 @@ export const DEFAULT_PREFERENCES = {
     confirmClearBoard: true,
 
     // "small", "normal" or "large"
-    textSize: "normal"
+    textSize: "normal",
+
+    // Folded open in the menu: a Runesmith's construct (see construct.js), and the saved spells (see spellSlots.js)
+    constructOpen: true,
+    savedSpellsOpen: true
 };
 
 let preferences = load();

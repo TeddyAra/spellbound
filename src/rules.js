@@ -130,7 +130,64 @@ export function signatureUses(className, level) {
     return className === "runesmith" ? uses - 1 : uses;
 }
 
+/* Runesmith: runes held at once. 1 at level 1, then one more at 3, 6, 9 and 12. */
+export function runesAllowed(level) {
+    return 1 + [3, 6, 9, 12].filter(extra => level >= extra).length;
+}
+
 export const SUBCLASS_LEVEL = 2;
+
+/*
+ * =========================================================
+ * TONGUES
+ * =========================================================
+ *
+ * The grammar a spell is cast in. Knowing a spell's Tongue lets you read
+ * or copy its magic; each Tongue you know also gives a small perk.
+ * Everyone starts with two (the first is their native Tongue), and Polyglot
+ * teaches one more each time it's taken.
+ */
+
+export const STARTING_TONGUES = 2;
+
+export const TONGUES = {
+    hearthspeech: {
+        name: "Hearthspeech",
+        spokenBy: "Common folk, most travellers",
+        perk: "Small Comforts",
+        text: "Outside of combat, do trivial magic without rolling or drawing tiles: light a candle, warm a meal, clean a muddy cloak. It can't harm anyone, and isn't a spell you can save."
+    },
+    deepcant: {
+        name: "Deepcant",
+        spokenBy: "Dwarves, underground creatures",
+        perk: "Stone Echo",
+        text: "Tap a stone surface and listen: you learn the shape of the tunnels, rooms and hollow spaces within 30 feet, even in total darkness. It doesn't reveal creatures."
+    },
+    leafweave: {
+        name: "Leafweave",
+        spokenBy: "Elves, fey, druids",
+        perk: "Green Words",
+        text: "Share simple ideas with animals and plants, like \"danger\" or \"which way did they go?\" They understand you, but don't have to obey."
+    },
+    ashen: {
+        name: "Ashen",
+        spokenBy: "Dragons, giants, demons",
+        perk: "Old Authority",
+        text: "Dragons and other ancient creatures that know Ashen will hear you out before they attack, and weaker creatures easily become frightened."
+    },
+    drowned: {
+        name: "Drowned Tongue",
+        spokenBy: "Sailors, merfolk, sea witches",
+        perk: "Deep Voice",
+        text: "You can speak, and cast spoken spells, underwater. You still can't breathe there."
+    },
+    hollow: {
+        name: "Hollow Tongue",
+        spokenBy: "The undead, cultists, things from beyond",
+        perk: "Death's Ear",
+        text: "When a creature speaks, you can tell how close it is to death: unhurt, wounded, badly hurt, or barely standing."
+    }
+};
 
 /*
  * =========================================================
@@ -139,6 +196,8 @@ export const SUBCLASS_LEVEL = 2;
  */
 
 /*
+ * signature:     the class's signature ability. Lasts `rounds` rounds once
+ *                started, or until the end of the combat (untilCombatEnds)
  * rankBonus:     bonus ranks the class always adds to a school
  * bonusChoices:  bonus ranks the player puts in any school
  * armor:         heaviest armor allowed (see ARMOR_TYPES)
@@ -161,7 +220,8 @@ export const CLASSES = {
 
         signature: {
             name: "Torrent of Words",
-            text: "Lasts 3 rounds. Every die that rolls 4 or higher counts as a surge."
+            rounds: 3,
+            text: "Bonus action during your pre-turn, before you roll. Lasts 3 rounds, ends if you're downed. Every die that rolls 4 or higher counts as a surge."
         },
 
         features: [
@@ -170,7 +230,7 @@ export const CLASSES = {
             { level: 3, name: "Overchannel", text: "Once per round, after a successful pre-turn, raise your spell's level by 1, up to your rank. You take 1d8 damage." },
             { level: 6, name: "Blended Casting", text: "Name two schools and roll the lower-ranked one. If your spell fits both purposes, it does both." },
             { level: 9, name: "Echo", text: "Once per combat, skip your next pre-turn and cast the same spell again at the same level." },
-            { level: 12, name: "Words of Making", text: "Once per session, a spell takes effect at level 8, however many surges you rolled." }
+            { level: 12, name: "Words of Making", text: "Once per long rest, a spell takes effect at level 8, however many surges you rolled." }
         ],
 
         subclasses: {
@@ -186,7 +246,7 @@ export const CLASSES = {
                 name: "Devotee",
                 features: [
                     { level: 2, name: "Second Passion", text: "Choose a second passion, cast with your normal Passion rank." },
-                    { level: 5, name: "Burning Passion", text: "Your Passion spells roll d8s for their effect dice." },
+                    { level: 5, name: "Burning Passion", text: "Your Passion spells' effect dice are one size bigger, so d6s become d8s. This adds up with Spell Focus." },
                     { level: 10, name: "Kindred Passions", text: "Once per combat, a Passion spell tying into both passions takes effect 2 levels higher, up to 8." }
                 ]
             },
@@ -194,7 +254,7 @@ export const CLASSES = {
                 name: "Archivist",
                 features: [
                     { level: 2, name: "Catalogue", text: "2 extra spell slots. Roll twice to grow a saved spell and use the higher result." },
-                    { level: 5, name: "Annotated Spells", text: "Saved spells start at level 2, up to your rank." },
+                    { level: 5, name: "Annotated Spells", text: "When you save a spell, it starts at level 2 instead of 1." },
                     { level: 10, name: "Grand Library", text: "Once per combat, cast two saved spells on the same casting turn. Roll for the lower-ranked school." }
                 ]
             }
@@ -203,7 +263,7 @@ export const CLASSES = {
         feats: [
             { key: "wordHoard", name: "Word Hoard", text: "Tile Craft lets you swap up to 4 tiles." },
             { key: "arcaneRecovery", name: "Arcane Recovery", text: "Once per long rest, after a short rest, roll to grow one of your saved spells." },
-            { key: "longWords", name: "Long Words", minLevel: 4, text: "A spell of 8 or more letters takes effect 1 level higher, up to your rank." },
+            { key: "longWords", name: "Long Words", minLevel: 4, text: "A spell containing a word of 8 or more letters takes effect 1 level higher, up to your rank." },
             { key: "sculptSpell", name: "Sculpt Spell", minLevel: 4, text: "Your area spells can leave out any creatures you choose." },
             { key: "multicast", name: "Multicast", minLevel: 8, text: "Cast two separate spells on one casting turn, each 1 level lower (minimum 1)." }
         ]
@@ -223,24 +283,25 @@ export const CLASSES = {
 
         signature: {
             name: "Battle Hymn",
-            text: "Lasts 3 rounds, ends if you're downed or silenced. Every ally who can hear you (60 ft) adds one die to their casting pool."
+            rounds: 3,
+            text: "Bonus action during your pre-turn. Lasts 3 rounds, ends if you're downed or silenced. Every ally who can hear you (within 60 feet) adds one die to their casting pool."
         },
 
         features: [
             { level: 1, name: "Silver Tongue", text: "Mundane Control actions have a mortal limit of 4." },
-            { level: 1, name: "Shared Verse", text: "During the pre-turn phase, give up to 3 of your tiles to allies." },
+            { level: 1, name: "Shared Verse", text: "During the pre-turn phase, give up to 3 of your tiles to allies who can hear you." },
             { level: 1, name: "Inspiring Word", text: "Once per round, let an ally reroll one die of their casting pool." },
-            { level: 3, name: "Countersong", text: "Once per combat, when an enemy reveals its spell, roll Control without using your action. Each surge lowers its level by 1." },
-            { level: 6, name: "Duet", text: "Combine tiles with an ally for one spell, at the higher level + 1, up to the higher rank." },
+            { level: 3, name: "Countersong", text: "Once per combat, when an enemy reveals its spell, use your reaction to roll Control. Each surge lowers its level by 1. Below 1, it fizzles." },
+            { level: 6, name: "Duet", text: "If you and an ally who shares a Tongue with you both succeeded on your pre-turns, combine tiles for one spell. Whoever comes first in initiative helps; it takes effect on the other's casting turn, at the higher level + 1, up to the higher rank." },
             { level: 9, name: "Rallying Refrain", text: "Anyone you heal or protect with Aid adds one die to their next casting pool." },
-            { level: 12, name: "Anthem", text: "Once per session, every ally rolls their next pre-turn as if their rank were 1 higher." }
+            { level: 12, name: "Anthem", text: "Once per long rest, every ally rolls their next pre-turn as if their rank were 1 higher, up to 8." }
         ],
 
         subclasses: {
             skald: {
                 name: "Skald",
                 features: [
-                    { level: 2, name: "War Chant", text: "Medium armor and martial weapons. While Battle Hymn lasts, allies' weapon attacks deal an extra 1d4." },
+                    { level: 2, name: "War Chant", text: "Medium armor and martial weapons. While Battle Hymn lasts, allies' weapon attacks deal an extra 1d4. Your Battle Hymn affects you too: one die more, and the extra 1d4." },
                     { level: 5, name: "Battle Rhythm", text: "While Battle Hymn lasts, your weapon attacks have a mortal limit 1 higher, up to 5." },
                     { level: 10, name: "Saga of Heroes", text: "Once per combat, an ally who can hear you drops to 1 hit point instead of 0." }
                 ]
@@ -249,8 +310,8 @@ export const CLASSES = {
                 name: "Keeper of Lore",
                 features: [
                     { level: 2, name: "Well of Stories", text: "Mundane Reveal actions have a mortal limit 1 higher, up to 5. Once per long rest, ask the DM two questions about a creature, place or object." },
-                    { level: 5, name: "Prompter", text: "Once per round, after an ally reveals their spell, give them up to 2 tiles to change it." },
-                    { level: 10, name: "Rewrite the Tale", text: "Once per session, make any creature you can hear reroll its whole casting pool." }
+                    { level: 5, name: "Know Your Foe", text: "When your Reveal succeeds against a creature, learn a weakness. Its Guard DC is 1 lower for you and allies who heard you, until the end of the combat." },
+                    { level: 10, name: "Legendary Tale", text: "Once per long rest, as a bonus action during your pre-turn, tell an ally's tale. Their next spell before the end of your next turn is 2 levels higher, up to their rank." }
                 ]
             },
             siren: {
@@ -258,7 +319,7 @@ export const CLASSES = {
                 features: [
                     { level: 2, name: "Enchanting Voice", text: "Enemies must roll higher than level + 3 to break free of your Control spells." },
                     { level: 5, name: "Siren Song", text: "Instead of a Battle Hymn, enemies who hear you roll one die fewer." },
-                    { level: 10, name: "Voice of Command", text: "Once per session, a Control spell affects every enemy who can hear you." }
+                    { level: 10, name: "Voice of Command", text: "Once per long rest, a Control spell affects every enemy who can hear you." }
                 ]
             }
         },
@@ -266,7 +327,7 @@ export const CLASSES = {
         feats: [
             { key: "healingHymn", name: "Healing Hymn", text: "Your Aid spells heal 1 extra hit point per effect die, so shared dice share the bonus too." },
             { key: "mockingVerse", name: "Mocking Verse", text: "When your Control succeeds, the target rolls one die fewer next time." },
-            { key: "wordBank", name: "Word Bank", minLevel: 4, text: "Shared Verse gives up to 6 tiles, to any ally who can hear you." },
+            { key: "wordBank", name: "Word Bank", minLevel: 4, text: "Shared Verse lets you give up to 6 tiles." },
             { key: "chorusLine", name: "Chorus Line", minLevel: 4, text: "Use Inspiring Word twice per round." },
             { key: "encore", name: "Encore", minLevel: 8, text: "Use Countersong twice per combat." }
         ]
@@ -286,18 +347,18 @@ export const CLASSES = {
         signature: {
             name: "Glyphs",
             glyphs: true,
-            text: "Write a spell as a glyph on a surface, with a trigger. It fades after a day if not triggered. This is how many you can have at once."
+            text: "Leave a written spell on a surface as a glyph, with a trigger. It fades after a day if not triggered. Its concealment level is its spell level. This is how many you can have at once."
         },
 
         features: [
             { level: 1, name: "Handy", text: "Mundane Change and Create actions have a mortal limit of 4." },
-            { level: 1, name: "Written Word", text: "Write spells instead of speaking them: silent, can't be countered, works while silenced. Takes effect at the end of the round." },
-            { level: 1, name: "Inscribe", text: "During a rest, store a spell (up to level 2) in an object as a rune. 1 rune, plus 1 per three levels." },
+            { level: 1, name: "Written Word", text: "Write spells instead of speaking them (needs a free hand). Silent unless the DM decides otherwise; either way it can't be countered and works while silenced. Takes effect at the end of the round, and fails if you're downed first." },
+            { level: 1, name: "Inscribe", text: "During a short or long rest, store a spell (up to level 2) in an object as a rune. Whoever holds it can release it as a bonus action." },
             { level: 1, name: "Tinker's Eye", text: "Things you make with Create are one quality step better, though not bigger." },
-            { level: 3, name: "Construct", text: "Build a companion during a long rest: 4 HP per level, 1 armor, attacks with rank 2 and a d6." },
+            { level: 3, name: "Construct", text: "During a long rest, build a construct out of scrap, no bigger than a person: 10 + 3 HP per level, 1 armor. It acts right after you and attacks with rank 2 and a d6. Commands take no action." },
             { level: 6, name: "Deep Runes", text: "Runes hold spells up to level 4. Your construct attacks with rank 3 and a d8." },
             { level: 9, name: "Masterwork", text: "Once per long rest, a creation gains a lasting property from a school at rank 3+. 3 such items at once." },
-            { level: 12, name: "Grand Engine", text: "Runes hold spells up to your rank. Once per session, release all your runes at once." }
+            { level: 12, name: "Grand Engine", text: "Runes hold spells up to your rank. Once per long rest, release all your runes or trigger all your glyphs on one casting turn." }
         ],
 
         subclasses: {
@@ -307,15 +368,15 @@ export const CLASSES = {
                 features: [
                     { level: 2, name: "Lasting Glyphs", text: "1 more glyph at once, and glyphs last a week." },
                     { level: 5, name: "Chain Glyphs", text: "When a glyph triggers, trigger another of yours within 30 feet." },
-                    { level: 10, name: "Warding Circle", text: "Once per long rest, draw a 30 ft circle: enemy spells in it are 1 level lower for an hour." }
+                    { level: 10, name: "Warding Circle", text: "Once per long rest, draw a 30 ft circle: for an hour, enemy spells in or into it are 1 level lower, and you can have 3 extra glyphs in it. Its concealment level is your Change rank." }
                 ]
             },
             alchemist: {
                 name: "Alchemist",
                 features: [
-                    { level: 2, name: "Bottled Words", text: "During a long rest, roll Change and spell up to your Change rank in words. Each becomes a level 1 potion (bonus action)." },
-                    { level: 5, name: "Volatile Mixtures", text: "Combine two potions into one level 2 effect. Clashing words explode on a 1–2 on a d6." },
-                    { level: 10, name: "Master Brewer", text: "Potions are level 2, mixtures level 3, and thrown ones burst in 10 feet." }
+                    { level: 2, name: "Bottled Words", text: "During a long rest, roll Change and spell up to your Change rank in words, each a level 1 potion. Bonus action: drink it (works on you for 10 minutes) or throw it 30 ft (bursts, full effect within 5 ft)." },
+                    { level: 5, name: "Volatile Mixtures", text: "Bonus action: combine two potions into one level 2 effect. Clashing words explode on a 1–2 on a d6, for 1d6 per level." },
+                    { level: 10, name: "Master Brewer", text: "Potions are level 2, mixtures level 3, and you can mix three. Thrown potions burst across 15 ft. Once per long rest, a potion holds your Change rank." }
                 ]
             },
             golemwright: {
@@ -323,7 +384,7 @@ export const CLASSES = {
                 features: [
                     { level: 2, name: "Early Apprentice", text: "Gain your Construct at level 2. It can take mundane actions with rank 2." },
                     { level: 5, name: "Rune Core", text: "Store one of your runes in your construct; it can release it." },
-                    { level: 10, name: "Colossus", text: "Once per long rest, your construct grows huge for 3 rounds." }
+                    { level: 10, name: "Colossus", text: "Once per long rest, your construct grows huge for 3 rounds: twice the hit points, weapon die one size bigger, and its attacks also hit one target next to it." }
                 ]
             }
         },
@@ -332,7 +393,8 @@ export const CLASSES = {
             { key: "quickInscribe", name: "Quick Inscribe", text: "In combat, store a spell you just spelled as a rune." },
             { key: "improvisedTools", name: "Improvised Tools", text: "Mundane Change and Create need no proper tools and take half the time." },
             { key: "runeAmmunition", name: "Rune Ammunition", minLevel: 4, text: "A rune on a weapon is released for free when your attack hits." },
-            { key: "reinforcedConstruct", name: "Reinforced Construct", minLevel: 4, text: "Your construct has twice the hit points and 2 armor." },
+            { key: "deepCarving", name: "Deep Carving", minLevel: 4, text: "Your runes and glyphs can each be used twice before they fade." },
+            { key: "reinforcedConstruct", name: "Reinforced Construct", minLevel: 4, text: "Your construct has 2 more hit points per level, and 2 armor." },
             { key: "livingWorkshop", name: "Living Workshop", minLevel: 8, text: "2 more runes, and runes recharge after a long rest." }
         ]
     },
@@ -350,17 +412,18 @@ export const CLASSES = {
 
         signature: {
             name: "Thrown Voice",
-            text: "Lasts 3 rounds. Your spells sound like they come from any point you can see; enemies can only counter them if they see you. Ambush works on any target."
+            rounds: 3,
+            text: "Bonus action during your pre-turn. Lasts 3 rounds. Your spells sound like they come from any point you can see; enemies can only counter them if they see you. Ambush works on any target."
         },
 
         features: [
-            { level: 1, name: "Sleight", text: "Once per round, after every pre-turn, take a random tile from any creature you see and give it one of yours." },
-            { level: 1, name: "Ambush", text: "Once per round, extra damage against a target unaware of you, distracted, or fighting an ally: 2d6 (3d6 at 6, 4d6 at 9)." },
+            { level: 1, name: "Sleight", text: "Once per round, at the start of your casting turn, take a random tile from any creature you can see that still holds tiles, and give it one of yours." },
+            { level: 1, name: "Ambush", text: "Once per round, extra damage against a target that's unaware of you, distracted, or has one of your allies next to it: 2d6 (3d6 at 6, 4d6 at 9)." },
             { level: 1, name: "Expert", text: "Two schools of your choice have a mortal limit of 4 (5 at level 6). Pick them in Character settings." },
-            { level: 3, name: "Slippery", text: "Half damage from area spells. Slip away from anyone next to you after your casting turn." },
-            { level: 6, name: "Twist the Word", text: "Once per combat, swap one of an enemy's revealed tiles for a random one." },
-            { level: 9, name: "Vanish", text: "Once per combat, disappear until the end of your next casting turn. Ambush rolls twice as many dice." },
-            { level: 12, name: "Perfect Heist", text: "Once per session, save an enemy's spell into an empty spell slot." }
+            { level: 3, name: "Slippery", text: "Half damage from area spells. Enemies can't make opportunity attacks against you." },
+            { level: 6, name: "Twist the Word", text: "Once per combat, swap one of an enemy's revealed tiles for a random one. It uses the new tiles, bends the rules, or drops to level 1." },
+            { level: 9, name: "Vanish", text: "Once per combat, as a bonus action, disappear until you attack, cast a spoken spell, or make a loud noise. Ambush rolls twice as many dice meanwhile." },
+            { level: 12, name: "Perfect Heist", text: "Once per long rest, save an enemy's spell in a Tongue you know into an empty spell slot, at its level, up to your rank." }
         ],
 
         subclasses: {
@@ -375,8 +438,8 @@ export const CLASSES = {
             mimic: {
                 name: "Mimic",
                 features: [
-                    { level: 2, name: "Perfect Mimicry", text: "Imitate any voice. Spells cast in someone's voice seem to be theirs." },
-                    { level: 5, name: "Copycat", text: "Once per combat, cast an enemy's revealed spell next turn, rolling its school." },
+                    { level: 2, name: "Perfect Mimicry", text: "Imitate any voice. Spells cast in someone's voice seem to be theirs, unless you use a Tongue they don't know." },
+                    { level: 5, name: "Copycat", text: "Once per combat, cast an enemy's revealed spell in a Tongue you know next turn, rolling its school." },
                     { level: 10, name: "Thousand Faces", text: "While Thrown Voice lasts, look like any humanoid you've seen. One extra use of Thrown Voice." }
                 ]
             },
@@ -393,7 +456,7 @@ export const CLASSES = {
         feats: [
             { key: "lightFingers", name: "Light Fingers", text: "Sleight takes 2 tiles." },
             { key: "silverLies", name: "Silver Lies", text: "A successful mundane Control in combat makes the target distracted for Ambush." },
-            { key: "dirtyFighting", name: "Dirty Fighting", minLevel: 4, text: "When your weapon hits, trip, blind or disarm: one die fewer next time." },
+            { key: "dirtyFighting", name: "Dirty Fighting", minLevel: 4, text: "When your weapon hits, roll a d6. On 5–6, trip, blind or disarm. Tripped or blinded: one die fewer next time. Disarmed: no attacks with that weapon until it's picked back up." },
             { key: "uncannyDodge", name: "Uncanny Dodge", minLevel: 4, text: "Once per round, halve the damage from one hit." },
             { key: "masterThief", name: "Master Thief", minLevel: 8, text: "Use Twist the Word twice per combat." }
         ]
@@ -412,13 +475,14 @@ export const CLASSES = {
 
         signature: {
             name: "Spellfury",
-            text: "Lasts 3 rounds. Weapon attacks deal one extra weapon die, and you take half damage from spells."
+            untilCombatEnds: true,
+            text: "Bonus action during your pre-turn. Weapon attacks deal one extra weapon die, and you take half damage from spells. Lasts until the end of the combat; ends if you're downed, or after a round in which you neither hit with a weapon nor took damage."
         },
 
         features: [
             { level: 1, name: "Weapon Training", text: "Weapon attacks have a mortal limit of 4." },
             { level: 1, name: "Bladeword", text: "On a weapon attack, draw tiles equal to your highest die. If it hits, spell a word of up to 4 letters for a level 1 effect from a school at rank 2+." },
-            { level: 3, name: "Parry", text: "Once per round, when hit, reduce the damage by a roll of your weapon die." },
+            { level: 3, name: "Parry", text: "Once per round, when hit, reduce the damage by a roll of your weapon die. With a shield, roll it twice and add them." },
             { level: 6, name: "Weapon Mastery", text: "Weapon die one size bigger, mortal limit 5. Bladewords up to 5 letters at level 2." },
             { level: 9, name: "Cleave", text: "When your attack drops an enemy, deal half its damage to another enemy next to you." },
             { level: 12, name: "Spellstorm", text: "Bladewords have no letter limit and take effect at your attack's level." }
@@ -430,15 +494,15 @@ export const CLASSES = {
                 features: [
                     { level: 2, name: "Passion Weapon", text: "Once per round, when your attack hits, add 1d6 Passion damage, or heal an ally next to you for 1d6." },
                     { level: 5, name: "Heartfelt Bladewords", text: "Bladewords tied to your passion take effect 1 level higher." },
-                    { level: 10, name: "Passion Unleashed", text: "While Spellfury lasts, roll Passion for weapon attacks instead of Harm." }
+                    { level: 10, name: "Passion Unleashed", text: "While Spellfury lasts, roll Passion for weapon attacks instead of Harm. The weapon mortal limit still applies." }
                 ]
             },
             arcaneArcher: {
                 name: "Arcane Archer",
                 features: [
-                    { level: 2, name: "Seeking Shot", text: "Ranged attacks ignore cover; Bladewords take effect at the target." },
-                    { level: 5, name: "Volley", text: "Once per round, a ranged attack targets two creatures, splitting its damage." },
-                    { level: 10, name: "Sky-Piercer", text: "Once per combat, a ranged attack hits everything in a 120 ft line." }
+                    { level: 2, name: "Enchanted Arrows", text: "Ranged weapon attacks reach twice as far and ignore cover, and your ranged weapon die is one size bigger." },
+                    { level: 5, name: "Volley", text: "Once per round, a ranged attack targets two creatures, rolling damage separately. The Bladeword only affects the first target hit." },
+                    { level: 10, name: "Sky-Piercer", text: "Once per combat, a ranged attack hits every creature in a 120 ft line, and its Bladeword affects all of them." }
                 ]
             },
             spellguard: {
@@ -452,10 +516,10 @@ export const CLASSES = {
         },
 
         feats: [
-            { key: "duelist", name: "Duelist", text: "+1 armor with a single one-handed weapon and nothing in your other hand." },
+            { key: "duelist", name: "Duelist", text: "+1 armor while you fight with a single one-handed weapon and nothing in your other hand." },
             { key: "chargedBlade", name: "Charged Blade", text: "Your Bladewords can have one more letter." },
             { key: "arcaneRiposte", name: "Arcane Riposte", minLevel: 4, text: "When Parry reduces a hit to 0, make a level 1 weapon attack against the attacker." },
-            { key: "eldritchReach", name: "Eldritch Reach", minLevel: 4, text: "Melee attacks can hit a target a short throw away." },
+            { key: "eldritchReach", name: "Eldritch Reach", minLevel: 4, text: "Melee weapon attacks can hit a target up to 15 feet away." },
             { key: "battleCaster", name: "Battle Caster", minLevel: 8, text: "Once per combat, a weapon attack and a saved spell in the same pre-turn." }
         ]
     },
@@ -474,16 +538,17 @@ export const CLASSES = {
 
         signature: {
             name: "Hold the Line",
-            text: "Lasts 3 rounds. You and allies next to you gain +2 armor. Enemies next to you roll one die fewer when targeting anyone but you."
+            rounds: 3,
+            text: "Bonus action during your pre-turn. Lasts 3 rounds. At the start of each round, every ally next to you gains 2 ward points. Enemies roll one die fewer when they target anyone but you."
         },
 
         features: [
             { level: 1, name: "Bulwark", text: "Weapon attacks and mundane Aid have a mortal limit of 4." },
             { level: 1, name: "Interpose", text: "Once per round, take the hit for an ally next to you. Your armor applies." },
             { level: 3, name: "Steadfast", text: "Once per long rest, drop to 1 hit point instead of 0." },
-            { level: 6, name: "Aegis", text: "Anyone you protect with Aid uses your armor until your next turn. Mundane Aid mortal limit 5." },
+            { level: 6, name: "Aegis", text: "Anyone you protect with Aid also gains ward points equal to your armor, until your next turn. Mundane Aid mortal limit 5." },
             { level: 9, name: "Immovable", text: "Change, Move and Control effects below your Aid rank don't affect you." },
-            { level: 12, name: "Last Bastion", text: "Once per session, for one round, you take all damage meant for nearby allies, halved." }
+            { level: 12, name: "Last Bastion", text: "Once per long rest, for one round, every hit against an ally within 10 ft hits you instead, halved (rounded down), then your armor applies." }
         ],
 
         subclasses: {
@@ -515,8 +580,8 @@ export const CLASSES = {
 
         feats: [
             { key: "shieldBash", name: "Shield Bash", text: "When you Interpose, also make a level 1 weapon attack against the attacker." },
-            { key: "fieldMedic", name: "Field Medic", text: "First aid reaches allies a few steps away and heals with d6s." },
-            { key: "taunt", name: "Taunt", minLevel: 4, text: "A successful mundane Control forces the target to attack you." },
+            { key: "fieldMedic", name: "Field Medic", text: "First aid reaches allies within 15 feet and heals with d6s." },
+            { key: "taunt", name: "Taunt", minLevel: 4, text: "A successful mundane Control forces the target to attack you next turn, unless it beats the level + 2 on its resist die." },
             { key: "ironHide", name: "Iron Hide", minLevel: 4, text: "+1 armor." },
             { key: "guardianAngel", name: "Guardian Angel", minLevel: 8, text: "Interpose twice per round, for any ally you can reach." }
         ]
@@ -532,8 +597,8 @@ export const CLASSES = {
  */
 
 export const GENERAL_FEATS = [
-    { group: "Body and mind", key: "alert", name: "Alert", text: "+5 to initiative. You can't be caught unaware." },
-    { group: "Body and mind", key: "lucky", name: "Lucky", text: "Once per session, reroll your whole casting pool." },
+    { group: "Body and mind", key: "alert", name: "Alert", text: "+5 to initiative. You can't be caught unaware, so Ambush only works on you if you're distracted or next to one of the Trickster's allies." },
+    { group: "Body and mind", key: "lucky", name: "Lucky", text: "Once per long rest, reroll your whole casting pool." },
     { group: "Body and mind", key: "martialTraining", name: "Martial Training", text: "Martial weapons and medium armor." },
     { group: "Body and mind", key: "shieldAdept", name: "Shield Adept", text: "You can use shields." },
     { group: "Body and mind", key: "tough", name: "Tough", repeatable: 2, text: "+2 maximum hit points per level." },
@@ -545,14 +610,14 @@ export const GENERAL_FEATS = [
     { group: "Skill", key: "medic", name: "Medic", text: "Short rests heal you and resting allies extra equal to your level. First aid cures poison and disease." },
 
     { group: "Spellcraft", key: "extraSlot", name: "Extra Slot", repeatable: 99, text: "One extra spell slot." },
-    { group: "Spellcraft", key: "polyglot", name: "Polyglot", text: "Words in any language you speak count as correctly spelled." },
+    { group: "Spellcraft", key: "polyglot", name: "Polyglot", repeatable: 99, text: "Learn another Tongue, and gain its perk. Pick it in Character settings." },
     { group: "Spellcraft", key: "signatureSpell", name: "Signature Spell", minLevel: 4, text: "Once per combat, cast a chosen saved spell without rolling." },
     { group: "Spellcraft", key: "spellFocusHarm", name: "Spell Focus (Harm)", minLevel: 4, text: "Harm spells roll effect dice one size bigger." },
     { group: "Spellcraft", key: "spellFocusAid", name: "Spell Focus (Aid)", minLevel: 4, text: "Aid spells roll effect dice one size bigger." },
     { group: "Spellcraft", key: "spellFocusPassion", name: "Spell Focus (Passion)", minLevel: 4, text: "Passion spells roll effect dice one size bigger." },
-    { group: "Spellcraft", key: "twinSpell", name: "Twin Spell", minLevel: 8, text: "Once per combat, a single-target spell targets a second creature." },
+    { group: "Spellcraft", key: "twinSpell", name: "Twin Spell", minLevel: 8, text: "Once per combat, a single-target spell targets a second creature, rolling the same effect dice for each." },
     { group: "Spellcraft", key: "reserveOfPower", name: "Reserve of Power", minLevel: 8, text: "Once per combat, a second pre-turn and casting turn right after your first." },
-    { group: "Spellcraft", key: "livingLegend", name: "Living Legend", minLevel: 8, text: "Once per session, turn one die of your casting pool to its highest number." },
+    { group: "Spellcraft", key: "livingLegend", name: "Living Legend", minLevel: 8, text: "Once per long rest, turn one die of your casting pool to its highest number." },
 
     { group: "Tile", key: "cantrips", name: "Cantrips", text: "Bonus action: spell a word of 3 letters or fewer with leftover tiles, at level 1 (not Harm or Passion)." },
     { group: "Tile", key: "letterHoard", name: "Letter Hoard", text: "Keep up to 3 unused tiles at the end of every casting turn." },
@@ -561,9 +626,9 @@ export const GENERAL_FEATS = [
     { group: "Voice", key: "boomingVoice", name: "Booming Voice", text: "Shouting a spell deafens enemies within 10 feet." },
     { group: "Voice", key: "carryingVoice", name: "Carrying Voice", text: "Obstacles and noise never make you quieter for creatures you choose." },
     { group: "Voice", key: "softSpoken", name: "Soft-Spoken", text: "Whispered spells reach 30 feet, but are still only heard within 5." },
-    { group: "Voice", key: "lipReader", name: "Lip Reader", text: "Counter spells of creatures you can see, even if you can't hear them." },
+    { group: "Voice", key: "lipReader", name: "Lip Reader", text: "Counter spells of creatures you can see, even if you can't hear them, if you know the spell's Tongue." },
     { group: "Voice", key: "commandingVoice", name: "Commanding Voice", minLevel: 4, text: "A shouted Control spell affects one extra creature." },
-    { group: "Voice", key: "silentCasting", name: "Silent Casting", minLevel: 8, text: "Once per combat, mouth a spell: no sound, can't be countered, 1 level lower." }
+    { group: "Voice", key: "silentCasting", name: "Silent Casting", minLevel: 8, text: "Once per combat, mouth a spell: no sound, 1 level lower. Only a Lip Reader who can see you and knows its Tongue can counter it." }
 ];
 
 /* Every feat the class can pick, keyed by feat key. */

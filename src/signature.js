@@ -1,23 +1,26 @@
-import { $, hide } from "./dom.js";
+import { $ } from "./dom.js";
 import {
     state,
     commit,
     onStateChange,
     characterClass,
     maxSignatureUses,
-    signatureActive
+    maxRunes,
+    signatureActive,
+    endSignature
 } from "./state.js";
 
 /*
- * The class's signature ability. Most last 3 rounds once started, counted
- * down with Next round, and come back after a long rest. A Runesmith's
- * Glyphs are counted instead: how many are placed out of the maximum.
+ * The class's signature ability. Most last a few rounds once started, counted
+ * down with Next round, and come back after a long rest. Spellfury lasts until
+ * the end of the combat instead, so it's simply clicked off again. A
+ * Runesmith's Glyphs and Runes are counted instead: how many are out of the
+ * maximum.
  */
-
-const ROUNDS = 3;
 
 const signatureButton = $("signatureButton");
 const glyphCounter = $("glyphCounter");
+const runeCounter = $("runeCounter");
 const nextRoundButton = $("nextRoundButton");
 
 const usesLeft = () => maxSignatureUses() - state.signature.used;
@@ -27,43 +30,50 @@ export function renderSignature() {
 
     signatureButton.classList.toggle("hidden", Boolean(signature.glyphs));
     glyphCounter.classList.toggle("hidden", !signature.glyphs);
+    runeCounter.classList.toggle("hidden", !signature.glyphs);
+
+    // Only abilities that last a number of rounds are counted down
+    nextRoundButton.classList.toggle("hidden", state.signature.roundsLeft === 0);
 
     if (signature.glyphs) {
         $("glyphCount").textContent = `${state.signature.used} / ${maxSignatureUses()}`;
         glyphCounter.title = signature.text;
 
-        hide(nextRoundButton);
+        $("runeCount").textContent = `${state.runes} / ${maxRunes()}`;
 
         return;
     }
 
     const active = signatureActive();
+    const rounds = state.signature.roundsLeft;
 
     $("signatureName").textContent = signature.name;
     $("signatureUses").textContent = active ? "Active" : `${usesLeft()} / ${maxSignatureUses()}`;
+    $("roundsLeftDisplay").textContent = `${rounds} ${rounds === 1 ? "round" : "rounds"} left`;
 
     signatureButton.classList.toggle("active", active);
     signatureButton.classList.toggle("roll-disabled", !active && usesLeft() <= 0);
 
+    const ending = signature.untilCombatEnds ? "Click to end it, e.g. when the combat ends." : "Click to end it early.";
+
     signatureButton.title = active
-        ? `${signature.text}\n\nClick to end it early.`
+        ? `${signature.text}\n\n${ending}`
         : usesLeft() > 0
-            ? `${signature.text}\n\nClick to start it during your pre-turn (doesn't use your action).`
+            ? `${signature.text}\n\nClick to start it as a bonus action during your pre-turn.`
             : `${signature.text}\n\nNo uses left. They come back after a long rest.`;
-
-    nextRoundButton.classList.toggle("hidden", !active);
-
-    const rounds = state.signature.roundsLeft;
-
-    $("roundsLeftDisplay").textContent = `${rounds} ${rounds === 1 ? "round" : "rounds"} left`;
 }
 
 signatureButton.addEventListener("click", () => {
     if (signatureActive()) {
-        state.signature.roundsLeft = 0;
+        endSignature();
     } else if (usesLeft() > 0) {
         state.signature.used++;
-        state.signature.roundsLeft = ROUNDS;
+
+        if (characterClass().signature.untilCombatEnds) {
+            state.signature.ongoing = true;
+        } else {
+            state.signature.roundsLeft = characterClass().signature.rounds;
+        }
     }
 
     commit();
@@ -74,14 +84,16 @@ nextRoundButton.addEventListener("click", () => {
     commit();
 });
 
-$("glyphPlus").addEventListener("click", () => {
-    state.signature.used = Math.min(maxSignatureUses(), state.signature.used + 1);
-    commit();
-});
+function counterButton(id, change) {
+    $(id).addEventListener("click", () => {
+        change();
+        commit();
+    });
+}
 
-$("glyphMinus").addEventListener("click", () => {
-    state.signature.used = Math.max(0, state.signature.used - 1);
-    commit();
-});
+counterButton("glyphPlus", () => state.signature.used = Math.min(maxSignatureUses(), state.signature.used + 1));
+counterButton("glyphMinus", () => state.signature.used = Math.max(0, state.signature.used - 1));
+counterButton("runePlus", () => state.runes = Math.min(maxRunes(), state.runes + 1));
+counterButton("runeMinus", () => state.runes = Math.max(0, state.runes - 1));
 
 onStateChange(renderSignature);

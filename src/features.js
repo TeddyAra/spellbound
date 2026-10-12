@@ -1,6 +1,15 @@
 import { $, show, hide, clamp, element } from "./dom.js";
-import { state, commit, onStateChange, characterClass, featCount, maxSignatureUses, schoolName } from "./state.js";
-import { RANKED_SCHOOLS, SUBCLASS_LEVEL, featsAllowed, featsFor } from "./rules.js";
+import {
+    state,
+    commit,
+    onStateChange,
+    characterClass,
+    featCount,
+    maxSignatureUses,
+    maxRunes,
+    schoolName
+} from "./state.js";
+import { RANKED_SCHOOLS, SUBCLASS_LEVEL, TONGUES, featsAllowed, featsFor } from "./rules.js";
 import { takenFeats, unusedFeats } from "./reminders.js";
 
 /*
@@ -45,6 +54,10 @@ function renderFeatures() {
         )
     ];
 
+    if (info.signature.glyphs) {
+        cards.push(featureCard("Runes", "Spells stored in objects with Inscribe. Anyone holding one releases it as a bonus action, after which it fades.", null, `${maxRunes()} at once`));
+    }
+
     for (const feature of info.features) {
         cards.push(featureCard(feature.name, feature.text, feature.level));
     }
@@ -57,6 +70,21 @@ function renderFeatures() {
         }
     } else {
         cards.push(element("p", "settings-note", "Choose a subclass in Character settings at level 2 to see its features."));
+    }
+
+    // Every Tongue you know gives a small perk
+    cards.push(element("div", "rolls-title feature-group", "Tongues"));
+
+    const known = state.tongues.filter(key => TONGUES[key]);
+
+    for (const key of known) {
+        const tongue = TONGUES[key];
+
+        cards.push(featureCard(tongue.perk, tongue.text, null, key === state.tongues[0] ? `${tongue.name} · native` : tongue.name));
+    }
+
+    if (known.length < state.tongues.length) {
+        cards.push(element("p", "settings-note", "Choose your Tongues in Character settings to see their perks."));
     }
 
     $("featureList").replaceChildren(...cards);
