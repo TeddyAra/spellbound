@@ -617,7 +617,6 @@ export const GENERAL_FEATS = [
     { group: "Spellcraft", key: "spellFocusPassion", name: "Spell Focus (Passion)", minLevel: 4, text: "Passion spells roll effect dice one size bigger." },
     { group: "Spellcraft", key: "twinSpell", name: "Twin Spell", minLevel: 8, text: "Once per combat, a single-target spell targets a second creature, rolling the same effect dice for each." },
     { group: "Spellcraft", key: "reserveOfPower", name: "Reserve of Power", minLevel: 8, text: "Once per combat, a second pre-turn and casting turn right after your first." },
-    { group: "Spellcraft", key: "livingLegend", name: "Living Legend", minLevel: 8, text: "Once per long rest, turn one die of your casting pool to its highest number." },
 
     { group: "Tile", key: "cantrips", name: "Cantrips", text: "Bonus action: spell a word of 3 letters or fewer with leftover tiles, at level 1 (not Harm or Passion)." },
     { group: "Tile", key: "letterHoard", name: "Letter Hoard", text: "Keep up to 3 unused tiles at the end of every casting turn." },
