@@ -14,6 +14,9 @@ import { renderDiceSettings } from "./diceSettings.js";
 
 const THEME_KEY = "spellboundTheme";
 
+// Also in index.html
+const DEFAULT_THEME = "beyond";
+
 // Theme key → name, a short description, and swatches for its preview
 const THEMES = {
     // Saved as "original", from before it was renamed
@@ -60,9 +63,9 @@ function savedTheme() {
             return "crimson";
         }
 
-        return THEMES[theme] ? theme : "original";
+        return THEMES[theme] ? theme : DEFAULT_THEME;
     } catch {
-        return "original";
+        return DEFAULT_THEME;
     }
 }
 

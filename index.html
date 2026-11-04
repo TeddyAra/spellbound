@@ -10,7 +10,7 @@
         <!-- Lets it be installed as an app (see public/manifest.webmanifest) -->
         <link rel="manifest" href="/manifest.webmanifest">
         <link rel="apple-touch-icon" href="/icons/icon-192.png">
-        <meta name="theme-color" content="#101116">
+        <meta name="theme-color" content="#1d2229">
 
         <!-- The chosen theme and display preferences, set before the page draws so nothing flashes or jumps (see settings.js, preferences.js) -->
         <script>
@@ -49,17 +49,27 @@
                 }
             };
 
+            // The default is also in settings.js
+            let startingTheme = "beyond";
+
             try {
                 // Blueprint was replaced by Crimson (see settings.js)
                 const saved = localStorage.getItem("spellboundTheme");
-                const theme = saved === "blueprint" ? "crimson" : saved;
 
-                if (theme && theme !== "original") {
-                    document.documentElement.dataset.theme = theme;
+                if (saved) {
+                    startingTheme = saved === "blueprint" ? "crimson" : saved;
                 }
+            } catch {
+                // Nothing saved: the default it is
+            }
 
-                window.loadThemeFonts(theme);
+            if (startingTheme !== "original") {
+                document.documentElement.dataset.theme = startingTheme;
+            }
 
+            window.loadThemeFonts(startingTheme);
+
+            try {
                 // See preferences.js
                 const preferences = JSON.parse(localStorage.getItem("spellboundPreferences")) || {};
                 const root = document.documentElement.dataset;

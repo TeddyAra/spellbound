@@ -51,7 +51,7 @@ export const DICE_FINISHES = {
     cartoon: { name: "Cartoon", material: "none", texture: "none", shadows: false, adjust: cartoon }
 };
 
-const DEFAULT_STYLE = { color: "random", twoTone: false, color2: "random", labelColor: "#ffffff", finish: "metal" };
+const DEFAULT_STYLE = { color: "#1d66af", twoTone: false, color2: "random", labelColor: "#ffffff", finish: "cartoon" };
 
 export function loadDiceStyle() {
     try {

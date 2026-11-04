@@ -183,8 +183,15 @@ addPullToReload($("tileViewHeader"));
 
 const phoneQuery = window.matchMedia(window.PHONE_QUERY);
 
+const inPhoneLayout = () => putBack.length > 0;
+
 phoneQuery.addEventListener("change", ({ matches }) => {
     root.classList.toggle("phone", matches);
+
+    // The window can change size while the page loads, so this can already be the right layout
+    if (matches === inPhoneLayout()) {
+        return;
+    }
 
     if (matches) {
         placed = false;
@@ -197,6 +204,8 @@ phoneQuery.addEventListener("change", ({ matches }) => {
     document.dispatchEvent(new Event("statechange"));
 });
 
-if (root.classList.contains("phone")) {
+root.classList.toggle("phone", phoneQuery.matches);
+
+if (phoneQuery.matches) {
     enterPhoneLayout();
 }
