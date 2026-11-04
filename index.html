@@ -5,13 +5,46 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Spellbound Dashboard</title>
         <link rel="icon" type="image/x-icon" href="./imgs/favicon.ico">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Archivo:wdth,wght@125,900&family=Figtree:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&family=Instrument+Serif&family=Inter:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Roboto+Condensed:wght@700&display=swap">
         <link rel="stylesheet" href="./src/style.css">
+
+        <!-- Lets it be installed as an app (see public/manifest.webmanifest) -->
+        <link rel="manifest" href="/manifest.webmanifest">
+        <link rel="apple-touch-icon" href="/icons/icon-192.png">
+        <meta name="theme-color" content="#101116">
 
         <!-- The chosen theme and display preferences, set before the page draws so nothing flashes or jumps (see settings.js, preferences.js) -->
         <script>
+            // Only the chosen theme's fonts are downloaded. The Dark and Light themes use the system's own.
+            const ROBOTO = "family=Roboto:wght@400;500;700&family=Roboto+Condensed:wght@700";
+
+            const THEME_FONTS = {
+                crimson: ROBOTO,
+                beyond: ROBOTO,
+                pop: "family=Archivo:wdth,wght@125,900&family=Figtree:wght@400;600;700",
+                noir: "family=Instrument+Serif&family=Inter:wght@400;500;600"
+            };
+
+            window.loadThemeFonts = theme => {
+                const families = THEME_FONTS[theme];
+                const href = families && `https://fonts.googleapis.com/css2?${families}&display=swap`;
+                let link = document.getElementById("themeFonts");
+
+                if (!href) {
+                    link?.remove();
+                } else if (link?.href !== href) {
+                    link?.remove();
+
+                    link = document.createElement("link");
+                    link.id = "themeFonts";
+                    link.rel = "stylesheet";
+                    // Lets the service worker see whether the download worked before keeping it
+                    link.crossOrigin = "anonymous";
+                    link.href = href;
+
+                    document.head.append(link);
+                }
+            };
+
             try {
                 // Blueprint was replaced by Crimson (see settings.js)
                 const saved = localStorage.getItem("spellboundTheme");
@@ -20,6 +53,8 @@
                 if (theme && theme !== "original") {
                     document.documentElement.dataset.theme = theme;
                 }
+
+                window.loadThemeFonts(theme);
 
                 // See preferences.js
                 const preferences = JSON.parse(localStorage.getItem("spellboundPreferences")) || {};
@@ -75,8 +110,27 @@
 
             <div id="rollMenu">
                 <div id="characterHeader">
-                    <strong id="characterNameDisplay">Unnamed</strong>
-                    <span id="characterClassDisplay">Level 1 Wordweaver</span>
+                    <!-- Opens the character switcher (see characters.js) -->
+                    <button id="charactersButton" type="button" title="Switch character" aria-label="Switch character">
+                        <strong><span id="characterNameDisplay">Unnamed</span> <span class="switch-arrow" aria-hidden="true">▾</span></strong>
+                        <span id="characterClassDisplay">Level 1 Wordweaver</span>
+                    </button>
+
+                    <!-- See undo.js -->
+                    <button id="undoButton" class="icon-button small-icon" type="button" aria-label="Undo" title="Nothing to undo" disabled>
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M9 7 4.5 11.5 9 16" />
+                            <path d="M5 11.5h9.5a5 5 0 0 1 0 10H11" />
+                        </svg>
+                    </button>
+
+                    <!-- See log.js -->
+                    <button id="logButton" class="icon-button small-icon" type="button" aria-label="Open the log" title="Log">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M6 3.5h12a1.5 1.5 0 0 1 1.5 1.5v14a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 19V5A1.5 1.5 0 0 1 6 3.5z" />
+                            <path d="M8 8.5h8M8 12h8M8 15.5h5" />
+                        </svg>
+                    </button>
                 </div>
 
                 <div id="statGrid">
@@ -88,9 +142,10 @@
                         </strong>
                     </button>
 
-                    <div class="stat-box" title="Armor reduces every instance of damage, to a minimum of 1">
+                    <div id="armorBox" class="stat-box">
                         <span>Armor</span>
                         <strong id="armorDisplay">0</strong>
+                        <small id="guardDCDisplay" class="stat-note">Guard DC 4</small>
                     </div>
 
                     <button id="initiativeButton" class="stat-box" title="Initiative: d20 + Move rank">
@@ -132,21 +187,12 @@
                         <span id="signatureUses">2 / 2</span>
                     </button>
 
-                    <div id="glyphCounter" class="roll-button hidden">
-                        <span>Glyphs</span>
-                        <span class="counter">
-                            <button id="glyphMinus" type="button" aria-label="Remove a glyph">−</button>
-                            <strong id="glyphCount">0 / 1</strong>
-                            <button id="glyphPlus" type="button" aria-label="Place a glyph">+</button>
-                        </span>
-                    </div>
-
-                    <div id="runeCounter" class="roll-button hidden" title="Spells stored in objects. Anyone holding one releases it as a bonus action, and it fades.">
+                    <div id="runeCounter" class="roll-button hidden">
                         <span>Runes</span>
                         <span class="counter">
                             <button id="runeMinus" type="button" aria-label="Use up a rune">−</button>
-                            <strong id="runeCount">0 / 1</strong>
-                            <button id="runePlus" type="button" aria-label="Inscribe a rune">+</button>
+                            <strong id="runeCount">0 / 2</strong>
+                            <button id="runePlus" type="button" aria-label="Write a rune">+</button>
                         </span>
                     </div>
 
@@ -199,7 +245,7 @@
                 </div>
             </div>
 
-            <!-- Runesmith: the construct, to the right of the menu. Folds away to a small square button (see construct.js) -->
+            <!-- Golemwright: the construct, to the right of the menu. Folds away to a small square button (see construct.js) -->
             <div id="constructPanel" class="hidden">
                 <button id="constructExpand" class="roll-button square-button" aria-label="Show your construct" aria-controls="constructBody" aria-expanded="false">
                     <span aria-hidden="true">▸</span>
@@ -211,19 +257,31 @@
                         <span aria-hidden="true">◂</span>
                     </button>
 
-                    <button id="constructHPButton" class="roll-button" title="Damage, heal or rename your construct">
+                    <button id="constructHPButton" class="roll-button" title="Damage, heal, rename your construct or choose its modules">
                         <span>Hit points</span>
-                        <span id="constructHPDisplay">4 / 4</span>
+                        <span id="constructHPDisplay">13 / 13</span>
                     </button>
 
-                    <button id="constructAttackButton" class="roll-button" title="Your construct attacks right after you, on your casting turn">
+                    <!-- Clockmaker: how many small constructs, and one row per construct (see construct.js) -->
+                    <div id="helperCounter" class="roll-button hidden">
+                        <span>Helpers</span>
+                        <span class="counter">
+                            <button id="helperMinus" type="button" aria-label="Remove a small construct">−</button>
+                            <strong id="helperCount">1 / 1</strong>
+                            <button id="helperPlus" type="button" aria-label="Add a small construct">+</button>
+                        </span>
+                    </div>
+
+                    <div id="helperList"></div>
+
+                    <button id="constructAttackButton" class="roll-button" title="Rolled during your pre-turn, right after your own roll. It attacks right after you, on your casting turn">
                         <span>Attack</span>
                         <span id="constructAttackDisplay">2d6 · d6</span>
                     </button>
 
-                    <button id="constructActionButton" class="roll-button hidden" title="Early Apprentice: a mundane action in any school, with a rank 2 casting pool">
-                        <span>Action</span>
-                        <span>2d6</span>
+                    <button id="constructActionButton" class="roll-button hidden" title="Toolkit: instead of attacking, a mundane Change or Create action with its attack rank">
+                        <span>Toolkit</span>
+                        <span id="constructActionDisplay">2d6</span>
                     </button>
 
                     <button id="colossusButton" class="roll-button hidden">
@@ -263,6 +321,13 @@
             <span>SAFE ZONE</span>
         </div>
 
+        <!-- Drop a tile here to return it to the pile (see tiles.js) -->
+        <div id="trashCan" title="Drag a tile here to return it to the pile">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4.5 6.5h15M9.5 6.5V4.5h5v2M6.5 6.5l1 14h9l1-14M10 10.5v6.5M14 10.5v6.5" />
+            </svg>
+        </div>
+
         <div id="tileControls">
             <button id="clearTilesButton" class="roll-button">
                 Clear Board
@@ -276,7 +341,7 @@
                 Sort Tiles
             </button>
 
-            <p class="tile-hint">Double-click a tile to return it to the pile</p>
+            <p class="tile-hint">Drag a tile to the trash can to return it to the pile</p>
 
             <!-- Clicking a die asks how many to roll; hovering it shows quick buttons for 1–6 dice -->
             <div id="diceGrid" class="two-column">
@@ -508,7 +573,7 @@
         </div>
 
         <!-- =====================================================
-            CONSTRUCT OVERLAY (Runesmith; see construct.js)
+            CONSTRUCT OVERLAY (Golemwright; see construct.js)
         ===================================================== -->
         <div id="constructOverlay" class="overlay hidden">
             <div class="modal" role="dialog" aria-modal="true" aria-labelledby="constructTitle">
@@ -547,6 +612,16 @@
                 </div>
 
                 <p id="constructMessage" class="result-label"></p>
+
+                <hr class="roll-divider">
+
+                <!-- Chosen when it's built, swapped during a long rest (see construct.js) -->
+                <div class="rolls-title feature-group">
+                    <span>Modules</span>
+                    <span id="moduleSummary" class="fold-count"></span>
+                </div>
+
+                <div id="moduleList"></div>
 
                 <div class="actions">
                     <button id="closeConstruct">Close</button>
@@ -594,6 +669,12 @@
                 <div id="rollModes" class="mode-buttons"></div>
 
                 <p id="rollModeHint" class="settings-note"></p>
+
+                <!-- Runesmith: Lettered raises the mortal limit for some Reveal actions only -->
+                <label id="letteredRow" class="check-row hidden">
+                    <input id="letteredInput" type="checkbox">
+                    <span>Reading, deciphering or spotting writing, symbols or traps (Lettered: mortal limit 4)</span>
+                </label>
 
                 <div class="modal-element">
                     <label for="dcInput" title="Leave empty if the DM keeps it secret">
@@ -811,20 +892,6 @@
                                 <button type="button" data-value="large">Large</button>
                             </div>
                         </div>
-
-                        <hr class="roll-divider">
-
-                        <h3>Character</h3>
-
-                        <p class="settings-note">Your character is only saved in this browser. Export it to keep a backup or move it to another device.</p>
-
-                        <div class="input-with-button">
-                            <button id="exportCharacterButton" type="button">Export to file</button>
-                            <button id="importCharacterButton" type="button">Import from file</button>
-                            <input id="importCharacterInput" type="file" accept=".json,application/json" class="hidden">
-                        </div>
-
-                        <p id="characterFileMessage" class="result-label small"></p>
                     </div>
 
                     <div class="settings-column">
@@ -914,6 +981,46 @@
         </div>
 
         <!-- =====================================================
+            CHARACTER SWITCHER (see characters.js)
+        ===================================================== -->
+        <div id="charactersOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="charactersTitle">
+                <h2 id="charactersTitle">Characters</h2>
+
+                <p class="settings-note">Your characters are only saved in this browser. Export one to keep a backup or move it to another device. Importing adds it as a new character.</p>
+
+                <div id="characterList"></div>
+
+                <p id="characterFileMessage" class="result-label small"></p>
+
+                <div class="actions">
+                    <button id="importCharacterButton" type="button">Import from file</button>
+                    <input id="importCharacterInput" type="file" accept=".json,application/json" class="hidden">
+                    <button id="newCharacterButton" class="primary" type="button">New character</button>
+                    <button id="closeCharacters" type="button">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            LOG (see log.js)
+        ===================================================== -->
+        <div id="logOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="logTitle">
+                <h2 id="logTitle">Log</h2>
+
+                <div id="logList"></div>
+
+                <p id="logEmpty" class="result-label hidden">Nothing yet. Your rolls will show up here.</p>
+
+                <div class="actions">
+                    <button id="clearLogButton" type="button">Clear log</button>
+                    <button id="closeLog" type="button">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
             CONFIRMATION (see confirm.js)
         ===================================================== -->
         <div id="confirmOverlay" class="overlay hidden">
@@ -934,6 +1041,19 @@
         ===================================================== -->
         <div id="animationOverlay" class="dice-overlay hidden">
             <div id="diceBox"></div>
+        </div>
+
+        <!-- A short offer to undo (see undo.js) -->
+        <div id="undoToast" class="hidden" role="status">
+            <span id="undoToastText"></span>
+            <button id="undoToastButton" type="button">Undo</button>
+        </div>
+
+        <!-- A new version was downloaded (see pwa.js) -->
+        <div id="updateToast" class="hidden" role="status">
+            <span>A new version of Spellbound is ready</span>
+            <button id="updateReloadButton" type="button">Reload</button>
+            <button id="updateLaterButton" class="item-discard" type="button" aria-label="Later" title="Later">×</button>
         </div>
 
         <script type="module" src="./src/main.js"></script>

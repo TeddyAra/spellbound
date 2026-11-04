@@ -174,10 +174,10 @@ const SECTIONS = {
         head: ["Die", "Used for"],
         rows: [
             ["d4", "Light weapons, first aid, backfire damage"],
-            ["d6", "Ranks 1–4, Passion spells"],
+            ["d6", "Ranks 1–4, Passion spells, simple weapons"],
             ["d8", "Ranks 5–6, Harm and Aid spells, martial weapons"],
             ["d10", "Rank 7, heavy weapons"],
-            ["d12", "Rank 8"],
+            ["d12", "Rank 8, maximum effect"],
             ["d20", "Initiative, death rolls"]
         ]
     }),
@@ -186,7 +186,7 @@ const SECTIONS = {
         title: "Tongues",
         head: ["Tongue", "Perk"],
         rows: Object.values(TONGUES).map(tongue => [tongue.name, tongue.short]),
-        note: "Needed to lip-read or copy a spell, and for Duet. Nothing else needs one."
+        note: "Knowing a spell's Tongue lets you lip-read or copy it. Countering, tiles, written spells, runes, potions and constructs don't need one."
     }),
 
     glossary: () => glossaryPreview()
@@ -209,18 +209,21 @@ const GLOSSARY = [
     ["Backfire", "What goes wrong when you bend the rules to make a spell work."],
     ["Bending the rules", "Misspelling a word or bending grammar to cast a spell, at the cost of a backfire."],
     ["Bonus action", "A quick extra action alongside your main one, only available when a feature or item allows it. Most happen on your casting turn, some during your pre-turn."],
+    ["Budget", "The points a DM spends on enemies when building an encounter: 1 point per player character makes a fair fight."],
     ["Casting pool", "The dice you roll for a school, based on your rank in it."],
     ["Casting turn", "The second part of every round, when you resolve what you chose in your pre-turn."],
     ["Concealment level", "How well something is hidden, from 1 to 8. You notice it automatically if your passive Reveal equals or beats it."],
+    ["Construct", "A Golemwright's companion, built from scrap during a long rest. It acts on its creator's casting turn, right after them."],
     ["Death roll", "The d20 you roll every round while downed."],
     ["Difficulty (DC)", "The number at least one die in your casting pool must equal or beat to succeed."],
     ["Downed", "At 0 hit points and unconscious."],
     ["Effect dice", "The dice you roll for damage or healing: one die per level. A spell can share them between several creatures, at least one die each."],
-    ["Glyph", "A written spell left on a surface that triggers later. Used by Runesmiths."],
-    ["Guard DC", "The default difficulty for actions aimed at an enemy."],
+    ["Guard DC", "The default difficulty for actions aimed at a creature. An enemy's depends on its tier, and a player character's on their level: 4 at levels 1–4, 5 at 5–8, 6 at 9–12."],
+    ["Hit points", "How much damage you can take before you're downed."],
     ["Known spell", "An enemy's version of a saved spell."],
     ["Level (character)", "How experienced your character is, from 1 to 12."],
-    ["Level (spell or action)", "How powerful a spell or mundane action is, equal to the number of surges you rolled."],
+    ["Level (spell or action)", "How powerful a spell or mundane action is: one level for every surge you rolled, with a minimum of 1. It can never be higher than your rank in that school, and a mundane action can't go above your mortal limit. A saved spell uses its saved level instead."],
+    ["Module", "An upgrade built into a construct, such as Springs or a Ballista. A construct can have a number of modules shown in the Golemwright table."],
     ["Mortal limit", "The highest level a mundane action can reach: 3, unless a feature raises it."],
     ["Mundane action", "A non-magical action, such as an attack or a persuasion attempt. It uses a school's casting pool but needs no tiles."],
     ["Next to you", "Within 5 feet of you."],
@@ -232,17 +235,19 @@ const GLOSSARY = [
     ["Prepare", "A pre-turn action that lets you counter one spell you can hear."],
     ["Rank", "Your skill in a school, from 1 to 8."],
     ["Resist die", "The die an enemy rolls to break free of effects and resist hazards."],
-    ["Rune", "A spell stored in an object, which anyone holding it can release. Used by Runesmiths."],
+    ["Rune", "A spell written on a surface or object, released by whoever holds it or set to trigger later. Used by Runesmiths."],
     ["Saved spell", "A spell you've stored in a spell slot, which you can cast without tiles."],
     ["Saving throw", "A roll of a school's casting pool to resist something that happens to you."],
-    ["Signature ability", "A special ability only your class has, such as a Spellblade's Spellfury."],
+    ["Shield", "A piece of equipment that adds 1 to your armor value and takes up one hand. Only classes and feats that say so let you use one. A magical shield from an Aid spell is a ward instead."],
+    ["Signature ability", "The ability that defines your class and that only it has, such as a Spellblade's Spellfury or a Golemwright's Construct. Most can be used a limited number of times per long rest. The Runesmith's Written Word and the Golemwright's Construct have no uses, and grow in other ways."],
     ["Spell slot", "A space for one saved spell."],
+    ["Stabilize", "Saving a downed ally with a successful mundane Aid action. It counts as three death roll successes: they stop rolling, and wake up with 1 hit point after an hour."],
     ["Subclass", "A specialization within your class, chosen at level 2."],
     ["Surge", "A die in your casting pool that rolls 5 or higher. Each surge adds 1 to your level."],
     ["Tiles", "The letter tiles you draw to spell your spells."],
     ["Tongue", "The grammar a spell is cast in. Knowing it lets you read or copy that magic, and gives a small perk. You start with two; the first is your native Tongue."],
     ["Volume", "How loudly you cast a spell: whisper, speak or shout. It decides your spell's range and who hears it."],
-    ["Ward", "A magical shield from an Aid spell that absorbs damage."]
+    ["Ward", "Anything that absorbs damage for a creature, such as a magical barrier, a protective creature, or a Warden's shield. Wards come from Aid spells and some features. Only the strongest one counts."]
 ];
 
 function glossaryList() {

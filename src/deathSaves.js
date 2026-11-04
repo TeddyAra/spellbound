@@ -1,5 +1,5 @@
 import { $, element } from "./dom.js";
-import { state, saveState } from "./state.js";
+import { state, commit } from "./state.js";
 import { rollDice } from "./dice.js";
 import { showInfoResult } from "./results.js";
 import { updateCurrentHealth } from "./character.js";
@@ -53,8 +53,7 @@ function renderBoxes(kind) {
         // Like checkboxes: clicking the last ticked box unticks it, any other sets the count up to it
         box.addEventListener("click", () => {
             state.deathSaves[kind] = count === index + 1 ? index : index + 1;
-            saveState();
-            renderDeathSaves();
+            commit("Changed a death roll");
         });
 
         return box;
@@ -98,7 +97,7 @@ $("rollDeathSave").addEventListener("click", async () => {
 
     if (roll === 20) {
         // Back on your feet: updateCurrentHealth clears the saves
-        updateCurrentHealth(1);
+        updateCurrentHealth(1, { label: "Death roll", toast: false });
         showInfoResult("Death Roll", [["Roll", roll], ["Result", "Natural 20! You wake up with 1 HP"]]);
 
         return;
@@ -116,8 +115,7 @@ $("rollDeathSave").addEventListener("click", async () => {
         }
     }
 
-    saveState();
-    renderDeathSaves();
+    commit("Death roll");
 
     showInfoResult("Death Roll", [
         ["Roll", roll],
@@ -129,6 +127,5 @@ $("rollDeathSave").addEventListener("click", async () => {
 
 $("resetDeathSaves").addEventListener("click", () => {
     resetDeathSaves();
-    saveState();
-    renderDeathSaves();
+    commit("Reset the death rolls", { toast: true });
 });

@@ -7,9 +7,12 @@
 
 export const PREFERENCES_KEY = "spellboundPreferences";
 
+/* The system's "reduce motion" setting: no flying dice unless the player asks for them. */
+const prefersReducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+
 export const DEFAULT_PREFERENCES = {
     // "full", "fast" or "off" (results appear straight away)
-    diceAnimation: "full",
+    diceAnimation: prefersReducedMotion() ? "off" : "full",
 
     // Fill in the DC from the last roll
     rememberDC: false,
@@ -26,28 +29,31 @@ export const DEFAULT_PREFERENCES = {
     // "small", "normal" or "large"
     textSize: "normal",
 
-    // Folded open in the menu: a Runesmith's construct (see construct.js), and the saved spells (see spellSlots.js)
+    // Folded open in the menu: a Golemwright's construct (see construct.js), and the saved spells (see spellSlots.js)
     constructOpen: true,
     savedSpellsOpen: true
 };
 
-let preferences = load();
+// Only what the player changed, so the rest keeps following the defaults
+let changed = load();
+let preferences = { ...DEFAULT_PREFERENCES, ...changed };
 
 function load() {
     try {
-        return { ...DEFAULT_PREFERENCES, ...JSON.parse(localStorage.getItem(PREFERENCES_KEY)) };
+        return JSON.parse(localStorage.getItem(PREFERENCES_KEY)) ?? {};
     } catch {
-        return { ...DEFAULT_PREFERENCES };
+        return {};
     }
 }
 
 export const preference = key => preferences[key];
 
 export function setPreference(key, value) {
-    preferences = { ...preferences, [key]: value };
+    changed = { ...changed, [key]: value };
+    preferences = { ...DEFAULT_PREFERENCES, ...changed };
 
     try {
-        localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+        localStorage.setItem(PREFERENCES_KEY, JSON.stringify(changed));
     } catch {
         // Not remembered, but still used for now
     }

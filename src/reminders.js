@@ -7,7 +7,9 @@ import {
     rawRank,
     rankPointsLeft,
     schoolsOverCap,
-    schoolName
+    schoolName,
+    listCharacters,
+    exportedWhen
 } from "./state.js";
 import { RANKED_SCHOOLS, SUBCLASS_LEVEL, featsAllowed, featsFor, rankCap } from "./rules.js";
 
@@ -89,6 +91,13 @@ function featureReminders() {
     return reminders;
 }
 
+/* Characters with a backup due (see exportDue), whichever one is being played. */
+function exportReminders() {
+    return listCharacters()
+        .filter(character => character.exportDue)
+        .map(character => `Export ${character.name.trim() || "Unnamed adventurer"}: last exported ${exportedWhen(character.lastExported)}`);
+}
+
 /* A dot with a count on a top button, and the reasons in its tooltip. */
 function setBadge(buttonId, label, reminders) {
     const button = $(buttonId);
@@ -118,6 +127,7 @@ function markField(id, missing) {
 function renderReminders() {
     setBadge("characterButton", "Character settings", characterReminders());
     setBadge("featuresButton", "Features and feats", featureReminders());
+    setBadge("charactersButton", "Switch character", exportReminders());
 
     markField("subclassInput", needsSubclass());
     markField("passionNameInput", needsPassion());

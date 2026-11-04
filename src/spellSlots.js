@@ -2,6 +2,7 @@ import { $, show, hide, clamp, element, setValue } from "./dom.js";
 import {
     state,
     commit,
+    addLog,
     onStateChange,
     rank,
     schoolName,
@@ -159,8 +160,10 @@ function buildSettingRow(index) {
     });
 
     forget.addEventListener("click", () => {
+        const forgotten = state.spellSlots[index].name.toUpperCase();
+
         state.spellSlots[index] = { name: "", school: "harm", level: 1 };
-        commit();
+        commit(forgotten ? `Forgot ${forgotten}` : null, { toast: Boolean(forgotten) });
     });
 
     row.append(element("span", "result-label", `${index + 1}`), nameInput, schoolInput, levelInput, forget);
@@ -245,7 +248,8 @@ $("saveSpellForm").addEventListener("submit", event => {
     }
 
     state.spellSlots[index] = { name: name.toUpperCase(), school: savingSchool, level: startingLevel(savingSchool) };
-    commit();
+    commit(`Saved ${name.toUpperCase()}`);
+    addLog("Saved a spell", `${name.toUpperCase()}: level ${state.spellSlots[index].level} ${schoolName(savingSchool)}`);
 
     hide(saveSpellOverlay);
 });

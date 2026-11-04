@@ -8,6 +8,8 @@ export function hide(element) {
     element.classList.add("hidden");
 }
 
+export const onResize = callback => window.addEventListener("resize", callback);
+
 export const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 /* Creates an element with an optional class and text. */

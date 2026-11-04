@@ -1,49 +1,14 @@
-import DiceBox from "@3d-dice/dice-box-threejs";
 import { $, show, hide } from "./dom.js";
 import { diceColorset, loadDiceStyle, DICE_FINISHES } from "./diceStyle.js";
 import { preference } from "./preferences.js";
 
 const animationOverlay = $("animationOverlay");
 
-const diceBox = new DiceBox("#diceBox", {
-    // Where the finishes' texture images are (see diceStyle.js)
-    assetPath: `${import.meta.env.BASE_URL}dice/`,
-
-    theme_customColorset: diceColorset(),
-
-    gravity_multiplier: 350,
-    strength: 0.5,
-
-    light_intensity: 1,
-    baseScale: 100
-});
-
 /*
  * The finish's material tweaks (see diceStyle.js), put on every die material
  * the library makes. `adjust` is set before each roll.
  */
 let adjust = null;
-
-const diceFactory = diceBox.DiceFactory;
-const createMaterials = diceFactory.createMaterials.bind(diceFactory);
-
-diceFactory.createMaterials = (...args) => {
-    const materials = createMaterials(...args);
-
-    if (adjust) {
-        for (const material of materials) {
-            if (typeof adjust === "function") {
-                adjust(material);
-            } else {
-                Object.assign(material, adjust);
-            }
-
-            material.needsUpdate = true;
-        }
-    }
-
-    return materials;
-};
 
 /*
  * Fast animation: the library plays the throw back by stepping its physics for
@@ -52,28 +17,84 @@ diceFactory.createMaterials = (...args) => {
  */
 const FAST_SPEED = 2.5;
 
-const animateThrow = diceBox.animateThrow;
+/* Sets up the 3D dice. The library is by far the biggest download, so it comes in on its own (see loadDiceBox). */
+async function createDiceBox() {
+    const { default: DiceBox } = await import("@3d-dice/dice-box-threejs");
 
-diceBox.animateThrow = function (...args) {
-    if (preference("diceAnimation") === "fast" && this.last_time) {
-        this.last_time -= (Date.now() - this.last_time) * (FAST_SPEED - 1);
-    }
+    const diceBox = new DiceBox("#diceBox", {
+        // Where the finishes' texture images are (see diceStyle.js)
+        assetPath: `${import.meta.env.BASE_URL}dice/`,
 
-    return animateThrow.apply(this, args);
-};
+        theme_customColorset: diceColorset(),
 
-let diceBoxReady = false;
+        gravity_multiplier: 350,
+        strength: 0.5,
 
-diceBox.initialize().then(() => {
-    diceBoxReady = true;
+        light_intensity: 1,
+        baseScale: 100
+    });
 
-    console.log("3D DiceBox initialized.");
+    const diceFactory = diceBox.DiceFactory;
+    const createMaterials = diceFactory.createMaterials.bind(diceFactory);
+
+    diceFactory.createMaterials = (...args) => {
+        const materials = createMaterials(...args);
+
+        if (adjust) {
+            for (const material of materials) {
+                if (typeof adjust === "function") {
+                    adjust(material);
+                } else {
+                    Object.assign(material, adjust);
+                }
+
+                material.needsUpdate = true;
+            }
+        }
+
+        return materials;
+    };
+
+    const animateThrow = diceBox.animateThrow;
+
+    diceBox.animateThrow = function (...args) {
+        if (preference("diceAnimation") === "fast" && this.last_time) {
+            this.last_time -= (Date.now() - this.last_time) * (FAST_SPEED - 1);
+        }
+
+        return animateThrow.apply(this, args);
+    };
+
+    await diceBox.initialize();
 
     requestAnimationFrame(() => {
         window.dispatchEvent(new Event("resize"));
     });
-}).catch(error => {
-    console.error("Failed to initialize DiceBox:", error);
+
+    return diceBox;
+}
+
+let diceBoxLoading = null;
+
+/* The 3D dice, loaded the first time they're needed. Resolves with null if they can't be, e.g. offline. */
+function loadDiceBox() {
+    diceBoxLoading ??= createDiceBox().catch(error => {
+        console.error("Failed to initialize DiceBox:", error);
+
+        // Next time, try again
+        diceBoxLoading = null;
+
+        return null;
+    });
+
+    return diceBoxLoading;
+}
+
+// With the animation on they're fetched once the page has settled, so the first roll doesn't wait. With it off, never.
+window.addEventListener("load", () => {
+    if (preference("diceAnimation") !== "off") {
+        (window.requestIdleCallback ?? setTimeout)(loadDiceBox);
+    }
 });
 
 function nextFrame() {
@@ -159,11 +180,14 @@ export async function rollDiceSets(notation) {
         return rollWithoutDice(notation);
     }
 
-    if (!diceBoxReady) {
-        console.warn("DiceBox is not ready yet.");
+    const diceBox = await loadDiceBox();
 
-        return null;
+    // A roll still works without the animation
+    if (!diceBox) {
+        return rollWithoutDice(notation);
     }
+
+    const diceFactory = diceBox.DiceFactory;
 
     // Remove the previous roll's dice first, or they flash up when the overlay appears.
     diceBox.clearDice();

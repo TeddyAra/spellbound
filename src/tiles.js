@@ -2,6 +2,7 @@ import { $, show, hide } from "./dom.js";
 import { findWords } from "./words.js";
 import { preference } from "./preferences.js";
 import { confirmAction } from "./confirm.js";
+import { state, commit, onStateChange, saveWithoutUndo, addLog } from "./state.js";
 
 // Letter → [number of tiles in the bag, points]
 const SCRABBLE_LETTERS = {
@@ -50,8 +51,56 @@ const scrabblePool = Object.entries(SCRABBLE_LETTERS)
 
 const letterBoard = $("letterBoard");
 const safeZone = $("safeZone");
+const trashCan = $("trashCan");
 
 let scrabbleTileZIndex = 20;
+
+/*
+ * =========================================================
+ * THE BOARD IN THE CHARACTER
+ * =========================================================
+ *
+ * The tiles live on the page, and are copied to state.board after every change
+ * so they're still there after a reload. The other way round, syncBoard
+ * rebuilds them when state.board changed by itself: a reload, an undo, or
+ * another character.
+ */
+
+// state.board as the page shows it, as JSON
+let shownBoard = "[]";
+
+function readBoard() {
+    return allTiles().map(tile => ({
+        letter: tile.dataset.letter,
+        x: parseFloat(tile.style.left),
+        y: parseFloat(tile.style.top),
+        rotation: parseFloat(tile.style.getPropertyValue("--rotation")),
+        z: Number(tile.style.zIndex)
+    }));
+}
+
+function storeBoard() {
+    state.board = readBoard();
+    shownBoard = JSON.stringify(state.board);
+}
+
+function syncBoard() {
+    const board = JSON.stringify(state.board);
+
+    if (board === shownBoard) {
+        return;
+    }
+
+    allTiles().forEach(tile => tile.remove());
+    state.board.forEach(placeTile);
+
+    shownBoard = board;
+    scrabbleTileZIndex = Math.max(20, ...state.board.map(tile => tile.z));
+
+    updateWordUnderlines();
+}
+
+onStateChange(syncBoard);
 
 /* Every tile's letter and middle point. */
 function tileCenters(tiles = allTiles()) {
@@ -118,7 +167,8 @@ function toTileCount(amount) {
  * =========================================================
  */
 
-function createScrabbleLetter(letter, index) {
+/* Puts a tile on the table, inside the window even if it's smaller than when the tile was saved. */
+function placeTile({ letter, x, y, rotation, z }) {
     const tile = document.createElement("div");
 
     tile.className = "scrabble-letter";
@@ -134,37 +184,44 @@ function createScrabbleLetter(letter, index) {
 
     tile.appendChild(value);
 
-    // Keep new tiles clear of the side menus.
+    tile.style.left = `${Math.max(0, Math.min(x, window.innerWidth - tileSize()))}px`;
+    tile.style.top = `${Math.max(0, Math.min(y, window.innerHeight - tileSize()))}px`;
+
+    tile.style.setProperty("--rotation", `${rotation}deg`);
+
+    tile.style.zIndex = String(z);
+
+    makeScrabbleTileDraggable(tile);
+
+    letterBoard.appendChild(tile);
+}
+
+/* A new tile: somewhere random, clear of the side menus. */
+function newTile(letter, index) {
     const horizontalPadding = 400;
     const verticalPadding = 50;
 
     const maxX = Math.max(horizontalPadding, window.innerWidth - tileSize() - horizontalPadding);
     const maxY = Math.max(verticalPadding, window.innerHeight - tileSize() - verticalPadding);
 
-    tile.style.left = `${horizontalPadding + Math.random() * (maxX - horizontalPadding)}px`;
-    tile.style.top = `${verticalPadding + Math.random() * (maxY - verticalPadding)}px`;
-
-    tile.style.setProperty("--rotation", `${-12 + Math.random() * 24}deg`);
-
-    tile.style.zIndex = String(20 + index);
-
-    makeScrabbleTileDraggable(tile);
-
-    // Back to the pile, e.g. for a Wordweaver's Tile Craft or a Trickster's Sleight
-    tile.addEventListener("dblclick", () => {
-        tile.remove();
-        updateWordUnderlines();
-    });
-
-    letterBoard.appendChild(tile);
+    return {
+        letter,
+        x: horizontalPadding + Math.random() * (maxX - horizontalPadding),
+        y: verticalPadding + Math.random() * (maxY - verticalPadding),
+        rotation: -12 + Math.random() * 24,
+        z: scrabbleTileZIndex + 1 + index
+    };
 }
 
 function spawnLetters(letters) {
-    letters.forEach(createScrabbleLetter);
+    letters.map(newTile).forEach(placeTile);
 
     scrabbleTileZIndex += letters.length;
 
     updateWordUnderlines();
+    storeBoard();
+
+    commit(letters.length === 1 ? "Got 1 tile" : `Got ${letters.length} tiles`);
 }
 
 export function spawnScrabbleLetters(amount) {
@@ -183,6 +240,9 @@ function makeScrabbleTileDraggable(tile) {
 
     let activePointerId = null;
 
+    // Only a tile that was really dragged goes in the trash, not one that happens to be over it when clicked
+    let moved = false;
+
     function moveTile(event) {
         if (event.pointerId !== activePointerId) {
             return;
@@ -197,7 +257,10 @@ function makeScrabbleTileDraggable(tile) {
         tile.style.left = `${x}px`;
         tile.style.top = `${y}px`;
 
+        moved = true;
+
         safeZone.classList.toggle("active", tileIsInSafeZone(tile));
+        trashCan.classList.toggle("active", pointerIsOverTrash(event));
 
         scheduleWordUnderlines();
     }
@@ -222,8 +285,24 @@ function makeScrabbleTileDraggable(tile) {
         document.removeEventListener("pointercancel", stopDragging);
 
         safeZone.classList.remove("active");
+        trashCan.classList.remove("active");
+
+        // Back to the pile, e.g. for a Wordweaver's Tile Craft or a Trickster's Sleight
+        if (moved && event.type === "pointerup" && pointerIsOverTrash(event)) {
+            const letter = tile.dataset.letter === "_" ? "a blank tile" : tile.dataset.letter;
+
+            tile.remove();
+            updateWordUnderlines();
+            storeBoard();
+
+            commit(`Returned ${letter} to the pile`, { toast: true });
+
+            return;
+        }
 
         updateWordUnderlines();
+        storeBoard();
+        saveWithoutUndo();
     }
 
     tile.addEventListener("pointerdown", event => {
@@ -234,6 +313,7 @@ function makeScrabbleTileDraggable(tile) {
         event.preventDefault();
 
         activePointerId = event.pointerId;
+        moved = false;
 
         const rect = tile.getBoundingClientRect();
 
@@ -282,6 +362,13 @@ function tileIsInSafeZone(tile) {
     );
 }
 
+function pointerIsOverTrash(event) {
+    const rect = trashCan.getBoundingClientRect();
+
+    return event.clientX >= rect.left && event.clientX <= rect.right
+        && event.clientY >= rect.top && event.clientY <= rect.bottom;
+}
+
 async function clearTilesOutsideSafeZone() {
     const cleared = allTiles().filter(tile => !tileIsInSafeZone(tile));
 
@@ -294,16 +381,27 @@ async function clearTilesOutsideSafeZone() {
         }
     }
 
+    // What was on the table, for the log
+    const { words } = findWords(tileCenters(cleared), tileSize());
+    const spelled = words.map(word => word.text).join(" ");
+
     for (const tile of allTiles()) {
         if (!tileIsInSafeZone(tile)) {
             tile.remove();
         }
     }
 
-    // Clearing the board also ends the spell that was cast.
-    hide($("actionPanel"));
-
     updateWordUnderlines();
+    storeBoard();
+
+    // Clearing the board also ends the spell that was cast.
+    state.action = null;
+
+    commit("Cleared the board", { toast: true });
+
+    if (cleared.length) {
+        addLog("Cleared the board", spelled ? `Spelled: ${spelled}` : `${cleared.length} ${cleared.length === 1 ? "tile" : "tiles"}`);
+    }
 }
 
 /* Scatters a group of tiles randomly within `area`. */
@@ -366,6 +464,8 @@ function sortTiles() {
     });
 
     updateWordUnderlines();
+    storeBoard();
+    saveWithoutUndo();
 }
 
 $("clearTilesButton").addEventListener("click", clearTilesOutsideSafeZone);

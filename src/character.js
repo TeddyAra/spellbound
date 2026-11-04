@@ -2,6 +2,7 @@ import { $, show, hide, clamp, element, formatModifier, setValue, sum } from "./
 import {
     state,
     commit,
+    addLog,
     onStateChange,
     characterClass,
     rank,
@@ -26,8 +27,14 @@ import {
     endSignature,
     spellfuryActive,
     hasConstruct,
-    constructMaxHealth,
-    constructHealth
+    hasFieldRepairs,
+    hasHelpers,
+    constructParts,
+    partMaxHealth,
+    partHealth,
+    newHelper,
+    signatureHasUses,
+    runesLast
 } from "./state.js";
 import {
     CLASSES,
@@ -39,6 +46,7 @@ import {
     ARMOR_TYPES,
     WEAPON_TYPES,
     rankCap,
+    guardDC,
     poolNotation
 } from "./rules.js";
 import { rollDice } from "./dice.js";
@@ -78,7 +86,7 @@ function renderHP() {
  * Damage at 0 HP is a failed death roll; any healing from 0 HP wakes you up
  * and clears them.
  */
-export function updateCurrentHealth(amount, { beforeWard = damage => damage, afterWard = damage => damage } = {}) {
+export function updateCurrentHealth(amount, { beforeWard = damage => damage, afterWard = damage => damage, label = null, toast = true } = {}) {
     const wasDown = state.currentHealth === 0;
     const result = { reduced: 0, absorbed: 0, taken: 0 };
 
@@ -114,7 +122,7 @@ export function updateCurrentHealth(amount, { beforeWard = damage => damage, aft
         resetDeathSaves();
     }
 
-    commit();
+    commit(label ?? (amount < 0 ? `Took ${result.taken} damage` : `Healed ${amount}`), { toast });
 
     return result;
 }
@@ -219,6 +227,8 @@ $("damageHPButton").addEventListener("click", async () => {
     }
 
     $("damageMessage").textContent = parts.join(" ") || "No damage.";
+
+    addLog("Damage", `${$("damageMessage").textContent} HP ${state.currentHealth} / ${state.maxHealth}`);
 });
 
 $("healHPButton").addEventListener("click", () => {
@@ -228,12 +238,14 @@ $("healHPButton").addEventListener("click", () => {
         updateCurrentHealth(amount);
 
         $("damageMessage").textContent = `Healed ${amount}.`;
+
+        addLog("Healing", `Healed ${amount}. HP ${state.currentHealth} / ${state.maxHealth}`);
     }
 });
 
 wardInput.addEventListener("input", () => {
     state.ward = Math.max(0, parseInt(wardInput.value, 10) || 0);
-    commit();
+    commit("Changed the ward");
 });
 
 const constructName = () => state.construct.name.trim() || "Construct";
@@ -256,6 +268,10 @@ function renderStats() {
     $("characterClassDisplay").textContent = classLine();
 
     $("armorDisplay").textContent = effectiveArmor();
+    $("guardDCDisplay").textContent = `Guard DC ${guardDC(state.level)}`;
+    $("armorBox").title = `Armor reduces every instance of damage, to a minimum of 1.\n\n` +
+        `Guard DC ${guardDC(state.level)}: the DC when an enemy aims a spell or mundane action at you. ` +
+        `The DM can raise it by 1 or 2 when the attack suits you poorly, or lower it when it exploits a weakness.`;
     $("initiativeDisplay").textContent = formatModifier(initiativeBonus());
     $("passiveRevealDisplay").textContent = rank("reveal");
 
@@ -308,7 +324,7 @@ $("initiativeButton").addEventListener("click", async () => {
 
 $("shortRestButton").addEventListener("click", async () => {
     if (state.shortRests >= 2) {
-        showInfoResult("Short Rest", [["Short rests today", "2 / 2"], ["", "Take a long rest first"]]);
+        showInfoResult("Short Rest", [["Short rests today", "2 / 2"], ["", "Take a long rest first"]], null, { log: false });
 
         return;
     }
@@ -325,7 +341,7 @@ $("shortRestButton").addEventListener("click", async () => {
     const healing = sum(rolls) + medic;
 
     state.shortRests++;
-    updateCurrentHealth(healing);
+    updateCurrentHealth(healing, { label: "Short rest" });
 
     const rows = [[`Hit dice (${count}d${hitDie})`, sum(rolls)]];
 
@@ -335,22 +351,66 @@ $("shortRestButton").addEventListener("click", async () => {
 
     rows.push(["Healed", healing], ["HP", `${state.currentHealth} / ${state.maxHealth}`]);
 
-    // A construct recovers during rests like you do: its own roll of your hit dice
-    if (hasConstruct() && !state.construct.destroyed && state.construct.damage > 0) {
-        const constructRolls = await rollDice(`${count}d${hitDie}`);
-
-        if (constructRolls) {
-            const constructHealing = sum(constructRolls) + medic;
-
-            state.construct.damage = Math.max(0, state.construct.damage - constructHealing);
-            commit();
-
-            rows.push([`${constructName()} healed`, constructHealing], [`${constructName()} HP`, `${constructHealth()} / ${constructMaxHealth()}`]);
-        }
+    if (hasConstruct()) {
+        rows.push(...await restConstruct(count, hitDie, medic));
     }
 
     showInfoResult("Short Rest", rows, { title: "Hit dice", values: rolls });
 });
+
+/*
+ * A construct recovers during short rests like you do: its own roll of your
+ * hit dice. A Clockmaker's small constructs share that one roll, the most
+ * damaged first. With Field Repairs, destroyed ones are rebuilt with half
+ * their hit points instead. Returns the rows for the rest's result.
+ */
+async function restConstruct(count, hitDie, medic) {
+    const parts = constructParts();
+    const name = parts.length > 1 ? `${constructName()}s` : constructName();
+    const rows = [];
+
+    const damaged = parts.filter(part => !part.destroyed && part.damage > 0);
+
+    if (damaged.length) {
+        const rolls = await rollDice(`${count}d${hitDie}`);
+
+        if (rolls) {
+            let healing = sum(rolls) + medic;
+
+            rows.push([`${name} healed`, healing]);
+
+            for (const part of damaged.sort((a, b) => b.damage - a.damage)) {
+                const healed = Math.min(part.damage, healing);
+
+                part.damage -= healed;
+                healing -= healed;
+            }
+        }
+    }
+
+    const destroyed = parts.filter(part => part.destroyed);
+
+    if (hasFieldRepairs() && destroyed.length) {
+        for (const part of destroyed) {
+            part.destroyed = false;
+            part.damage = partMaxHealth() - Math.floor(partMaxHealth() / 2);
+        }
+
+        rows.push([`Rebuilt (Field Repairs)`, parts.length > 1 ? `${destroyed.length}, at half HP` : "At half HP"]);
+    }
+
+    // The same undo step as the rest itself
+    commit("Short rest", { merge: true });
+
+    if (rows.length) {
+        rows.push(...parts.map((part, index) => [
+            `${parts.length > 1 ? `${constructName()} ${index + 1}` : constructName()} HP`,
+            part.destroyed ? "Destroyed" : `${partHealth(part)} / ${partMaxHealth()}`
+        ]));
+    }
+
+    return rows;
+}
 
 $("longRestButton").addEventListener("click", async () => {
     if (preference("confirmLongRest")) {
@@ -365,29 +425,45 @@ $("longRestButton").addEventListener("click", async () => {
         }
     }
 
-    // Glyphs fade after a day, or a week with Lasting Glyphs (Glyphwarden)
-    const glyphs = characterClass().signature.glyphs;
-    const glyphsLast = glyphs && subclassIs("glyphwarden");
-
     state.currentHealth = state.maxHealth;
     state.ward = 0;
     state.shortRests = 0;
-    state.signature = { used: glyphsLast ? state.signature.used : 0, roundsLeft: 0, ongoing: false };
+    state.signature = { used: 0, roundsLeft: 0, ongoing: false };
 
-    const rows = [
-        ["HP", `${state.currentHealth} / ${state.maxHealth}`],
-        [characterClass().signature.name, glyphs ? (glyphsLast ? "Last a week" : "Faded") : "All uses back"]
-    ];
+    const rows = [["HP", `${state.currentHealth} / ${state.maxHealth}`]];
 
-    // A construct heals fully, and a destroyed one can be rebuilt
+    if (signatureHasUses()) {
+        rows.push([characterClass().signature.name, "All uses back"]);
+    }
+
+    // Runes fade after a long rest, unless they last a week (Lasting Runes) or recharge (Living Workshop)
+    if (characterClass().signature.runes && state.runes > 0) {
+        if (runesLast()) {
+            rows.push(["Runes", hasFeat("livingWorkshop") ? "Kept, used ones recharge" : "Last a week"]);
+        } else {
+            rows.push(["Runes", "Faded"]);
+            state.runes = 0;
+        }
+    }
+
+    // Constructs heal fully, and destroyed ones can be rebuilt
     if (hasConstruct()) {
-        rows.push([constructName(), state.construct.destroyed ? "Rebuilt" : "Full HP"]);
+        const rebuilt = constructParts().filter(part => part.destroyed).length;
 
-        state.construct = { ...state.construct, damage: 0, destroyed: false, colossusRounds: 0, colossusUsed: false };
+        rows.push([hasHelpers() ? `${constructName()}s` : constructName(), rebuilt ? (hasHelpers() ? `${rebuilt} rebuilt, all at full HP` : "Rebuilt") : "Full HP"]);
+
+        state.construct = {
+            ...state.construct,
+            damage: 0,
+            destroyed: false,
+            colossusRounds: 0,
+            colossusUsed: false,
+            helpers: state.construct.helpers.map(newHelper)
+        };
     }
 
     resetDeathSaves();
-    commit();
+    commit("Long rest", { toast: true });
 
     showInfoResult("Long Rest", rows);
 });

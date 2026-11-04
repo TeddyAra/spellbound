@@ -13,6 +13,11 @@ import "./tiles.js";
 import "./overlays.js";
 import "./reminders.js";
 import "./settings.js";
+import "./undo.js";
+import "./log.js";
+import "./characters.js";
+import "./menuFit.js";
+import "./pwa.js";
 
 loadState();
 

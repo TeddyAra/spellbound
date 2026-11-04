@@ -28,7 +28,7 @@ function addItem(name, count) {
         state.inventory.push({ id: newItemId(), name, count });
     }
 
-    commit();
+    commit(`Added ${name}`);
 }
 
 $("addItemForm").addEventListener("submit", event => {
@@ -54,7 +54,7 @@ function changeCount(item, change) {
         removeItem(item);
     }
 
-    commit();
+    commit(`Changed ${item.name}`);
 }
 
 function renderItemCard(item) {
@@ -76,7 +76,7 @@ function renderItemCard(item) {
     plus.addEventListener("click", () => changeCount(item, 1));
     discard.addEventListener("click", () => {
         removeItem(item);
-        commit();
+        commit(`Threw away ${item.name}`, { toast: true });
     });
 
     const count = element("span", "counter", "");

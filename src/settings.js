@@ -1,14 +1,11 @@
 import { $, show, hide, element } from "./dom.js";
-import { state, exportCharacter, readCharacterFile, importCharacter } from "./state.js";
 import { preference, setPreference } from "./preferences.js";
 import { closeColorPicker } from "./colorPicker.js";
-import { confirmAction } from "./confirm.js";
 import { renderDiceSettings } from "./diceSettings.js";
 
 /*
- * The Settings window: preferences for this browser (see preferences.js),
- * plus exporting and importing the character. The dice colours are in
- * diceSettings.js.
+ * The Settings window: preferences for this browser (see preferences.js).
+ * The dice colours are in diceSettings.js.
  *
  * The theme sets data-theme on <html> (see the themes in style.css). The page
  * also sets it before drawing, from the same storage key, so the default
@@ -70,6 +67,9 @@ function savedTheme() {
 }
 
 function applyTheme(theme) {
+    // Only this theme's fonts are downloaded (see index.html)
+    window.loadThemeFonts?.(theme);
+
     if (theme === "original") {
         delete document.documentElement.dataset.theme;
     } else {
@@ -175,76 +175,6 @@ for (const control of preferenceControls) {
 
 /*
  * =========================================================
- * CHARACTER FILES
- * =========================================================
- */
-
-const characterFileMessage = $("characterFileMessage");
-const importInput = $("importCharacterInput");
-
-/* "Tamsin" → "tamsin-spellbound.json" */
-function characterFileName() {
-    const name = state.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
-    return `${name || "character"}-spellbound.json`;
-}
-
-$("exportCharacterButton").addEventListener("click", () => {
-    const file = new Blob([exportCharacter()], { type: "application/json" });
-    const link = element("a");
-
-    link.href = URL.createObjectURL(file);
-    link.download = characterFileName();
-    link.click();
-
-    URL.revokeObjectURL(link.href);
-
-    characterFileMessage.textContent = `Saved as ${link.download}.`;
-});
-
-$("importCharacterButton").addEventListener("click", () => {
-    importInput.value = "";
-    importInput.click();
-});
-
-importInput.addEventListener("change", async () => {
-    const file = importInput.files[0];
-
-    if (!file) {
-        return;
-    }
-
-    let character;
-
-    try {
-        character = readCharacterFile(await file.text());
-    } catch (error) {
-        characterFileMessage.textContent = error.message;
-
-        return;
-    }
-
-    const name = character.name?.trim() || "this character";
-    const current = state.name.trim() || "your current character";
-
-    hide(settingsOverlay);
-
-    const confirmed = await confirmAction(
-        "Import Character",
-        `Replace ${current} with ${name}? Export ${current} first if you want to keep them.`,
-        "Replace"
-    );
-
-    show(settingsOverlay);
-
-    if (confirmed) {
-        importCharacter(character);
-        characterFileMessage.textContent = `Imported ${name}.`;
-    }
-});
-
-/*
- * =========================================================
  * OPENING AND CLOSING
  * =========================================================
  */
@@ -253,8 +183,6 @@ $("settingsButton").addEventListener("click", () => {
     renderThemeOptions();
     renderDiceSettings();
     renderPreferences();
-
-    characterFileMessage.textContent = "";
 
     show(settingsOverlay);
 });

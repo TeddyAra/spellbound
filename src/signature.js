@@ -5,6 +5,7 @@ import {
     onStateChange,
     characterClass,
     maxSignatureUses,
+    signatureHasUses,
     maxRunes,
     signatureActive,
     endSignature
@@ -13,13 +14,12 @@ import {
 /*
  * The class's signature ability. Most last a few rounds once started, counted
  * down with Next round, and come back after a long rest. Spellfury lasts until
- * the end of the combat instead, so it's simply clicked off again. A
- * Runesmith's Glyphs and Runes are counted instead: how many are out of the
- * maximum.
+ * the end of the combat instead, so it's simply clicked off again. Written
+ * Word and Construct have no uses: a Runesmith counts the runes they have out
+ * instead, and a Golemwright's construct has its own column (see construct.js).
  */
 
 const signatureButton = $("signatureButton");
-const glyphCounter = $("glyphCounter");
 const runeCounter = $("runeCounter");
 const nextRoundButton = $("nextRoundButton");
 
@@ -27,20 +27,20 @@ const usesLeft = () => maxSignatureUses() - state.signature.used;
 
 export function renderSignature() {
     const signature = characterClass().signature;
+    const hasUses = signatureHasUses();
 
-    signatureButton.classList.toggle("hidden", Boolean(signature.glyphs));
-    glyphCounter.classList.toggle("hidden", !signature.glyphs);
-    runeCounter.classList.toggle("hidden", !signature.glyphs);
+    signatureButton.classList.toggle("hidden", !hasUses);
+    runeCounter.classList.toggle("hidden", !signature.runes);
 
     // Only abilities that last a number of rounds are counted down
     nextRoundButton.classList.toggle("hidden", state.signature.roundsLeft === 0);
 
-    if (signature.glyphs) {
-        $("glyphCount").textContent = `${state.signature.used} / ${maxSignatureUses()}`;
-        glyphCounter.title = signature.text;
-
+    if (signature.runes) {
         $("runeCount").textContent = `${state.runes} / ${maxRunes()}`;
+        runeCounter.title = `Runes you have out. ${characterClass().features.find(feature => feature.name === "Runes").text}`;
+    }
 
+    if (!hasUses) {
         return;
     }
 
@@ -76,23 +76,21 @@ signatureButton.addEventListener("click", () => {
         }
     }
 
-    commit();
+    commit(characterClass().signature.name);
 });
 
 nextRoundButton.addEventListener("click", () => {
     state.signature.roundsLeft = Math.max(0, state.signature.roundsLeft - 1);
-    commit();
+    commit("Next round");
 });
 
 function counterButton(id, change) {
     $(id).addEventListener("click", () => {
         change();
-        commit();
+        commit("Changed the runes");
     });
 }
 
-counterButton("glyphPlus", () => state.signature.used = Math.min(maxSignatureUses(), state.signature.used + 1));
-counterButton("glyphMinus", () => state.signature.used = Math.max(0, state.signature.used - 1));
 counterButton("runePlus", () => state.runes = Math.min(maxRunes(), state.runes + 1));
 counterButton("runeMinus", () => state.runes = Math.max(0, state.runes - 1));
 

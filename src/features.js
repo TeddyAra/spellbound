@@ -6,6 +6,7 @@ import {
     characterClass,
     featCount,
     maxSignatureUses,
+    signatureHasUses,
     maxRunes,
     schoolName
 } from "./state.js";
@@ -45,21 +46,20 @@ function renderFeatures() {
 
     $("featuresTitle").textContent = `${info.name} Features`;
 
+    // Written Word and Construct have no uses
     const cards = [
         featureCard(
             info.signature.name,
             info.signature.text,
             null,
-            info.signature.glyphs ? `${maxSignatureUses()} at once` : `${maxSignatureUses()} per long rest`
+            signatureHasUses() ? `${maxSignatureUses()} per long rest` : "Signature"
         )
     ];
 
-    if (info.signature.glyphs) {
-        cards.push(featureCard("Runes", "Spells stored in objects with Inscribe. Anyone holding one releases it as a bonus action, after which it fades.", null, `${maxRunes()} at once`));
-    }
-
     for (const feature of info.features) {
-        cards.push(featureCard(feature.name, feature.text, feature.level));
+        const extra = feature.name === "Runes" ? `${maxRunes()} at once` : null;
+
+        cards.push(featureCard(feature.name, feature.text, feature.level, extra));
     }
 
     if (subclass) {

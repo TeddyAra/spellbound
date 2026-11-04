@@ -2,6 +2,8 @@ import { $, show, hide, element, sum } from "./dom.js";
 import {
     state,
     commit,
+    saveWithoutUndo,
+    addLog,
     rank,
     schoolName,
     mortalLimit,
@@ -16,7 +18,13 @@ import {
     effectiveArmor,
     constructRank,
     constructDie,
-    colossusActive
+    constructParts,
+    constructDown,
+    partHealth,
+    partMaxHealth,
+    colossusActive,
+    hasFieldRepairs,
+    canBeLettered
 } from "./state.js";
 import {
     castingPool,
@@ -45,9 +53,9 @@ import { openSaveSpell, hasEmptySlot } from "./spellSlots.js";
  *   save      a saving throw: only success matters
  *   counter   Prepare: each surge lowers an enemy spell's level
  *
- * A Runesmith's construct rolls its own pool (see construct.js):
+ * A Golemwright's construct rolls its own pool (see construct.js):
  *   constructWeapon   its weapon attack
- *   constructAction   a mundane action in any school (Golemwright)
+ *   constructAction   a mundane Change or Create action (Toolkit module)
  */
 
 const MODES = {
@@ -94,15 +102,13 @@ function modesFor(school) {
 /* The school a roll uses: weapon attacks always roll Harm. */
 const rollSchool = ({ school, mode }) => isWeaponMode(mode) ? "harm" : school;
 
-/* The rank whose pool is rolled: the school's, or the construct's own. */
+/* The rank whose pool is rolled: the school's, or the construct's own (its Toolkit uses its attack rank). */
 function poolRank(options) {
-    // Early Apprentice: the construct's mundane actions stay at rank 2. Deep Runes only raises its attack.
-    if (options.mode === "constructAction") {
-        return 2;
-    }
-
-    return options.mode === "constructWeapon" ? constructRank() : rank(rollSchool(options));
+    return isConstruct(options) ? constructRank() : rank(rollSchool(options));
 }
+
+/* Runesmith (Lettered): ticked for Reveal actions on writing, symbols and traps. */
+const lettered = ({ school, mode, lettered }) => mode === "mundane" && Boolean(lettered) && canBeLettered(school);
 
 /* Dice added by feats: [label, count]. */
 function automaticDice({ school, mode }) {
@@ -140,13 +146,15 @@ function diceCount(options) {
 }
 
 /* The highest level this roll can reach. A construct's actions are mundane, so they stop at 3. */
-function levelCap({ school, mode }) {
+function levelCap(options) {
+    const { school, mode } = options;
+
     if (isConstruct({ mode })) {
         return Math.min(poolRank({ mode }), 3);
     }
 
     if (mode === "mundane") {
-        return Math.min(rank(school), mortalLimit(school));
+        return Math.min(rank(school), mortalLimit(school, lettered(options)));
     }
 
     if (mode === "weapon") {
@@ -174,7 +182,7 @@ function modeHint() {
             return `Casts ${slot.name.toUpperCase()} at level ${slot.level}. No tiles. A successful cast may grow it.`;
         }
         case "mundane":
-            return `No tiles, no backfire. Level capped at your mortal limit of ${mortalLimit(school)}.`;
+            return `No tiles, no backfire. Level capped at your mortal limit of ${mortalLimit(school, lettered(setup))}.`;
         case "weapon":
             return `Damage: d${weaponDie()} per level. Mortal limit ${weaponMortalLimit()}.`;
         case "save":
@@ -182,11 +190,44 @@ function modeHint() {
         case "counter":
             return "Each surge lowers the spell's level by 1. Below level 1, it fizzles.";
         case "constructWeapon":
-            return `Damage: d${constructDie()} per level. Mortal limit 3.` +
-                (colossusActive() ? " Colossus: it also hits one target next to it." : "");
+            return `Damage: d${constructDie()} per level. Mortal limit 3. Rolled during your pre-turn, right after your own roll.` +
+                (colossusActive() ? " Colossus: twice the dice on one target, or stomp every enemy within 10 feet." : "");
         case "constructAction":
-            return "Any school, as a mundane action. No tiles, mortal limit 3.";
+            return "Toolkit: instead of attacking, a mundane Change or Create action with its attack rank. No tiles, mortal limit 3.";
     }
+}
+
+/* The construct's Toolkit picks Change or Create; every other roll picks one of the school's modes. */
+function modeButtons() {
+    if (setup.mode === "constructAction") {
+        return ["change", "create"].map(school => {
+            const button = element("button", school === setup.school ? "selected" : null, schoolName(school));
+
+            button.type = "button";
+            button.addEventListener("click", () => {
+                setup.school = school;
+                renderSetup();
+            });
+
+            return button;
+        });
+    }
+
+    if (setup.mode === "saved" || isConstruct(setup)) {
+        return [];
+    }
+
+    return modesFor(setup.school).map(mode => {
+        const button = element("button", mode === setup.mode ? "selected" : null, MODES[mode].label);
+
+        button.type = "button";
+        button.addEventListener("click", () => {
+            setup.mode = mode;
+            renderSetup();
+        });
+
+        return button;
+    });
 }
 
 function renderSetup() {
@@ -205,25 +246,12 @@ function renderSetup() {
         ? `Construct rank ${poolRank(setup)}`
         : `${schoolName(school)} rank ${rank(school)}`;
 
-    const modes = $("rollModes");
-
-    if (setup.mode === "saved" || isConstruct(setup)) {
-        modes.replaceChildren();
-    } else {
-        modes.replaceChildren(...modesFor(setup.school).map(mode => {
-            const button = element("button", mode === setup.mode ? "selected" : null, MODES[mode].label);
-
-            button.type = "button";
-            button.addEventListener("click", () => {
-                setup.mode = mode;
-                renderSetup();
-            });
-
-            return button;
-        }));
-    }
+    $("rollModes").replaceChildren(...modeButtons());
 
     $("rollModeHint").textContent = modeHint();
+
+    $("letteredRow").classList.toggle("hidden", !(setup.mode === "mundane" && canBeLettered(setup.school)));
+    $("letteredInput").checked = Boolean(setup.lettered);
     $("extraDiceDisplay").textContent = setup.extraDice > 0 ? `+${setup.extraDice}` : setup.extraDice;
 
     const bonuses = automaticDice(setup).map(([label, count]) => `${label} +${count}`);
@@ -234,7 +262,7 @@ function renderSetup() {
 
 /* Opens the roll window for a school, a weapon attack, or a saved spell (slotIndex). */
 export function openRollSetup(school, mode = "spell", slotIndex = null) {
-    setup = { school, mode, slotIndex, extraDice: 0 };
+    setup = { school, mode, slotIndex, extraDice: 0, lettered: false };
     dcInput.value = preference("rememberDC") ? preference("lastDC") : "";
 
     renderSetup();
@@ -252,6 +280,11 @@ $("extraDiceMinus").addEventListener("click", () => {
 
 $("extraDicePlus").addEventListener("click", () => {
     setup.extraDice = Math.min(10, setup.extraDice + 1);
+    renderSetup();
+});
+
+$("letteredInput").addEventListener("change", event => {
+    setup.lettered = event.target.checked;
     renderSetup();
 });
 
@@ -285,6 +318,8 @@ async function confirmRoll() {
 
     renderResult();
     show(rollResultOverlay);
+
+    logRoll();
 }
 
 $("confirmRoll").addEventListener("click", confirmRoll);
@@ -331,6 +366,37 @@ function readRoll() {
         highest: Math.max(...roll.rolls),
         success: roll.dc === null ? null : roll.rolls.some(value => value >= roll.dc)
     };
+}
+
+/* The pre-turn in the log: "New spell · DC 3: success · Level 2 · 9 tiles" */
+function logRoll() {
+    const reading = readRoll();
+    const parts = [{
+        ...Object.fromEntries(Object.entries(MODES).map(([key, { label }]) => [key, label])),
+        saved: "Saved spell",
+        constructWeapon: "Construct attack",
+        constructAction: "Construct action"
+    }[roll.mode]];
+
+    if (roll.dc !== null) {
+        parts.push(`DC ${roll.dc}: ${reading.success ? "success" : "failure"}`);
+    }
+
+    if (reading.success !== false) {
+        if (roll.mode === "save") {
+            parts.push(`Highest ${reading.highest}`);
+        } else if (roll.mode === "counter") {
+            parts.push(`Lowers the level by ${reading.surges}`);
+        } else {
+            parts.push(`Level ${reading.level}`);
+        }
+
+        if (roll.mode === "spell") {
+            parts.push(`${reading.tiles} tiles`);
+        }
+    }
+
+    addLog($("rollResultTitle").textContent, parts.join(" · "), [...roll.rolls]);
 }
 
 function resultRow(label, value, note) {
@@ -391,6 +457,8 @@ async function rerollDie(index) {
     const rolls = await rollDice(`1d${roll.sides}`);
 
     if (rolls) {
+        addLog($("rollResultTitle").textContent, `Rerolled a die: ${roll.rolls[index]} ➝ ${rolls[0]}`);
+
         roll.rolls[index] = rolls[0];
         roll.rerolled.add(index);
     }
@@ -476,6 +544,7 @@ function renderResult() {
         } else if (roll.mode === "saved") {
             actions.push(actionButton("Cast", "primary", () => {
                 close();
+                addLog("Cast a saved spell", `${state.spellSlots[roll.slotIndex].name.toUpperCase()} at level ${reading.level}`);
                 castSavedSpell(reading.level);
             }));
         } else if (isWeaponMode(roll.mode)) {
@@ -524,7 +593,7 @@ async function overchannel() {
 
     roll.overchannel = 1;
 
-    updateCurrentHealth(-rolls[0]);
+    updateCurrentHealth(-rolls[0], { label: "Overchannel", toast: false });
 
     renderResult();
     show(rollResultOverlay);
@@ -567,7 +636,7 @@ async function castSavedSpell(level) {
 
     if (grows) {
         slot.level++;
-        commit();
+        commit(`${slot.name.toUpperCase()} grew`);
     }
 
     showInfoResult("Spell Growth", [
@@ -788,6 +857,32 @@ function healingBonus() {
     return [0, null];
 }
 
+/*
+ * Field Repairs (Golemwright, level 3): heals the construct like first aid,
+ * with d8s. First aid has one target, so a Clockmaker repairs the most
+ * damaged of their small constructs.
+ */
+async function repairConstruct(level) {
+    const rolls = await rollDice(`${level}d8`);
+    const parts = constructParts();
+    const part = parts.filter(other => !other.destroyed).sort((a, b) => b.damage - a.damage)[0];
+
+    if (!rolls || !part) {
+        return;
+    }
+
+    const before = partHealth(part);
+    const name = parts.length > 1 ? `${constructName()} ${parts.indexOf(part) + 1}` : constructName();
+
+    part.damage = Math.max(0, part.damage - sum(rolls));
+    commit("Field Repairs");
+
+    showInfoResult("Field Repairs", [
+        [`${level}d8`, sum(rolls)],
+        [`${name} HP`, `${before} ➝ ${partHealth(part)} / ${partMaxHealth()}`]
+    ], { title: "Effect dice", values: rolls });
+}
+
 function ambushDice() {
     return state.level >= 9 ? 4 : state.level >= 6 ? 3 : 2;
 }
@@ -800,7 +895,18 @@ function effectButtons() {
 
     // Weapon damage is rolled straight away (see renderResult)
     if (mode === "constructWeapon") {
-        add(`Damage again ${level}d${constructDie()}`, () => rollWeaponDamage(level, mode));
+        if (colossusActive()) {
+            // Colossus: one target with twice the dice, or a stomp that hits every enemy within 10 feet
+            add(`One target ${level * 2}d${constructDie()}`, () => rollEffect(`${constructName()} Damage`, level * 2, constructDie()), "primary");
+            add(`Stomp: ${level}d${constructDie()} each`, () => rollWeaponDamage(level, mode));
+        } else {
+            add(`Damage again ${level}d${constructDie()}`, () => rollWeaponDamage(level, mode));
+        }
+
+        // Sweeping Blows (Warforger): once per round, one more creature next to the target
+        if (subclassIs("warforger") && state.level >= 5) {
+            add(`Sweeping Blows: second target ${level}d${constructDie()}`, () => rollWeaponDamage(level, mode));
+        }
     } else if (mode === "weapon") {
         if (state.className === "spellblade") {
             add(`Bladeword: draw ${action.highest} tiles`, () => spawnScrabbleLetters(action.highest));
@@ -815,6 +921,10 @@ function effectButtons() {
             const sides = hasFeat("fieldMedic") ? 6 : 4;
 
             add(`First aid ${level}d${sides}`, () => rollEffect("First Aid", level, sides), "primary");
+        }
+
+        if ((school === "change" || school === "create") && hasFieldRepairs() && !constructDown()) {
+            add(`Repair ${constructName()} ${level}d8`, () => repairConstruct(level));
         }
     } else if (hasTargets(action)) {
         const split = [...action.split];
@@ -848,10 +958,10 @@ function effectButtons() {
     return buttons;
 }
 
-/* Aegis (Warden, level 6): anyone you protect with Aid also gains ward points equal to your armor. */
+/* Aegis (Warden, level 6): anyone you protect with Aid also gains a ward that absorbs damage equal to your armor. */
 function aegisHint() {
     return state.className === "warden" && state.level >= 6
-        ? ` Aegis: everyone you protect also gains ${effectiveArmor()} ward points until your next turn.`
+        ? ` Aegis: everyone you protect also gains a ward absorbing ${effectiveArmor()} damage until your next turn.`
         : "";
 }
 
@@ -859,7 +969,9 @@ function actionHint() {
     const { school, mode, level } = action;
 
     if (mode === "constructWeapon") {
-        return `Damage: ${level}d${constructDie()}.` + (colossusActive() ? " Colossus: it also hits one target next to it." : "");
+        return colossusActive()
+            ? `Colossus: ${level * 2}d${constructDie()} on one target, or stomp for ${level}d${constructDie()} on every enemy within 10 feet, rolled separately.`
+            : `Damage: ${level}d${constructDie()}.`;
     }
 
     if (mode === "constructAction") {
@@ -889,7 +1001,12 @@ function actionHint() {
     }
 
     if (school === "create") {
-        return `Creation quality: ${CREATION_QUALITY[level]}.`;
+        const quality = `Creation quality: ${CREATION_QUALITY[level]}.`;
+
+        // Tinker's Eye (Golemwright): one quality step better, though not bigger
+        return state.className === "golemwright" && level < 8
+            ? `${quality} Tinker's Eye: made as well as ${CREATION_QUALITY[level + 1].split(",")[0].toLowerCase()}, at the same size.`
+            : quality;
     }
 
     // Damage and healing scale with the dice, so the level's "several targets" doesn't apply
@@ -939,10 +1056,13 @@ function renderActionPanel() {
     }
 
     $("actionButtons").replaceChildren(...buttons);
+
+    // Kept with the character, so a reload doesn't lose the spell being cast
+    saveWithoutUndo();
 }
 
 function openActionPanel(level) {
-    action = {
+    state.action = {
         school: roll.school,
         mode: roll.mode,
         slotIndex: roll.slotIndex,
@@ -954,15 +1074,25 @@ function openActionPanel(level) {
         split: [level]
     };
 
-    renderActionPanel();
-    show(actionPanel);
+    commit();
 }
 
-$("closeActionPanel").addEventListener("click", () => hide(actionPanel));
+$("closeActionPanel").addEventListener("click", () => {
+    state.action = null;
+    commit();
+});
 
-/* Redraw when something changes, e.g. saving the spell uses up the last slot. */
+/*
+ * The panel follows the character: opening and closing it, a reload, undoing
+ * Clear Board, another character. It also redraws when something changes, e.g.
+ * saving the spell uses up the last slot.
+ */
 document.addEventListener("statechange", () => {
-    if (action && !actionPanel.classList.contains("hidden")) {
+    action = state.action;
+
+    actionPanel.classList.toggle("hidden", !action);
+
+    if (action) {
         renderActionPanel();
     }
 });

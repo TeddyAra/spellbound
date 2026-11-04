@@ -110,6 +110,9 @@ const SPELL_SLOTS = [2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7];
 
 export const rankCap = level => RANK_CAPS[level - 1];
 
+/* Player Guard DC, for enemy spells and actions aimed at you: 4 at levels 1–4, 5 at 5–8, 6 at 9–12. */
+export const guardDC = level => level >= 9 ? 6 : level >= 5 ? 5 : 4;
+
 export const baseSpellSlots = level => SPELL_SLOTS[level - 1];
 
 /*
@@ -123,17 +126,38 @@ export function featsAllowed(level) {
     return level + [4, 8, 12].filter(extra => level >= extra).length;
 }
 
-/* Signature ability uses (or glyphs for the Runesmith): 2 at level 1, 3 at 5, 4 at 9. */
-export function signatureUses(className, level) {
-    const uses = level >= 9 ? 4 : level >= 5 ? 3 : 2;
-
-    return className === "runesmith" ? uses - 1 : uses;
+/* Signature ability uses: 2 at level 1, 3 at 5, 4 at 9. Written Word and Construct have none. */
+export function signatureUses(level) {
+    return level >= 9 ? 4 : level >= 5 ? 3 : 2;
 }
 
-/* Runesmith: runes held at once. 1 at level 1, then one more at 3, 6, 9 and 12. */
+/* Runesmith: runes at once. 2 at level 1, then one more at 3, 6, 9 and 12. */
 export function runesAllowed(level) {
-    return 1 + [3, 6, 9, 12].filter(extra => level >= extra).length;
+    return 2 + [3, 6, 9, 12].filter(extra => level >= extra).length;
 }
+
+/* Golemwright: the construct's attack rank and weapon die, and how many modules it has. */
+export function constructFrame(level) {
+    if (level >= 12) return { rank: 4, die: 10, modules: 3 };
+    if (level >= 6) return { rank: 3, die: 8, modules: 2 };
+
+    return { rank: 2, die: 6, modules: 1 };
+}
+
+/*
+ * Construct modules, each chosen once. `spareParts` ones need the Spare
+ * Parts feat.
+ */
+export const MODULES = {
+    plating: { name: "Plating", text: "It has 1 more armor." },
+    toolkit: { name: "Toolkit", text: "Instead of attacking, it can take a mundane Change or Create action, using its attack rank." },
+    springs: { name: "Springs", text: "It moves twice as far as you can, and climbs and leaps as easily as it walks." },
+    ballista: { name: "Ballista", text: "Its weapon attack can hit targets up to 60 feet away." },
+    lanternEyes: { name: "Lantern Eyes", text: "It can see in the dark, and can shed bright light up to 30 feet around it." },
+    compartment: { name: "Compartment", spareParts: true, text: "Holds up to 3 hidden objects. Once per round, it can place one, hand it to someone next to it, or throw it 30 feet, without using its action." },
+    grappleArm: { name: "Grapple Arm", spareParts: true, text: "When its weapon attack hits, it can grab the target instead of dealing damage: held like a Move effect of the attack's level." },
+    smokeVents: { name: "Smoke Vents", spareParts: true, text: "Once per combat, as its action, thick smoke fills 15 feet around it until the end of the next round." }
+};
 
 export const SUBCLASS_LEVEL = 2;
 
@@ -177,8 +201,8 @@ export const TONGUES = {
         name: "Ashen",
         spokenBy: "Dragons, giants, demons",
         perk: "Old Authority",
-        short: "Ancient creatures listen, weak ones fear",
-        text: "Dragons and other ancient creatures that know Ashen will hear you out before they attack, and weaker creatures easily become frightened."
+        short: "Ancient creatures listen, bargains bind",
+        text: "Dragons, giants, demons and other ancient creatures that know Ashen will hear you out before they attack. A bargain sealed with Ashen magic binds both creatures: they won't break it openly, though they may twist its wording."
     },
     drowned: {
         name: "Drowned Tongue",
@@ -204,7 +228,8 @@ export const TONGUES = {
 
 /*
  * signature:     the class's signature ability. Lasts `rounds` rounds once
- *                started, or until the end of the combat (untilCombatEnds)
+ *                started, or until the end of the combat (untilCombatEnds).
+ *                Written Word (runes) and Construct (construct) have no uses
  * rankBonus:     bonus ranks the class always adds to a school
  * bonusChoices:  bonus ranks the player puts in any school
  * armor:         heaviest armor allowed (see ARMOR_TYPES)
@@ -296,8 +321,8 @@ export const CLASSES = {
 
         features: [
             { level: 1, name: "Silver Tongue", text: "Mundane Control actions have a mortal limit of 4." },
-            { level: 1, name: "Shared Verse", text: "During the pre-turn phase, give up to 3 of your tiles to allies who can hear you." },
-            { level: 1, name: "Inspiring Word", text: "Once per round, let an ally reroll one die of their casting pool." },
+            { level: 1, name: "Shared Verse", text: "Once per round, during the pre-turn phase, give up to 3 of your tiles to allies who can hear you." },
+            { level: 1, name: "Inspiring Word", text: "Once per round, let an ally who can hear you reroll one die of their casting pool." },
             { level: 3, name: "Countersong", text: "Once per combat, when an enemy reveals its spell, use your reaction to roll Control. Each surge lowers its level by 1. Below 1, it fizzles." },
             { level: 6, name: "Duet", text: "If you and an ally who shares a Tongue with you both succeeded on your pre-turns, combine tiles for one spell. Whoever comes first in initiative helps; it takes effect on the other's casting turn, at the higher level + 1, up to the higher rank." },
             { level: 9, name: "Rallying Refrain", text: "Anyone you heal or protect with Aid adds one die to their next casting pool." },
@@ -342,6 +367,71 @@ export const CLASSES = {
 
     runesmith: {
         name: "Runesmith",
+        role: "Trapper",
+        hitDie: 8,
+        fixedHP: 5,
+        gear: "Light armor. Light and simple weapons.",
+        bonusRanks: "1 to Change, 1 to Reveal, 1 to any school.",
+        rankBonus: { change: 1, reveal: 1 },
+        bonusChoices: 1,
+        armor: 1,
+        weapons: [4, 6],
+
+        signature: {
+            name: "Written Word",
+            runes: true,
+            text: "Write a spell instead of speaking it (a free hand and something to write on). Silent unless the DM decides otherwise; either way it can't be countered with Prepare and works while silenced. It takes effect at the end of the round, and fails if you're downed first."
+        },
+
+        features: [
+            { level: 1, name: "Lettered", text: "Mundane Reveal actions to read, decipher or spot writing, symbols and traps have a mortal limit of 4." },
+            { level: 1, name: "Runes", text: "Leave a written spell as a rune on something you touch: released by whoever holds it (bonus action), or set to trigger. It fades once used, or after your next long rest. Its concealment level is its spell level. Outside combat, runes hold spells up to level 2." },
+            { level: 1, name: "Drafting", text: "When you write a spell, swap 1 of your tiles for a random tile from the pile before you reveal it." },
+            { level: 3, name: "Thrown Ink", text: "Write spells and runes on surfaces and objects you can see within 30 feet." },
+            { level: 6, name: "Deep Runes", text: "Runes you write outside of combat hold spells up to level 4." },
+            { level: 9, name: "Fluent Hand", text: "Written spells take effect on your casting turn, like spoken ones. You can still have one wait until the end of the round." },
+            { level: 12, name: "Grand Inscription", text: "Runes outside of combat hold spells up to your rank. Once per long rest, release or trigger all your runes on one casting turn." }
+        ],
+
+        subclasses: {
+            alchemist: {
+                name: "Alchemist",
+                features: [
+                    { level: 2, name: "Bottled Words", text: "During a long rest, roll Change and spell up to your Change rank in words, each a level 1 potion (any school but Passion). Bonus action for anyone: drink it (works on the drinker for 10 minutes) or throw it 30 ft (bursts, full effect within 5 ft). They spoil after your next long rest." },
+                    { level: 5, name: "Volatile Mixtures", text: "Bonus action: combine two potions into one level 2 effect. Clashing words explode on a 1–2 on a d6, for 1d6 per level." },
+                    { level: 10, name: "Master Brewer", text: "Potions are level 2, mixtures level 3, and you can mix three. Thrown potions burst across 15 ft. Once per long rest, a potion holds your Change rank." }
+                ]
+            },
+            runewarden: {
+                name: "Runewarden",
+                extraRunes: 1,
+                features: [
+                    { level: 2, name: "Lasting Runes", text: "1 more rune at once. Runes don't fade after a long rest, and last a week instead." },
+                    { level: 5, name: "Chain Runes", text: "When one of your set runes triggers, trigger another of yours within 30 feet of it." },
+                    { level: 10, name: "Warding Circle", text: "Once per long rest, draw a 30 ft circle of runes: for an hour, enemy spells in or into it are 1 level lower, and you can have 3 extra runes in it. Its concealment level is your Change rank." }
+                ]
+            },
+            runecarver: {
+                name: "Runecarver",
+                features: [
+                    { level: 2, name: "Carved Arms", text: "Medium armor and martial weapons. Your weapon and your armor can each hold one rune that doesn't count toward your limit." },
+                    { level: 5, name: "Bound Runes", text: "A rune on your weapon or armor recharges after a short rest instead of fading." },
+                    { level: 10, name: "Words of Steel", text: "Once per combat, a rune on your weapon or armor takes effect 2 levels higher, up to your rank." }
+                ]
+            }
+        },
+
+        feats: [
+            { key: "shorthand", name: "Shorthand", text: "A written spell of 6 letters or fewer takes effect on your casting turn, like a spoken spell." },
+            { key: "triggerWord", name: "Trigger Word", text: "Bonus action: trigger any of your runes within 60 feet, whatever its trigger." },
+            { key: "runeAmmunition", name: "Rune Ammunition", minLevel: 4, text: "A rune on a weapon is released for free when that weapon's attack hits." },
+            { key: "deepCarving", name: "Deep Carving", minLevel: 4, text: "Your runes can each be used twice before they fade." },
+            { key: "livingWorkshop", name: "Living Workshop", minLevel: 8, text: "2 more runes at once. Runes don't fade after a long rest, and a used one recharges after your next long rest instead of fading." }
+        ]
+    },
+
+    golemwright: {
+        name: "Golemwright",
         role: "Crafter",
         hitDie: 8,
         fixedHP: 5,
@@ -352,57 +442,54 @@ export const CLASSES = {
         weapons: [4, 6],
 
         signature: {
-            name: "Glyphs",
-            glyphs: true,
-            text: "Leave a written spell on a surface as a glyph, with a trigger. It fades after a day if not triggered. Its concealment level is its spell level. This is how many you can have at once."
+            name: "Construct",
+            construct: true,
+            text: "During a long rest, build a construct out of scrap, no bigger than a person: 10 + 3 HP per level, 1 armor. It acts on your casting turn right after you, and its attack is rolled during your pre-turn right after yours. It follows your spoken commands (no action), and otherwise stays next to you and defends you."
         },
 
         features: [
             { level: 1, name: "Handy", text: "Mundane Change and Create actions have a mortal limit of 4." },
-            { level: 1, name: "Written Word", text: "Write spells instead of speaking them (needs a free hand). Silent unless the DM decides otherwise; either way it can't be countered and works while silenced. Takes effect at the end of the round, and fails if you're downed first." },
-            { level: 1, name: "Inscribe", text: "During a short or long rest, store a spell (up to level 2) in an object as a rune. Whoever holds it can release it as a bonus action." },
+            { level: 1, name: "Modules", text: "Choose modules for your construct when you build it (1, 2 at level 6, 3 at level 12). Swap them during a long rest. Pick them in your construct's window." },
             { level: 1, name: "Tinker's Eye", text: "Things you make with Create are one quality step better, though not bigger." },
-            { level: 3, name: "Construct", text: "During a long rest, build a construct out of scrap, no bigger than a person: 10 + 3 HP per level, 1 armor. It acts right after you and attacks with rank 2 and a d6. Commands take no action." },
-            { level: 6, name: "Deep Runes", text: "Runes hold spells up to level 4. Your construct attacks with rank 3 and a d8." },
-            { level: 9, name: "Masterwork", text: "Once per long rest, a creation gains a lasting property from a school at rank 3+. 3 such items at once." },
-            { level: 12, name: "Grand Engine", text: "Runes hold spells up to your rank. Once per long rest, release all your runes or trigger all your glyphs on one casting turn." }
+            { level: 3, name: "Field Repairs", text: "Mundane Change and Create actions can repair your construct, like first aid with d8s. A destroyed construct can be rebuilt during a short rest, with half its hit points." },
+            { level: 6, name: "Upgraded Frame", text: "Your construct attacks with rank 3 and a d8, and has a second module." },
+            { level: 9, name: "Masterwork", text: "Once per long rest, a creation gains a lasting property from a school at rank 3+, from engineering rather than magic. 3 such items at once." },
+            { level: 12, name: "Grand Engine", text: "Your construct attacks with rank 4 and a d10, and has a third module. Once per long rest, build a copy of it from what's around you, which falls apart after an hour." }
         ],
 
         subclasses: {
-            glyphwarden: {
-                name: "Glyphwarden",
-                extraGlyphs: 1,
+            clockmaker: {
+                name: "Clockmaker",
                 features: [
-                    { level: 2, name: "Lasting Glyphs", text: "1 more glyph at once, and glyphs last a week." },
-                    { level: 5, name: "Chain Glyphs", text: "When a glyph triggers, trigger another of yours within 30 feet." },
-                    { level: 10, name: "Warding Circle", text: "Once per long rest, draw a 30 ft circle: for an hour, enemy spells in or into it are 1 level lower, and you can have 3 extra glyphs in it. Its concealment level is your Change rank." }
+                    { level: 2, name: "Little Helpers", text: "Build small constructs up to your Create rank instead, sharing its hit points (rounded down), armor and modules. One makes the attack; each other does a simple task that needs no roll." },
+                    { level: 5, name: "Swarm Tactics", text: "When one attacks, every other small construct next to the target adds a weapon die of damage, up to 3 extra dice." },
+                    { level: 10, name: "Brass Swarm", text: "Once per long rest, as your action, a swarm fills a 20 ft area for 3 rounds. At the end of each round, enemies inside take 3d6, and allies inside heal 1d6." }
                 ]
             },
-            alchemist: {
-                name: "Alchemist",
+            warforger: {
+                name: "Warforger",
                 features: [
-                    { level: 2, name: "Bottled Words", text: "During a long rest, roll Change and spell up to your Change rank in words, each a level 1 potion. Bonus action: drink it (works on you for 10 minutes) or throw it 30 ft (bursts, full effect within 5 ft)." },
-                    { level: 5, name: "Volatile Mixtures", text: "Bonus action: combine two potions into one level 2 effect. Clashing words explode on a 1–2 on a d6, for 1d6 per level." },
-                    { level: 10, name: "Master Brewer", text: "Potions are level 2, mixtures level 3, and you can mix three. Thrown potions burst across 15 ft. Once per long rest, a potion holds your Change rank." }
+                    { level: 2, name: "Heavy Frame", text: "Your construct can be as big as a horse, and has 1 more armor. Ride it: it moves twice as far as you can, and you add one die to saving throws against being pushed, grabbed or knocked down." },
+                    { level: 5, name: "Sweeping Blows", text: "Once per round, its weapon attack also hits one other creature next to the target, rolling damage separately." },
+                    { level: 10, name: "Colossus", text: "Once per long rest, your construct grows huge for 3 rounds: twice the hit points, weapon die one size bigger. Each attack hits one target with its weapon die twice per level, or stomps every enemy within 10 feet." }
                 ]
             },
-            golemwright: {
-                name: "Golemwright",
+            puppeteer: {
+                name: "Puppeteer",
                 features: [
-                    { level: 2, name: "Early Apprentice", text: "Gain your Construct at level 2. It can take mundane actions with rank 2." },
-                    { level: 5, name: "Rune Core", text: "Store one of your runes in your construct; it can release it." },
-                    { level: 10, name: "Colossus", text: "Once per long rest, your construct grows huge for 3 rounds: twice the hit points, weapon die one size bigger, and its attacks also hit one target next to it." }
+                    { level: 2, name: "Puppet Strings", text: "Within a mile, see, hear and speak through your construct. Spells you speak through it are cast from where it stands." },
+                    { level: 5, name: "Conduit", text: "Once per combat, your construct casts one of your saved spells on your casting turn instead of attacking. Roll its pre-turn as normal; you keep your own." },
+                    { level: 10, name: "Living Vessel", text: "Once per long rest, move your mind into your construct for up to an hour. It keeps its hit points but uses your ranks and features. If it's destroyed, you take 2d8 damage." }
                 ]
             }
         },
 
         feats: [
-            { key: "quickInscribe", name: "Quick Inscribe", text: "In combat, store a spell you just spelled as a rune." },
             { key: "improvisedTools", name: "Improvised Tools", text: "Mundane Change and Create need no proper tools and take half the time." },
-            { key: "runeAmmunition", name: "Rune Ammunition", minLevel: 4, text: "A rune on a weapon is released for free when your attack hits." },
-            { key: "deepCarving", name: "Deep Carving", minLevel: 4, text: "Your runes and glyphs can each be used twice before they fade." },
-            { key: "reinforcedConstruct", name: "Reinforced Construct", minLevel: 4, text: "Your construct has 2 more hit points per level, and 2 armor." },
-            { key: "livingWorkshop", name: "Living Workshop", minLevel: 8, text: "2 more runes, and runes recharge after a long rest." }
+            { key: "guardianProtocol", name: "Guardian Protocol", text: "Once per round, your construct takes a hit for you or an ally next to it. Its armor applies." },
+            { key: "reinforcedConstruct", name: "Reinforced Construct", minLevel: 4, text: "Your construct has 2 more hit points per level, and 1 more armor." },
+            { key: "spareParts", name: "Spare Parts", minLevel: 4, text: "Your construct can also choose the Compartment, Grapple Arm and Smoke Vents modules." },
+            { key: "overdrive", name: "Overdrive", minLevel: 8, text: "Once per combat, as a bonus action during your pre-turn, your construct acts twice on your casting turn." }
         ]
     },
 
@@ -429,8 +516,8 @@ export const CLASSES = {
             { level: 1, name: "Expert", text: "Two schools of your choice have a mortal limit of 4 (5 at level 6). Pick them in Character settings." },
             { level: 3, name: "Slippery", text: "Half damage from area spells. Enemies can't make opportunity attacks against you." },
             { level: 6, name: "Twist the Word", text: "Once per combat, swap one of an enemy's revealed tiles for a random one. It uses the new tiles, bends the rules, or drops to level 1." },
-            { level: 9, name: "Vanish", text: "Once per combat, as a bonus action, disappear until you attack, cast a spoken spell, or make a loud noise. Ambush rolls twice as many dice meanwhile." },
-            { level: 12, name: "Perfect Heist", text: "Once per long rest, save an enemy's spell in a Tongue you know into an empty spell slot, at its level, up to your rank." }
+            { level: 9, name: "Vanish", text: "Once per combat, as a bonus action on your casting turn, disappear until you attack, cast a spoken spell, or make a loud noise. Ambush rolls twice as many dice meanwhile." },
+            { level: 12, name: "Perfect Heist", text: "Once per long rest, save an enemy's spell in a Tongue you know, or a written spell, into an empty spell slot, at its level, up to your rank." }
         ],
 
         subclasses: {
@@ -446,7 +533,7 @@ export const CLASSES = {
                 name: "Mimic",
                 features: [
                     { level: 2, name: "Perfect Mimicry", text: "Imitate any voice. Spells cast in someone's voice seem to be theirs, unless you use a Tongue they don't know." },
-                    { level: 5, name: "Copycat", text: "Once per combat, cast an enemy's revealed spell in a Tongue you know next turn, rolling its school." },
+                    { level: 5, name: "Copycat", text: "Once per combat, cast an enemy's revealed spell in a Tongue you know, or a written spell, next turn, rolling its school." },
                     { level: 10, name: "Thousand Faces", text: "While Thrown Voice lasts, look like any humanoid you've seen. One extra use of Thrown Voice." }
                 ]
             },
@@ -546,14 +633,14 @@ export const CLASSES = {
         signature: {
             name: "Hold the Line",
             rounds: 3,
-            text: "Bonus action during your pre-turn. Lasts 3 rounds. At the start of each round, every ally next to you gains 2 ward points. Enemies roll one die fewer when they target anyone but you."
+            text: "Bonus action during your pre-turn. Lasts 3 rounds. At the start of each round, every ally next to you gains a ward that absorbs 2 damage, until the start of the next round. Enemies roll one die fewer when they target anyone but you."
         },
 
         features: [
             { level: 1, name: "Bulwark", text: "Weapon attacks and mundane Aid have a mortal limit of 4." },
             { level: 1, name: "Interpose", text: "Once per round, take the hit for an ally next to you. Your armor applies." },
             { level: 3, name: "Steadfast", text: "Once per long rest, drop to 1 hit point instead of 0." },
-            { level: 6, name: "Aegis", text: "Anyone you protect with Aid also gains ward points equal to your armor, until your next turn. Mundane Aid mortal limit 5." },
+            { level: 6, name: "Aegis", text: "Anyone you protect with Aid also gains a ward that absorbs damage equal to your armor, until your next turn. Mundane Aid mortal limit 5." },
             { level: 9, name: "Immovable", text: "Change, Move and Control effects below your Aid rank don't affect you." },
             { level: 12, name: "Last Bastion", text: "Once per long rest, for one round, every hit against an ally within 10 ft hits you instead, halved (rounded down), then your armor applies." }
         ],
@@ -579,7 +666,7 @@ export const CLASSES = {
                 name: "Oathkeeper",
                 features: [
                     { level: 2, name: "Vow", text: "Once per combat, mark an enemy: your attacks and Harm spells against it deal an extra 1d6." },
-                    { level: 5, name: "Retribution", text: "When an enemy hits an ally next to you, make it your Vow target. Next attack is 1 level higher." },
+                    { level: 5, name: "Retribution", text: "When an enemy hits an ally next to you, make it your Vow target. Your next weapon attack against it is 1 level higher, up to your mortal limit." },
                     { level: 10, name: "Unbroken Oath", text: "While your Vow target lives, you drop to 1 instead of 0 the first time." }
                 ]
             }

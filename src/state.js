@@ -13,6 +13,8 @@ import {
     biggerDie,
     signatureUses,
     runesAllowed,
+    constructFrame,
+    MODULES,
     TONGUES,
     STARTING_TONGUES
 } from "./rules.js";
@@ -66,17 +68,18 @@ export const state = {
     currentHealth: 12,
     ward: 0,
 
-    // Signature ability: uses spent since the last long rest (glyphs placed for a Runesmith),
+    // Signature ability: uses spent since the last long rest,
     // and the rounds left while it's active. One that lasts until the end of the combat
     // (Spellfury) is `ongoing` instead, until it's clicked off.
     signature: { used: 0, roundsLeft: 0, ongoing: false },
 
-    // Runesmith: runes stored in objects
+    // Runesmith: runes out at once
     runes: 0,
 
-    // Runesmith: the construct companion (see construct.js). Damage is kept rather than hit points,
+    // Golemwright: the construct companion (see construct.js), and its modules (see MODULES). Damage is kept rather than hit points,
     // so it keeps up when its maximum changes (a new level, Colossus). Destroyed at 0 HP until the next long rest.
-    construct: { name: "", damage: 0, destroyed: false, colossusRounds: 0, colossusUsed: false },
+    // A Clockmaker's small constructs are `helpers` instead, each { damage, destroyed } (see constructParts).
+    construct: { name: "", damage: 0, destroyed: false, colossusRounds: 0, colossusUsed: false, modules: [], helpers: [] },
 
     shortRests: 0,
 
@@ -84,7 +87,21 @@ export const state = {
     deathSaves: { successes: 0, failures: 0 },
 
     // Entries: { id, name, count }
-    inventory: []
+    inventory: [],
+
+    // The letter tiles on the table (see tiles.js). Entries: { letter, x, y, rotation, z }
+    board: [],
+
+    // The action panel, while it's open (see casting.js): { school, mode, slotIndex, level, highest, precise, split }
+    action: null,
+
+    // What happened, newest first (see log.js). Entries: { at, title, detail, dice }
+    log: [],
+
+    // When the character was made, last really changed, and last exported to a file (see exportReminder)
+    createdAt: 0,
+    changedAt: 0,
+    lastExported: 0
 };
 
 // A fresh character, for filling in whatever a save or file leaves out
@@ -182,12 +199,16 @@ const raise = (limit, steps) => limit >= 5 ? limit : Math.min(5, limit + steps);
 
 export const trainedCount = school => state.trainedSchools.filter(choice => choice === school).length;
 
+/* Runesmith (Lettered): only Reveal actions to read, decipher or spot writing, symbols and traps. */
+export const canBeLettered = school => state.className === "runesmith" && school === "reveal";
+
 /* The limit set by class features: [limit, feature name]. */
-function classLimit(school) {
+function classLimit(school, lettered = false) {
     const level = state.level;
 
     if (state.className === "loresinger" && school === "control") return [4, "Silver Tongue"];
-    if (state.className === "runesmith" && (school === "change" || school === "create")) return [4, "Handy"];
+    if (state.className === "golemwright" && (school === "change" || school === "create")) return [4, "Handy"];
+    if (lettered && canBeLettered(school)) return [4, "Lettered"];
     if (state.className === "warden" && school === "aid") return [level >= 6 ? 5 : 4, level >= 6 ? "Aegis" : "Bulwark"];
     if (state.className === "trickster" && state.expertSchools.includes(school)) return [level >= 6 ? 5 : 4, "Expert"];
 
@@ -204,8 +225,8 @@ function classWeaponLimit() {
 
 const keeperOfLore = school => school === "reveal" && subclassIs("keeperOfLore") ? 1 : 0;
 
-export function mortalLimit(school) {
-    return raise(classLimit(school)[0], trainedCount(school) + keeperOfLore(school));
+export function mortalLimit(school, lettered = false) {
+    return raise(classLimit(school, lettered)[0], trainedCount(school) + keeperOfLore(school));
 }
 
 /* Battle Rhythm (Skald) only counts while Battle Hymn lasts. */
@@ -243,6 +264,10 @@ export function mortalLimitSources(school) {
         sources.push("(1 higher stops at 5)");
     }
 
+    if (canBeLettered(school)) {
+        sources.push("Lettered: 4 for writing, symbols and traps");
+    }
+
     return sources;
 }
 
@@ -252,9 +277,11 @@ export function mortalLimitSources(school) {
  * =========================================================
  */
 
-export const maxSignatureUses = () => signatureUses(state.className, state.level)
-    + (subclassIs("glyphwarden") ? 1 : 0)
+export const maxSignatureUses = () => signatureUses(state.level)
     + (subclassIs("mimic") && state.level >= 10 ? 1 : 0);
+
+/* Written Word and Construct have no uses: the Runesmith counts runes, the Golemwright has its construct. */
+export const signatureHasUses = () => !characterClass().signature.runes && !characterClass().signature.construct;
 
 export const signatureActive = () => state.signature.roundsLeft > 0 || state.signature.ongoing;
 
@@ -279,17 +306,28 @@ export const battleHymnOnSelf = () => subclassIs("skald") && signatureOn("loresi
 
 /*
  * =========================================================
- * RUNES AND CONSTRUCT (Runesmith)
+ * RUNES (Runesmith) AND CONSTRUCT (Golemwright)
  * =========================================================
  */
 
-/* Living Workshop: 2 more runes. */
-export const maxRunes = () => runesAllowed(state.level) + (hasFeat("livingWorkshop") ? 2 : 0);
+/* Lasting Runes (Runewarden): 1 more. Living Workshop: 2 more. */
+export const maxRunes = () => runesAllowed(state.level)
+    + (subclassIs("runewarden") ? 1 : 0)
+    + (hasFeat("livingWorkshop") ? 2 : 0);
 
-/* Construct at level 3, or level 2 for a Golemwright (Early Apprentice). */
-export function hasConstruct() {
-    return state.className === "runesmith" && (state.level >= 3 || subclassIs("golemwright"));
-}
+/* Runes that outlast a long rest: a week with Lasting Runes, recharging with Living Workshop. */
+export const runesLast = () => subclassIs("runewarden") || hasFeat("livingWorkshop");
+
+export const hasConstruct = () => state.className === "golemwright";
+
+export const maxModules = () => constructFrame(state.level).modules;
+
+/* The modules the construct can choose from: Spare Parts adds three. */
+export const availableModules = () => Object.keys(MODULES).filter(key => !MODULES[key].spareParts || hasFeat("spareParts"));
+
+export const hasModule = key => state.construct.modules.includes(key);
+
+export const constructHasToolkit = () => hasModule("toolkit");
 
 export const colossusActive = () => state.construct.colossusRounds > 0;
 
@@ -304,6 +342,35 @@ export const constructMaxHealth = () => constructBaseHealth() * (colossusActive(
 export const constructHealth = () => state.construct.destroyed ? 0 : constructMaxHealth() - state.construct.damage;
 
 /*
+ * Little Helpers (Clockmaker): small constructs up to the Create rank instead
+ * of one. They split the construct's hit points evenly, rounding down, and
+ * are destroyed and rebuilt one at a time.
+ */
+export const hasHelpers = () => hasConstruct() && subclassIs("clockmaker");
+
+export const maxHelpers = () => Math.max(1, rank("create"));
+
+/*
+ * Everything that has its own hit points: each small construct, or the one
+ * construct. Each part is { damage, destroyed }.
+ */
+export const constructParts = () => hasHelpers() ? state.construct.helpers : [state.construct];
+
+export const partMaxHealth = () => hasHelpers()
+    ? Math.max(1, Math.floor(constructMaxHealth() / state.construct.helpers.length))
+    : constructMaxHealth();
+
+export const partHealth = part => part.destroyed ? 0 : partMaxHealth() - part.damage;
+
+/* Can't attack or act once every part is destroyed. */
+export const constructDown = () => constructParts().every(part => part.destroyed);
+
+export const partsStanding = () => constructParts().filter(part => !part.destroyed).length;
+
+/* A fresh small construct, at full hit points. */
+export const newHelper = () => ({ damage: 0, destroyed: false });
+
+/*
  * When Colossus ends, the extra hit points go first: what's left of its
  * damage can't take it below 1 hit point. Doesn't save or redraw.
  */
@@ -312,16 +379,28 @@ export function endColossus() {
     state.construct.damage = Math.min(state.construct.damage, constructBaseHealth() - 1);
 }
 
-export const constructArmor = () => hasFeat("reinforcedConstruct") ? 2 : 1;
+/* 1, and 1 more each from Plating, Reinforced Construct and Heavy Frame (Warforger). */
+export function constructArmor() {
+    return 1
+        + (hasModule("plating") ? 1 : 0)
+        + (hasFeat("reinforcedConstruct") ? 1 : 0)
+        + (subclassIs("warforger") ? 1 : 0);
+}
 
-/* Deep Runes: rank 3 and a d8 from level 6. Colossus makes the die one size bigger. */
-export const constructRank = () => state.level >= 6 ? 3 : 2;
+/* Upgraded Frame and Grand Engine raise its rank and die (see constructFrame). Colossus makes the die one size bigger. */
+export const constructRank = () => constructFrame(state.level).rank;
 
 export function constructDie() {
-    const die = state.level >= 6 ? 8 : 6;
+    const die = constructFrame(state.level).die;
 
     return colossusActive() ? biggerDie(die) : die;
 }
+
+/* Colossus (Warforger, level 10). */
+export const canColossus = () => subclassIs("warforger") && state.level >= 10;
+
+/* Field Repairs (level 3): mundane Change and Create actions repair it, and it can be rebuilt during a short rest. */
+export const hasFieldRepairs = () => hasConstruct() && state.level >= 3;
 
 /*
  * =========================================================
@@ -329,8 +408,8 @@ export function constructDie() {
  * =========================================================
  */
 
-/* Martial Training (feat) and War Chant (Skald) allow medium armor and martial weapons. */
-const martial = () => hasFeat("martialTraining") || subclassIs("skald");
+/* Martial Training (feat), War Chant (Skald) and Carved Arms (Runecarver) allow medium armor and martial weapons. */
+const martial = () => hasFeat("martialTraining") || subclassIs("skald") || subclassIs("runecarver");
 
 export const maxArmor = () => Math.max(characterClass().armor, martial() ? 2 : 0);
 
@@ -439,11 +518,28 @@ function savedSpellCount(slots) {
  * =========================================================
  */
 
-export const STATE_STORAGE_KEY = "spellboundState";
+// Every character has its own entry, and the roster says which ones there are: { current, ids }
+const ROSTER_KEY = "spellboundRoster";
+const characterKey = id => `spellboundCharacter:${id}`;
+
+// From before there could be several characters. Copied once, and left alone as a backup.
+const OLD_STATE_KEY = "spellboundState";
+
+let roster = { current: null, ids: [] };
+
+const newCharacterId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+function saveRoster() {
+    try {
+        localStorage.setItem(ROSTER_KEY, JSON.stringify(roster));
+    } catch (error) {
+        console.error("Failed to save the characters:", error);
+    }
+}
 
 export function saveState() {
     try {
-        localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(state));
+        localStorage.setItem(characterKey(roster.current), JSON.stringify(state));
     } catch (error) {
         console.error("Failed to save state:", error);
     }
@@ -478,8 +574,62 @@ function tongueChoices(choices, length) {
     });
 }
 
+const isNumber = value => typeof value === "number" && Number.isFinite(value);
+
+/* The tiles a save can really show: a letter (or "_" for a blank) and a place on the table. */
+export function normalizeBoard(board) {
+    if (!Array.isArray(board)) {
+        return [];
+    }
+
+    return board
+        .filter(tile => /^[A-Z_]$/.test(tile?.letter) && isNumber(tile.x) && isNumber(tile.y))
+        .map(tile => ({
+            letter: tile.letter,
+            x: tile.x,
+            y: tile.y,
+            rotation: isNumber(tile.rotation) ? tile.rotation : 0,
+            z: isNumber(tile.z) ? tile.z : 20
+        }));
+}
+
+const ACTION_MODES = ["spell", "saved", "mundane", "weapon", "constructWeapon", "constructAction"];
+
+/* The open action panel, or null if a save's doesn't make sense. */
+export function normalizeAction(action) {
+    if (!action || !ACTION_MODES.includes(action.mode) || !Number.isInteger(action.level) || action.level < 1) {
+        return null;
+    }
+
+    const split = Array.isArray(action.split) && action.split.every(dice => Number.isInteger(dice) && dice > 0)
+        && sumOf(action.split) === action.level
+        ? action.split
+        : [action.level];
+
+    return {
+        school: action.school,
+        mode: action.mode,
+        slotIndex: Number.isInteger(action.slotIndex) ? action.slotIndex : null,
+        level: action.level,
+        highest: Number(action.highest) || 0,
+        precise: Boolean(action.precise),
+        split
+    };
+}
+
 /* Keeps every value in range, e.g. after loading a save or changing level. */
 export function normalizeState() {
+    state.board = normalizeBoard(state.board);
+    state.action = normalizeAction(state.action);
+
+    state.log = Array.isArray(state.log)
+        ? state.log.filter(entry => typeof entry?.title === "string").slice(0, LOG_LIMIT)
+        : [];
+
+    state.createdAt = Number(state.createdAt) || 0;
+    state.changedAt = Number(state.changedAt) || 0;
+    state.lastExported = Number(state.lastExported) || 0;
+
     if (!CLASSES[state.className]) {
         state.className = "wordweaver";
     }
@@ -540,7 +690,7 @@ export function normalizeState() {
     const ongoing = Boolean(state.signature?.ongoing) && Boolean(signature.untilCombatEnds);
 
     state.signature = {
-        used: clamp(Number(state.signature?.used) || 0, 0, maxSignatureUses()),
+        used: signatureHasUses() ? clamp(Number(state.signature?.used) || 0, 0, maxSignatureUses()) : 0,
         roundsLeft: clamp(Number(state.signature?.roundsLeft) || 0, 0, signature.rounds ?? 0),
         ongoing
     };
@@ -548,15 +698,33 @@ export function normalizeState() {
     state.runes = state.className === "runesmith" ? clamp(Number(state.runes) || 0, 0, maxRunes()) : 0;
 
     const construct = state.construct ?? {};
+    const available = availableModules();
 
     state.construct = {
         name: typeof construct.name === "string" ? construct.name : "",
         destroyed: Boolean(construct.destroyed),
-        colossusRounds: subclassIs("golemwright") && state.level >= 10 ? clamp(Number(construct.colossusRounds) || 0, 0, 3) : 0,
-        colossusUsed: Boolean(construct.colossusUsed)
+        colossusRounds: canColossus() ? clamp(Number(construct.colossusRounds) || 0, 0, 3) : 0,
+        colossusUsed: Boolean(construct.colossusUsed),
+
+        // Each module once, only ones it can have, and no more than the frame allows
+        modules: [...new Set(Array.isArray(construct.modules) ? construct.modules : [])]
+            .filter(key => available.includes(key))
+            .slice(0, maxModules())
     };
 
     state.construct.damage = state.construct.destroyed ? 0 : clamp(Math.floor(Number(construct.damage) || 0), 0, constructMaxHealth());
+
+    // Little Helpers: as many as the Create rank allows, all of them when first chosen.
+    // A living one never drops to 0 just because its share of hit points shrank.
+    const helpers = Array.isArray(construct.helpers) ? construct.helpers : [];
+
+    state.construct.helpers = (helpers.length ? helpers : Array.from({ length: maxHelpers() }, newHelper))
+        .slice(0, maxHelpers())
+        .map(helper => ({ damage: Math.floor(Number(helper?.damage) || 0), destroyed: Boolean(helper?.destroyed) }));
+
+    for (const helper of state.construct.helpers) {
+        helper.damage = helper.destroyed ? 0 : clamp(helper.damage, 0, partMaxHealth() - 1);
+    }
 
     state.deathSaves = {
         successes: clamp(Number(state.deathSaves?.successes) || 0, 0, 3),
@@ -580,11 +748,35 @@ function rankPointsFromRanks(saved) {
     ]));
 }
 
+/*
+ * Saves from before version 0.3, when the Runesmith also built constructs:
+ * a Golemwright subclass becomes the Golemwright class, and Glyphwardens
+ * become Runewardens. Glyphs are part of runes now.
+ */
+function migrateRunesmith(saved) {
+    if (saved.className !== "runesmith") {
+        return;
+    }
+
+    if (saved.subclass === "golemwright") {
+        saved.className = "golemwright";
+        saved.subclass = "";
+        saved.runes = 0;
+        saved.bonusChoices = [];
+    } else if (saved.subclass === "glyphwarden") {
+        saved.subclass = "runewarden";
+    }
+
+    saved.signature = { used: 0, roundsLeft: 0, ongoing: false };
+}
+
 /* Replaces the whole character with saved data, filling in anything it's missing with the defaults. */
 function applySaved(saved) {
     if (saved.ranks && !saved.rankPoints) {
         saved.rankPoints = rankPointsFromRanks(saved);
     }
+
+    migrateRunesmith(saved);
 
     const defaults = structuredClone(DEFAULT_STATE);
 
@@ -602,18 +794,128 @@ function applySaved(saved) {
     delete state.mortalLimits;
 }
 
-export function loadState() {
-    const savedState = localStorage.getItem(STATE_STORAGE_KEY);
+/* Reads a stored character. Null if there's none, or it's damaged. */
+function readCharacter(key) {
+    try {
+        return JSON.parse(localStorage.getItem(key));
+    } catch (error) {
+        console.error("Failed to load saved state:", error);
 
-    if (savedState) {
-        try {
-            applySaved(JSON.parse(savedState));
-        } catch (error) {
-            console.error("Failed to load saved state:", error);
-        }
+        return null;
+    }
+}
+
+export function loadState() {
+    const saved = readCharacter(ROSTER_KEY);
+
+    undoSteps.length = 0;
+    baseline = null;
+
+    if (Array.isArray(saved?.ids) && saved.ids.length) {
+        roster = { current: saved.ids.includes(saved.current) ? saved.current : saved.ids[0], ids: saved.ids };
+
+        applySaved(readCharacter(characterKey(roster.current)) ?? {});
+    } else {
+        // The first visit, or the first since there could be several characters
+        const id = newCharacterId();
+
+        roster = { current: id, ids: [id] };
+
+        applySaved(readCharacter(OLD_STATE_KEY) ?? {});
+        saveRoster();
     }
 
+    state.createdAt ||= Date.now();
+
     normalizeState();
+    saveState();
+}
+
+/*
+ * =========================================================
+ * SEVERAL CHARACTERS (see characters.js)
+ * =========================================================
+ */
+
+/* Every character, for the switcher: the current one as it is now, the others as they were saved. */
+export function listCharacters() {
+    return roster.ids.map(id => {
+        const character = id === roster.current ? state : readCharacter(characterKey(id)) ?? {};
+
+        return {
+            id,
+            current: id === roster.current,
+            name: typeof character.name === "string" ? character.name : "",
+            className: character.className,
+            subclass: character.subclass,
+            level: Number(character.level) || 1,
+            lastExported: Number(character.lastExported) || 0,
+            exportDue: exportDue(character)
+        };
+    });
+}
+
+/* Puts this data on the table as the character `id`, with an empty undo list. */
+function becomeCharacter(id, character) {
+    roster.current = id;
+
+    applySaved(character);
+
+    state.createdAt ||= Date.now();
+
+    normalizeState();
+    saveRoster();
+    saveState();
+
+    undoSteps.length = 0;
+    baseline = JSON.stringify(state);
+
+    notifyStateChange();
+}
+
+/* Adds a character (blank, or from a file) and switches to it. The current one stays saved. */
+export function addCharacter(character = {}) {
+    saveState();
+
+    const id = newCharacterId();
+
+    roster.ids.push(id);
+    becomeCharacter(id, structuredClone(character));
+}
+
+export function switchCharacter(id) {
+    if (id === roster.current || !roster.ids.includes(id)) {
+        return;
+    }
+
+    saveState();
+    becomeCharacter(id, readCharacter(characterKey(id)) ?? {});
+}
+
+/* Removes a character for good. Removing the last one leaves a blank one. */
+export function deleteCharacter(id) {
+    if (!roster.ids.includes(id)) {
+        return;
+    }
+
+    roster.ids = roster.ids.filter(other => other !== id);
+
+    try {
+        localStorage.removeItem(characterKey(id));
+    } catch (error) {
+        console.error("Failed to delete the character:", error);
+    }
+
+    if (!roster.ids.length) {
+        const blank = newCharacterId();
+
+        roster.ids = [blank];
+        becomeCharacter(blank, {});
+    } else if (id === roster.current) {
+        becomeCharacter(roster.ids[0], readCharacter(characterKey(roster.ids[0])) ?? {});
+    } else {
+        saveRoster();
+    }
 }
 
 /*
@@ -624,9 +926,11 @@ export function loadState() {
 
 const FILE_FORMAT = "spellbound-character";
 
-/* The character as a file's contents (see Settings). */
-export function exportCharacter() {
-    return JSON.stringify({ format: FILE_FORMAT, version: 1, character: state }, null, 2);
+/* A character as a file's contents (see characters.js). */
+export function exportCharacter(id = roster.current) {
+    const character = id === roster.current ? state : readCharacter(characterKey(id));
+
+    return JSON.stringify({ format: FILE_FORMAT, version: 1, character }, null, 2);
 }
 
 /* Reads a character file. Throws if it isn't one, before anything is replaced. */
@@ -648,10 +952,185 @@ export function readCharacterFile(text) {
     return character;
 }
 
-/* Replaces the current character with one from a file (see readCharacterFile). */
-export function importCharacter(character) {
-    applySaved(structuredClone(character));
-    commit();
+const DAY = 24 * 60 * 60 * 1000;
+
+const EXPORT_REMINDER_DAYS = 7;
+
+/* "today", "yesterday", "3 days ago" or "never". */
+export function exportedWhen(lastExported, now = Date.now()) {
+    if (!lastExported) {
+        return "never";
+    }
+
+    const days = Math.floor((now - lastExported) / DAY);
+
+    return days <= 0 ? "today" : days === 1 ? "yesterday" : `${days} days ago`;
+}
+
+/*
+ * True when a backup is worth a reminder: the character changed since its last
+ * export, and that export (or the character's creation) was a week ago or more.
+ */
+export function exportDue(character, now = Date.now()) {
+    const lastExported = Number(character.lastExported) || 0;
+    const since = lastExported || Number(character.createdAt) || 0;
+
+    return (Number(character.changedAt) || 0) > lastExported && now - since >= EXPORT_REMINDER_DAYS * DAY;
+}
+
+/* Notes that a character was just saved to a file. Clears its reminder. */
+export function markExported(id = roster.current) {
+    if (id === roster.current) {
+        state.lastExported = Date.now();
+        commit();
+
+        return;
+    }
+
+    const character = readCharacter(characterKey(id));
+
+    if (character) {
+        character.lastExported = Date.now();
+
+        try {
+            localStorage.setItem(characterKey(id), JSON.stringify(character));
+        } catch (error) {
+            console.error("Failed to save the character:", error);
+        }
+
+        notifyStateChange();
+    }
+}
+
+/*
+ * =========================================================
+ * LOG (see log.js)
+ * =========================================================
+ */
+
+const LOG_LIMIT = 200;
+
+/* Writes down what happened. Keeps the newest entries; undo never takes them back. */
+export function addLog(title, detail = "", dice = []) {
+    state.log = [{ at: Date.now(), title, detail, dice }, ...state.log].slice(0, LOG_LIMIT);
+
+    saveState();
+
+    document.dispatchEvent(new Event("logchange"));
+}
+
+export function clearLog() {
+    state.log = [];
+
+    saveState();
+
+    document.dispatchEvent(new Event("logchange"));
+}
+
+/*
+ * =========================================================
+ * UNDO
+ * =========================================================
+ *
+ * commit() compares the character to how it was after the last commit, and
+ * keeps the old version as an undo step when something really changed. Some
+ * things aren't steps of their own, and undoing leaves them as they are:
+ *   - the log and the timestamps: they're a record of what happened
+ *   - moving a tile, and the action panel: otherwise undoing some damage would
+ *     mean first undoing every tile moved since. Getting or removing tiles IS
+ *     a step, and undoing that brings back the board and panel of that moment.
+ * The steps last until the page is reloaded or the character is switched.
+ */
+
+const UNDO_LIMIT = 50;
+
+// Changes without a name this close together (typing a name, clicking + a few times) are one step
+const MERGE_WINDOW = 1000;
+
+const undoSteps = [];
+
+// The character as a JSON string, as it was after the last commit
+let baseline = null;
+
+const boardLetters = character => character.board.map(tile => tile.letter).sort().join("");
+
+/* Everything that counts as a real change. */
+function comparable(character) {
+    const { board, action, log, createdAt, changedAt, lastExported, ...rest } = character;
+
+    return JSON.stringify({ ...rest, letters: boardLetters(character) });
+}
+
+/* Adds an undo step if the character changed. Returns true if a step was added or extended. */
+function recordChange(label, merge) {
+    const before = baseline === null ? null : JSON.parse(baseline);
+
+    if (!before || comparable(before) === comparable(state)) {
+        return false;
+    }
+
+    const now = Date.now();
+    const last = undoSteps.at(-1);
+    const boardChanged = boardLetters(before) !== boardLetters(state);
+
+    state.changedAt = now;
+
+    if (last && (merge || (!label && now - last.at < MERGE_WINDOW))) {
+        last.at = now;
+        last.boardChanged ||= boardChanged;
+    } else {
+        undoSteps.push({ label: label || "last change", before: baseline, boardChanged, at: now });
+
+        if (undoSteps.length > UNDO_LIMIT) {
+            undoSteps.shift();
+        }
+    }
+
+    return true;
+}
+
+/* What undo would take back, or null. */
+export const undoLabel = () => undoSteps.at(-1)?.label ?? null;
+
+/* Takes back the last step. Returns its name, or null if there's nothing to undo. */
+export function undo() {
+    const step = undoSteps.pop();
+
+    if (!step) {
+        return null;
+    }
+
+    const before = JSON.parse(step.before);
+
+    if (!step.boardChanged) {
+        before.board = state.board;
+        before.action = state.action;
+    }
+
+    before.log = state.log;
+    before.createdAt = state.createdAt;
+    before.changedAt = Date.now();
+    before.lastExported = state.lastExported;
+
+    applySaved(before);
+    normalizeState();
+
+    baseline = JSON.stringify(state);
+
+    saveState();
+    addLog("Undid", step.label);
+    notifyStateChange();
+
+    return step.label;
+}
+
+/* Saves the tiles' places or the action panel, which aren't undo steps: an undo must not bring back older ones. */
+export function saveWithoutUndo() {
+    if (baseline !== null) {
+        baseline = JSON.stringify({ ...JSON.parse(baseline), board: state.board, action: state.action });
+    }
+
+    saveState();
 }
 
 /*
@@ -660,12 +1139,30 @@ export function importCharacter(character) {
  * =========================================================
  */
 
-/* Call after changing the state: keeps it valid, saves it, and tells every panel to redraw. */
-export function commit() {
-    normalizeState();
-    saveState();
-
+function notifyStateChange() {
     document.dispatchEvent(new Event("statechange"));
+}
+
+/*
+ * Call after changing the state: keeps it valid, saves it, and tells every
+ * panel to redraw. `label` names the undo step ("Long rest"). With `toast` a
+ * message offers to undo it right away, for things that are easy to do by
+ * accident; `merge` makes this part of the last step, e.g. the second half of
+ * a rest.
+ */
+export function commit(label = null, { toast = false, merge = false } = {}) {
+    normalizeState();
+
+    const recorded = recordChange(label, merge);
+
+    baseline = JSON.stringify(state);
+
+    saveState();
+    notifyStateChange();
+
+    if (toast && recorded) {
+        document.dispatchEvent(new CustomEvent("undoable", { detail: label }));
+    }
 }
 
 export function onStateChange(render) {

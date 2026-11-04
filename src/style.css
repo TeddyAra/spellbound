@@ -1289,6 +1289,14 @@ button:disabled {
     letter-spacing: 0;
 }
 
+/* The Guard DC under the armor value */
+.stat-note {
+    color: var(--muted);
+
+    font-size: 10px;
+    line-height: 1;
+}
+
 /* Hold the Line */
 .stat-box strong.boosted {
     color: var(--highlight);
@@ -1332,13 +1340,13 @@ button:disabled {
     text-align: center;
 }
 
-#glyphCounter,
-#runeCounter {
+#runeCounter,
+#helperCounter {
     cursor: default;
 }
 
 /*
- * Runesmith: the construct, in its own column to the right of the menu,
+ * Golemwright: the construct, in its own column to the right of the menu,
  * level with the weapon button (see construct.js). Folded away, it's just a
  * small square button with an arrow.
  */
@@ -1392,8 +1400,24 @@ button:disabled {
     line-height: 1;
 }
 
-#constructPanel.destroyed #constructHPDisplay {
+#constructPanel.destroyed #constructHPDisplay,
+#helperList .destroyed > span:last-child {
     color: var(--danger-text);
+}
+
+/* Clockmaker: one row per small construct, spaced like the rest of the column */
+#helperList {
+    display: contents;
+}
+
+/* Tighter than the menu's counters, so "Helpers" fits beside it in the narrow column */
+#constructPanel #helperCounter {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+#helperCounter .counter {
+    gap: 4px;
 }
 
 #colossusButton.active {
@@ -3453,12 +3477,12 @@ select.modal-input:disabled {
 }
 
 /*
- * The Runesmith's glyph and rune counters look like menu rows but aren't buttons
+ * The Runesmith's rune counter and the Clockmaker's helper counter look like menu rows but aren't buttons
  * (their − and + are), so no theme gives them a button's shadow, frame or fill. Last in
  * the file so it wins over the themes' button styles.
  */
-:root #glyphCounter.roll-button,
-:root #runeCounter.roll-button {
+:root #runeCounter.roll-button,
+:root #helperCounter.roll-button {
     border-color: transparent;
 
     background: transparent;
@@ -3891,4 +3915,314 @@ select.modal-input:disabled {
 /* On Noir's solid-colour action panel, in the panel's text colour */
 :root[data-theme="noir"] #actionPanel .target-controls > .target-counter:first-child {
     border-bottom-color: color-mix(in srgb, var(--on-accent) 40%, transparent);
+}
+
+/* =========================================================
+   CHARACTER HEADER: SWITCHER, UNDO AND LOG
+   ========================================================= */
+
+/* Last in the file so it wins over the themes' button styles */
+#characterHeader {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
+
+:root #charactersButton {
+    flex: 1;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    padding: 0;
+
+    border: none;
+    background: none;
+    box-shadow: none;
+
+    color: inherit;
+    text-align: left;
+}
+
+:root #charactersButton:hover .switch-arrow {
+    color: var(--accent);
+}
+
+#charactersButton strong,
+#charactersButton #characterClassDisplay {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The name is a span too, but not one of the header's muted ones */
+:root #characterHeader #characterNameDisplay {
+    color: inherit;
+    font-size: inherit;
+}
+
+.switch-arrow {
+    color: var(--muted);
+
+    font-size: 13px;
+}
+
+:root .icon-button.small-icon {
+    flex-shrink: 0;
+
+    width: 34px;
+    height: 34px;
+}
+
+:root .icon-button.small-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.icon-button.small-icon svg path {
+    stroke-linecap: round;
+}
+
+.icon-button.small-icon:disabled {
+    opacity: 0.4;
+}
+
+/* =========================================================
+   TRASH CAN (see tiles.js)
+   ========================================================= */
+
+/* Beside the safe zone, on the side the tiles come from */
+#trashCan {
+    position: fixed;
+
+    right: 292px;
+    bottom: 20px;
+
+    width: 64px;
+    height: 64px;
+
+    display: grid;
+    place-items: center;
+
+    border: 2px dashed var(--danger);
+    border-radius: 14px;
+
+    background: color-mix(in srgb, var(--danger) 8%, transparent);
+
+    color: var(--danger-text);
+
+    z-index: 9;
+}
+
+#trashCan svg {
+    width: 30px;
+    height: 30px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    pointer-events: none;
+}
+
+#trashCan.active {
+    border-style: solid;
+
+    background: color-mix(in srgb, var(--danger) 30%, transparent);
+
+    transform: scale(1.12);
+}
+
+/* =========================================================
+   UNDO MESSAGE (see undo.js)
+   ========================================================= */
+
+#undoToast,
+#updateToast {
+    position: fixed;
+
+    left: 50%;
+    bottom: 24px;
+
+    transform: translateX(-50%);
+
+    max-width: min(520px, 90vw);
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 10px 12px 10px 18px;
+
+    background: var(--panel);
+
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+
+    box-shadow: 0 10px 34px rgba(var(--shadow-rgb), 0.55);
+
+    color: var(--text);
+
+    font-size: 15px;
+
+    /* Above the windows, since it can follow a change made in one */
+    z-index: 30;
+}
+
+/* Above the undo message, which can show at the same time */
+#updateToast {
+    bottom: 84px;
+}
+
+#undoToastButton,
+#updateReloadButton {
+    flex-shrink: 0;
+
+    padding: 6px 14px;
+
+    font-weight: 650;
+}
+
+/* =========================================================
+   CHARACTER SWITCHER AND LOG WINDOWS
+   ========================================================= */
+
+#characterList,
+#logList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    max-height: 56vh;
+    overflow-y: auto;
+}
+
+.character-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.character-pick {
+    flex: 1;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    padding: 10px 14px;
+
+    text-align: left;
+}
+
+.character-row.current .character-pick {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.log-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    padding: 8px 12px;
+
+    background: var(--inset);
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.log-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.log-entry .dice-list {
+    margin-top: 2px;
+}
+
+.character-pick .attention {
+    color: var(--attention, var(--accent-hover));
+    font-weight: 650;
+}
+
+/* =========================================================
+   LEFT MENU ON A SHORT WINDOW (see menuFit.js)
+   ========================================================= */
+
+/* Rows keep their height: it's the menu that fits or scrolls, not its headings that get squashed */
+#rollMenu > * {
+    flex-shrink: 0;
+}
+
+#rollMenu.tight {
+    gap: 4px;
+
+    padding-bottom: 8px;
+}
+
+:root #rollMenu.tight .roll-button {
+    min-height: 34px;
+
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+:root #rollMenu.tight .roll-divider {
+    margin: 2px 0;
+}
+
+:root #rollMenu.tight #savedSpells,
+:root #rollMenu.tight #signaturePanel,
+:root #rollMenu.tight #statGrid {
+    gap: 4px;
+}
+
+:root #rollMenu.tight #statGrid .stat-box {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+/* =========================================================
+   CHARACTERS WINDOW: EXPORT AND IMPORT (see characters.js)
+   ========================================================= */
+
+#charactersOverlay .settings-note {
+    margin: 0 0 12px;
+}
+
+#characterFileMessage:not(:empty) {
+    margin: 10px 0 0;
+}
+
+.character-export {
+    flex-shrink: 0;
+
+    padding: 8px 12px;
+}
+
+/* The export reminder (see reminders.js): it's a span in the header, but not one of the muted ones */
+:root #charactersButton {
+    position: relative;
+}
+
+:root #charactersButton:has(.badge) {
+    padding-right: 26px;
+}
+
+:root #characterHeader .badge {
+    top: 0;
+    right: 0;
+
+    color: var(--on-accent);
+
+    font-size: 11px;
 }

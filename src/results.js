@@ -1,13 +1,22 @@
 import { $, show, hide, renderDice } from "./dom.js";
+import { addLog } from "./state.js";
 
 const infoResultOverlay = $("infoResultOverlay");
 
+/* "Roll: 12 · Result: Success" */
+const logDetail = rows => rows.map(([label, value]) => label ? `${label}: ${value}` : value).join(" · ");
+
 /*
- * Shows a simple result popup.
+ * Shows a simple result popup, and notes it in the log (see log.js).
  *   rows: [[label, value], ...]
  *   list: optional { title, values } rendered as small boxes (dice, letters)
+ *   log:  false for a message that isn't something that happened
  */
-export function showInfoResult(title, rows, list = null) {
+export function showInfoResult(title, rows, list = null, { log = true } = {}) {
+    if (log) {
+        addLog(title, logDetail(rows), list?.values ?? []);
+    }
+
     $("infoResultTitle").textContent = title;
 
     const container = $("infoResultRows");
