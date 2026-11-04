@@ -4941,6 +4941,39 @@ select.modal-input:disabled {
 }
 
 /* =========================================================
+   THE LOGO
+   ========================================================= */
+
+/* In the middle of the room the side menus leave, which is less in a narrow window. The left one is the wider. */
+#boardLogo {
+    position: absolute;
+    top: 50%;
+    left: calc(50% + 24px);
+
+    width: clamp(180px, calc(100vw - 700px), 620px);
+
+    transform: translate(-50%, -50%);
+
+    opacity: 0.16;
+
+    transition: opacity 0.3s;
+
+    user-select: none;
+}
+
+#letterBoard:has(.scrabble-letter) #boardLogo {
+    opacity: 0;
+}
+
+#settingsLogo {
+    display: block;
+
+    width: min(340px, 80%);
+
+    margin: 0 auto 14px;
+}
+
+/* =========================================================
    THE PHONE'S TILE VIEW (see tileView.js)
    ========================================================= */
 
