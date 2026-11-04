@@ -1,4 +1,4 @@
-import { $, show, hide, clamp, element } from "./dom.js";
+import { $, show, hide, clamp, element, isPhone } from "./dom.js";
 import {
     state,
     commit,
@@ -223,9 +223,9 @@ function renderFeats() {
     $("featSummary").classList.toggle("attention", unusedFeats() > 0);
 }
 
-/* Only redrawn while open: the list is long. */
+/* Only redrawn while open, or on a phone, where it's a page: the list is long. */
 function renderIfOpen() {
-    if (!featuresOverlay.classList.contains("hidden")) {
+    if (isPhone() || !featuresOverlay.classList.contains("hidden")) {
         renderFeatures();
         renderFeats();
     }

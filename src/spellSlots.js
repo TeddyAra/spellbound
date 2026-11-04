@@ -1,4 +1,6 @@
-import { $, show, hide, clamp, element, setValue } from "./dom.js";
+import { $, show, hide, clamp, element, isPhone, setValue } from "./dom.js";
+import { spellText } from "./tileTray.js";
+import { addNumberPicker } from "./numberPicker.js";
 import {
     state,
     commit,
@@ -168,6 +170,9 @@ function buildSettingRow(index) {
 
     row.append(element("span", "result-label", `${index + 1}`), nameInput, schoolInput, levelInput, forget);
 
+    // Lists the levels up to the school's rank, which the rendering keeps as the input's max
+    addNumberPicker(levelInput);
+
     return { row, nameInput, schoolInput, levelInput };
 }
 
@@ -223,7 +228,9 @@ export function openSaveSpell(school) {
     $("saveSpellInfo").textContent =
         `Saves the spell as a level ${startingLevel(school)} ${schoolName(school)} spell in an empty slot.`;
     $("saveSpellMessage").textContent = "";
-    saveSpellInput.value = "";
+
+    // On a phone, the tile view already has it spelled out
+    saveSpellInput.value = isPhone() ? spellText(state.board).slice(0, saveSpellInput.maxLength) : "";
 
     show(saveSpellOverlay);
     saveSpellInput.focus();

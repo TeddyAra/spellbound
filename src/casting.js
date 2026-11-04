@@ -448,7 +448,7 @@ function renderResultDice(reading) {
         return die;
     }));
 
-    $("rerollHint").textContent = roll.rerolled.size < roll.rolls.length ? "· click a die to reroll it" : "";
+    $("rerollHint").textContent = roll.rerolled.size < roll.rolls.length ? "· choose a die to reroll it" : "";
 }
 
 async function rerollDie(index) {
@@ -532,7 +532,7 @@ function renderResult() {
         actions.push(actionButton("Close", null, close));
     } else {
         if (roll.mode === "spell") {
-            actions.push(actionButton(`Draw ${reading.tiles} tiles`, "primary", () => {
+            actions.push(actionButton(`Draw ${reading.tiles} ${reading.tiles === 1 ? "tile" : "tiles"}`, "primary", () => {
                 close();
                 spawnScrabbleLetters(reading.tiles);
                 openActionPanel(reading.level);

@@ -10,6 +10,7 @@ import "./inventory.js";
 import "./dicePanel.js";
 import "./diceSettings.js";
 import "./tiles.js";
+import "./tileView.js";
 import "./overlays.js";
 import "./reminders.js";
 import "./settings.js";
@@ -17,6 +18,7 @@ import "./undo.js";
 import "./log.js";
 import "./characters.js";
 import "./menuFit.js";
+import "./phone.js";
 import "./pwa.js";
 
 loadState();

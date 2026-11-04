@@ -1,9 +1,12 @@
 import { $, show, hide, element, sum } from "./dom.js";
 import { rollDice, rollPercentiles } from "./dice.js";
 import { showInfoResult } from "./results.js";
+import { addNumberPicker } from "./numberPicker.js";
 
 const rollDiceOverlay = $("rollDiceOverlay");
 const rollDiceInput = $("rollDiceInput");
+
+addNumberPicker(rollDiceInput);
 
 // The die whose "how many?" dialog is open
 let dialogSides = 6;

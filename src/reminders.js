@@ -129,6 +129,10 @@ function renderReminders() {
     setBadge("featuresButton", "Features and feats", featureReminders());
     setBadge("charactersButton", "Switch character", exportReminders());
 
+    // The same markers on the phone's page tabs (see phone.js)
+    setBadge("characterTab", "Character settings", characterReminders());
+    setBadge("featuresTab", "Features and feats", featureReminders());
+
     markField("subclassInput", needsSubclass());
     markField("passionNameInput", needsPassion());
 }

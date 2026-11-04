@@ -10,6 +10,9 @@ export function hide(element) {
 
 export const onResize = callback => window.addEventListener("resize", callback);
 
+/* Whether the phone layout is showing (see phone.js). */
+export const isPhone = () => document.documentElement.classList.contains("phone");
+
 export const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 /* Creates an element with an optional class and text. */

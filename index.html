@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
         <title>Spellbound Dashboard</title>
         <link rel="icon" type="image/x-icon" href="./imgs/favicon.ico">
         <link rel="stylesheet" href="./src/style.css">
@@ -14,6 +14,10 @@
 
         <!-- The chosen theme and display preferences, set before the page draws so nothing flashes or jumps (see settings.js, preferences.js) -->
         <script>
+            // The phone layout (see phone.js): a narrow window, or a phone on its side
+            window.PHONE_QUERY = "(max-width: 700px), (max-height: 500px) and (pointer: coarse)";
+            document.documentElement.classList.toggle("phone", window.matchMedia(window.PHONE_QUERY).matches);
+
             // Only the chosen theme's fonts are downloaded. The Dark and Light themes use the system's own.
             const ROBOTO = "family=Roboto:wght@400;500;700&family=Roboto+Condensed:wght@700";
 
@@ -153,7 +157,7 @@
                         <strong id="initiativeDisplay">+1</strong>
                     </button>
 
-                    <div class="stat-box" title="Passive Reveal: you notice hidden things with a concealment level up to this">
+                    <div id="passiveRevealBox" class="stat-box" title="Passive Reveal: you notice hidden things with a concealment level up to this">
                         <span>Passive Reveal</span>
                         <strong id="passiveRevealDisplay">1</strong>
                     </div>
@@ -235,12 +239,12 @@
 
                 <div class="two-column">
                     <button id="shortRestButton" class="roll-button" title="Roll half your level in hit dice and heal that much. Two a day.">
-                        <span>Short rest</span>
+                        <span>Short<em class="rest-word"> rest</em></span>
                         <span id="shortRestsDisplay">0 / 2</span>
                     </button>
 
                     <button id="longRestButton" class="roll-button" title="Regain all hit points and uses of your signature ability">
-                        <span>Long rest</span>
+                        <span>Long<em class="rest-word"> rest</em></span>
                     </button>
                 </div>
             </div>
@@ -293,6 +297,75 @@
                         <span>Next round</span>
                         <span id="colossusRoundsDisplay">3 rounds left</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- The phone layout, which the panels above move into (see phone.js) -->
+            <div id="phoneShell">
+                <div id="phoneHeader">
+                    <div id="phoneHeaderTop"></div>
+                    <div id="phoneRests"></div>
+                </div>
+
+                <div id="phoneTabBar">
+                    <button id="phoneTilesButton" type="button" aria-label="Open your tiles">
+                        Tiles <span id="phoneTilesCount"></span>
+                    </button>
+
+                <nav id="phoneTabs" aria-label="Pages">
+                    <button type="button" data-page="actions">Actions</button>
+                    <button type="button" data-page="spells">Saved spells</button>
+                    <button id="constructTab" type="button" data-page="construct">Construct</button>
+                    <button type="button" data-page="dice">Dice</button>
+                    <button type="button" data-page="inventory">Inventory</button>
+                    <button id="featuresTab" type="button" data-page="features">Features</button>
+                    <button type="button" data-page="reference">Reference</button>
+                    <button id="characterTab" type="button" data-page="character">Character</button>
+                </nav>
+                </div>
+
+                <div id="phonePages">
+                    <section id="phonePage-actions" data-page="actions" aria-label="Actions"></section>
+                    <section id="phonePage-spells" data-page="spells" aria-label="Saved spells"></section>
+                    <section id="phonePage-construct" data-page="construct" aria-label="Construct"></section>
+                    <section id="phonePage-dice" data-page="dice" aria-label="Dice"></section>
+                    <section id="phonePage-inventory" data-page="inventory" aria-label="Inventory"></section>
+                    <section id="phonePage-features" data-page="features" aria-label="Features"></section>
+                    <section id="phonePage-reference" data-page="reference" aria-label="Quick reference"></section>
+                    <section id="phonePage-character" data-page="character" aria-label="Character"></section>
+                </div>
+
+                <!-- Your tiles, in place of the top bar and pages (see tileView.js) -->
+                <div id="tileView">
+                    <div id="tileViewHeader">
+                        <button id="tileBackButton" type="button">‹ Back</button>
+                        <span id="tileStatus" role="status"></span>
+                    </div>
+
+                    <div id="tileViewBody">
+                        <div id="tileSpellBox">
+                            <!-- Takes what's typed on the phone's keyboard, unseen -->
+                            <input id="tileTyping" type="text" aria-label="Type your spell" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done">
+
+                            <div id="tileSpell" aria-label="Your spell"></div>
+                        </div>
+
+                        <div id="tileSpellButtons">
+                            <button id="tileSpaceButton" type="button">Space</button>
+                            <button id="tileDeleteButton" type="button">Delete</button>
+                            <button id="tileKeyboardButton" type="button">Keyboard</button>
+                        </div>
+
+                        <div id="tileTray" aria-label="Your tiles"></div>
+
+                        <p class="tile-hint">Hold a tile to keep it or return it to the pile</p>
+
+                        <div id="tileBoardButtons">
+                            <button id="tileGetButton" type="button">Get tiles</button>
+                            <button id="tileResetButton" type="button">Reset spell</button>
+                            <button id="tileClearButton" type="button">Clear board</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -527,7 +600,7 @@
                         Amount
                     </label>
 
-                    <input class="modal-input" id="healthAmountInput" type="number" min="1" step="1" value="1">
+                    <input class="modal-input" id="healthAmountInput" type="number" inputmode="numeric" min="1" step="1" value="1">
                 </div>
 
                 <label class="check-row">
@@ -563,7 +636,7 @@
                         Ward
                     </label>
 
-                    <input class="modal-input" id="wardInput" type="number" min="0" step="1" value="0">
+                    <input class="modal-input" id="wardInput" type="number" inputmode="numeric" min="0" step="1" value="0">
                 </div>
 
                 <div class="actions">
@@ -598,7 +671,7 @@
 
                 <div class="modal-element">
                     <label for="constructAmountInput">Amount</label>
-                    <input class="modal-input" id="constructAmountInput" type="number" min="1" step="1" value="1">
+                    <input class="modal-input" id="constructAmountInput" type="number" inputmode="numeric" min="1" step="1" value="1">
                 </div>
 
                 <label class="check-row">
@@ -718,7 +791,7 @@
 
                 <div class="rolls">
                     <div class="rolls-title">
-                        Your dice <span id="rerollHint">· click a die to reroll it</span>
+                        Your dice <span id="rerollHint">· choose a die to reroll it</span>
                     </div>
 
                     <div id="rollResultDice" class="dice-list"></div>
@@ -784,6 +857,24 @@
                 <div id="tileCountActions" class="button-pair">
                     <button id="getTiles" class="primary">Get tiles</button>
                     <button id="cancelTiles" class="danger">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Holding a tile in the phone's tile view (see tileView.js) -->
+        <div id="tileMenuOverlay" class="overlay hidden">
+            <div class="modal confirm-modal" role="dialog" aria-modal="true" aria-labelledby="tileMenuTitle">
+                <h2 id="tileMenuTitle">Tile</h2>
+
+                <p id="tileMenuNote" class="settings-note"></p>
+
+                <div class="button-pair">
+                    <button id="tileKeepButton" class="primary" type="button">Keep it</button>
+                    <button id="tileReturnButton" class="danger" type="button">Return to the pile</button>
+                </div>
+
+                <div class="actions">
+                    <button id="tileMenuCancel" type="button">Cancel</button>
                 </div>
             </div>
         </div>

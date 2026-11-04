@@ -1,4 +1,4 @@
-import { $, onResize } from "./dom.js";
+import { $, onResize, isPhone } from "./dom.js";
 import { onStateChange } from "./state.js";
 
 /*
@@ -12,7 +12,7 @@ const menu = $("rollMenu");
 
 function fitMenu() {
     menu.classList.remove("tight");
-    menu.classList.toggle("tight", menu.scrollHeight > menu.clientHeight);
+    menu.classList.toggle("tight", !isPhone() && menu.scrollHeight > menu.clientHeight);
 }
 
 onStateChange(fitMenu);

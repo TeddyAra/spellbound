@@ -16,6 +16,7 @@ const closableOverlays = [
     "rollSetupOverlay",
     "saveSpellOverlay",
     "tileCountOverlay",
+    "tileMenuOverlay",
     "rollDiceOverlay",
     "inventoryOverlay",
     "logOverlay",

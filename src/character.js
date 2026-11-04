@@ -1,4 +1,5 @@
 import { $, show, hide, clamp, element, formatModifier, setValue, sum } from "./dom.js";
+import { addNumberPicker } from "./numberPicker.js";
 import {
     state,
     commit,
@@ -868,6 +869,9 @@ weaponDieInput.addEventListener("change", () => {
     state.weapon.die = Number(weaponDieInput.value);
     commit();
 });
+
+addNumberPicker(healthAmountInput);
+addNumberPicker(wardInput, { min: 0 });
 
 $("characterButton").addEventListener("click", () => {
     renderSettings();

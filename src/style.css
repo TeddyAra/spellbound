@@ -1666,7 +1666,7 @@ select.modal-input {
 }
 
 #spellSlotSettings .spell-slot-setting {
-    grid-template-columns: 22px 1fr 130px 70px 28px;
+    grid-template-columns: 22px 1fr 130px 84px 28px;
 }
 
 .check-row {
@@ -2564,6 +2564,8 @@ select.modal-input:disabled {
 
 /* A little preview of the theme's colours */
 .theme-swatches {
+    width: 100%;
+
     display: flex;
     gap: 4px;
 
@@ -2571,8 +2573,10 @@ select.modal-input:disabled {
 }
 
 .theme-swatch {
-    width: 22px;
-    height: 22px;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 22px;
+    aspect-ratio: 1;
 
     border: 1px solid rgba(128, 128, 128, 0.5);
     border-radius: 4px;
@@ -4225,4 +4229,1044 @@ select.modal-input:disabled {
     color: var(--on-accent);
 
     font-size: 11px;
+}
+
+/* =========================================================
+   PHONE (see phone.js)
+   =========================================================
+
+   A top bar, tabs, and one page per part of the dashboard. The pages sit side
+   by side in a box that scrolls sideways and snaps to each page, which is the
+   whole of the swiping. Windows that aren't pages fill the width instead.
+*/
+
+#phoneShell,
+#phoneRests {
+    display: none;
+}
+
+:root.phone #topButtons,
+:root.phone #letterBoard,
+:root.phone #safeZone,
+:root.phone #trashCan,
+:root.phone #tileControls {
+    display: none;
+}
+
+/* 100vh is taller than what can be seen while a phone's address bar shows, which lets the whole page slide */
+:root.phone body {
+    min-height: 100dvh;
+}
+
+:root.phone #mainScreen {
+    width: 100%;
+    height: calc(100dvh / var(--ui-zoom, 1));
+}
+
+:root.phone #phoneShell {
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    padding-top: env(safe-area-inset-top);
+}
+
+/* Double-tapping a button shouldn't zoom the page */
+:root.phone button {
+    touch-action: manipulation;
+}
+
+/* Anything smaller makes iPhones zoom in when it's tapped */
+:root.phone input,
+:root.phone select {
+    font-size: 16px;
+}
+
+/* The top bar
+   ---------------------------------------------------------- */
+
+/* A swipe down on a top bar reloads the page, so the browser should leave them alone (see pullToReload.js) */
+:root.phone #phoneHeader,
+:root.phone #tileViewHeader {
+    touch-action: none;
+}
+
+.pull-indicator {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) - 36px);
+    left: 50%;
+
+    z-index: 50;
+
+    padding: 8px 14px;
+
+    transform: translate(-50%, var(--pull, 0));
+
+    background: var(--panel);
+
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+
+    box-shadow: 0 6px 20px rgba(var(--shadow-rgb), 0.5);
+
+    color: var(--muted);
+
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    pointer-events: none;
+}
+
+.pull-indicator.ready {
+    background: var(--accent);
+
+    border-color: var(--accent);
+
+    color: var(--on-accent);
+}
+
+:root.phone #phoneHeader {
+    flex-shrink: 0;
+
+    padding: 8px 12px 12px;
+
+    background: var(--panel);
+}
+
+:root.phone #phoneHeaderTop {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    margin-bottom: 10px;
+}
+
+:root.phone #characterHeader {
+    flex: 1;
+    min-width: 0;
+
+    padding: 0;
+}
+
+:root.phone #settingsButton {
+    flex-shrink: 0;
+
+    width: 40px;
+    height: 40px;
+}
+
+:root.phone #settingsButton svg {
+    width: 22px;
+    height: 22px;
+}
+
+:root.phone #characterHeader .small-icon {
+    width: 40px;
+    height: 40px;
+}
+
+:root.phone #statGrid {
+    /* Four equal columns, so the gap in the middle lines up with the one between the rests */
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px 6px;
+}
+
+/* A ward gets its own line, so it can't push HP out of its narrower box */
+:root.phone #statGrid #wardDisplay:not(:empty) {
+    display: block;
+
+    margin: 0;
+
+    font-size: 12px;
+    line-height: 1.1;
+}
+
+:root.phone #statGrid .stat-box {
+    justify-content: center;
+
+    min-height: 66px;
+    padding: 6px 3px;
+}
+
+:root.phone #statGrid .stat-box > span {
+    font-size: 10px;
+    letter-spacing: 0.03em;
+    line-height: 1.15;
+    text-align: center;
+}
+
+:root.phone #statGrid .stat-box strong {
+    font-size: 19px;
+    white-space: nowrap;
+}
+
+:root.phone #statGrid .hp-max {
+    font-size: 13px;
+}
+
+:root.phone #statGrid .stat-note {
+    font-size: 9px;
+    white-space: nowrap;
+}
+
+/* The rests, on a row of their own under the stats */
+:root.phone #phoneRests {
+    grid-column: 1 / -1;
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+
+:root.phone #phoneRests .roll-button {
+    min-height: 38px;
+    padding: 4px 12px;
+
+    font-size: 14px;
+}
+
+/* The tabs
+   ---------------------------------------------------------- */
+
+:root.phone #phoneTabBar {
+    flex-shrink: 0;
+
+    display: flex;
+
+    background: var(--panel);
+
+    border-bottom: 1px solid var(--border);
+}
+
+/* Always in reach, however far the tabs are scrolled */
+:root.phone #phoneTilesButton,
+:root.phone #phoneTilesButton:hover {
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 0 12px;
+
+    border: 0;
+    border-right: 1px solid var(--border);
+    border-radius: 0;
+
+    background: none;
+    box-shadow: none;
+
+    color: var(--accent);
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+:root.phone #phoneTabs {
+    position: relative;
+
+    flex: 1;
+    min-width: 0;
+
+    display: flex;
+
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+:root.phone #phoneTabs::-webkit-scrollbar {
+    display: none;
+}
+
+:root.phone #phoneTabs button,
+:root.phone #phoneTabs button:hover {
+    position: relative;
+
+    flex-shrink: 0;
+
+    min-height: 42px;
+    padding: 0 14px;
+
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+
+    background: none;
+    box-shadow: none;
+
+    color: var(--muted);
+
+    font-size: 14px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+:root.phone #phoneTabs button.active {
+    border-bottom-color: var(--accent);
+
+    color: var(--text);
+}
+
+:root.phone #phoneTabs .badge {
+    top: 4px;
+    right: 1px;
+    left: auto;
+}
+
+/* The pages
+   ---------------------------------------------------------- */
+
+:root.phone #phonePages {
+    flex: 1;
+    min-height: 0;
+
+    display: flex;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+
+:root.phone #phonePages::-webkit-scrollbar {
+    display: none;
+}
+
+:root.phone #phonePages > section {
+    flex: 0 0 100%;
+    min-width: 0;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+
+    padding: 14px 14px calc(18px + env(safe-area-inset-bottom));
+}
+
+/* The menu, now just a page's contents */
+:root.phone #rollMenu {
+    position: static;
+
+    width: auto;
+    max-height: none;
+
+    overflow: visible;
+
+    gap: 10px;
+
+    padding: 0;
+}
+
+/* A little more room between your attacks and the schools */
+:root.phone #schoolGrid {
+    gap: 10px;
+
+    margin-top: 6px;
+}
+
+:root.phone #rollMenu .roll-button,
+:root.phone #savedSpells .roll-button,
+:root.phone #diceGrid .roll-button,
+:root.phone #constructPanel .roll-button {
+    min-height: 50px;
+}
+
+:root.phone #rollMenu > hr,
+:root.phone #rollMenu > .two-column:empty,
+:root.phone #savedSpellsToggle {
+    display: none;
+}
+
+/* A page is always open, however it was left on a bigger screen */
+:root.phone #savedSpells.hidden {
+    display: flex !important;
+}
+
+:root.phone #savedSpells {
+    flex-direction: column;
+    gap: 8px;
+}
+
+:root.phone #constructPanel {
+    position: static;
+
+    width: auto;
+}
+
+:root.phone #constructPanel.folded #constructBody {
+    display: flex;
+}
+
+:root.phone #constructBody {
+    flex-direction: column;
+    gap: 8px;
+
+    width: auto;
+}
+
+:root.phone #constructExpand,
+:root.phone #constructCollapse {
+    display: none;
+}
+
+:root.phone .quick-roll {
+    display: none;
+}
+
+/* A window's contents, as a page: no window around them, and no Close */
+:root.phone #phonePages .modal {
+    zoom: 1;
+
+    width: auto;
+    height: auto;
+    max-height: none;
+
+    display: block;
+
+    overflow: visible;
+
+    padding: 0;
+
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+:root.phone #phonePages .modal > h2,
+:root.phone #phonePages .modal > .actions {
+    display: none;
+}
+
+:root.phone #referenceContent,
+:root.phone .settings-columns {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+/* Windows
+   ---------------------------------------------------------- */
+
+:root.phone .overlay {
+    padding: 8px;
+}
+
+:root.phone .overlay .modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc((100dvh - 16px) / var(--ui-zoom, 1));
+
+    --modal-padding: 16px;
+    --modal-padding-bottom: 16px;
+}
+
+:root.phone .actions,
+:root.phone .button-pair {
+    flex-wrap: wrap;
+}
+
+:root.phone .actions button,
+:root.phone .button-pair button {
+    flex: 1;
+
+    min-width: 0;
+    padding: 10px 12px;
+}
+
+/* The spell being cast, under the pages or the tiles, which make room for it */
+:root.phone #actionPanel {
+    position: static;
+
+    flex-shrink: 0;
+
+    zoom: 1;
+
+    width: auto;
+    min-width: 0;
+    max-height: 40dvh;
+
+    overflow-y: auto;
+
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+
+    transform: none;
+
+    border-width: 1px 0 0;
+    border-radius: 14px 14px 0 0;
+}
+
+:root.phone #undoToast,
+:root.phone #updateToast {
+    width: max-content;
+    max-width: calc(100vw - 24px);
+}
+
+/* Fitting a phone's width, so nothing scrolls sideways inside a page: that's for swiping */
+:root.phone #phonePages > section {
+    scrollbar-width: none;
+}
+
+:root.phone #phonePages > section::-webkit-scrollbar {
+    display: none;
+}
+
+:root.phone #phoneTabs button:has(.badge) {
+    padding-right: 24px;
+}
+
+:root.phone #rankGrid {
+    grid-template-columns: minmax(0, 1fr) 88px 34px 32px 38px 32px;
+    column-gap: 6px;
+}
+
+:root.phone #rankGrid .rank-grid-head {
+    font-size: 11px;
+    letter-spacing: 0;
+}
+
+:root.phone #referenceContent .reference-table th,
+:root.phone #referenceContent .reference-table td {
+    padding-right: 4px;
+    padding-left: 4px;
+}
+
+:root.phone .settings-columns {
+    row-gap: 22px;
+}
+
+/* A phone on its side: little height, so everything in the top bar shares one row */
+@media (max-height: 500px) and (orientation: landscape) {
+    :root.phone #phoneHeader {
+        display: flex;
+        align-items: stretch;
+        gap: 10px;
+
+        padding: 4px 10px;
+    }
+
+    :root.phone #phoneHeaderTop {
+        flex: 0 1 34%;
+        min-width: 0;
+
+        margin: 0;
+    }
+
+    :root.phone #statGrid {
+        flex: 1;
+        min-width: 0;
+
+        grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 1fr)) minmax(0, 1.2fr);
+    }
+
+    :root.phone #statGrid .stat-box {
+        min-height: 58px;
+    }
+
+    :root.phone #phoneRests {
+        grid-column: auto;
+
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+    }
+
+    :root.phone #phoneRests .roll-button {
+        min-height: 0;
+        padding: 2px 8px;
+
+        font-size: 12px;
+    }
+
+    :root.phone .rest-word {
+        display: none;
+    }
+
+    :root.phone #phoneTabs button,
+    :root.phone #phoneTabs button:hover {
+        min-height: 34px;
+    }
+}
+
+/* The word "rest" on the rest buttons, dropped on a phone on its side */
+.rest-word {
+    font-style: normal;
+}
+
+/* Theme cards and spell slots on a phone
+   ---------------------------------------------------------- */
+
+:root.phone .theme-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Number, name and × on one row, school and level under the name */
+:root.phone #spellSlotSettings {
+    gap: 16px;
+}
+
+:root.phone #spellSlotSettings .spell-slot-setting {
+    grid-template-columns: 18px minmax(0, 1fr) 84px 28px;
+    gap: 6px;
+}
+
+:root.phone #spellSlotSettings .spell-slot-setting > :nth-child(2) {
+    grid-column: 2 / 4;
+}
+
+:root.phone #spellSlotSettings .spell-slot-setting > :nth-child(3) {
+    grid-row: 2;
+    grid-column: 2;
+}
+
+:root.phone #spellSlotSettings .spell-slot-setting > :nth-child(4) {
+    grid-row: 2;
+    grid-column: 3;
+}
+
+/* =========================================================
+   NUMBER DROPDOWN (see numberPicker.js)
+   ========================================================= */
+
+.number-picker {
+    position: relative;
+
+    display: block;
+}
+
+.number-picker .modal-input {
+    width: 100%;
+
+    padding-right: 34px;
+
+    appearance: textfield;
+}
+
+.number-picker .modal-input::-webkit-inner-spin-button,
+.number-picker .modal-input::-webkit-outer-spin-button {
+    appearance: none;
+}
+
+.number-picker-button,
+.number-picker-button:hover {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+
+    width: 34px;
+
+    padding: 0;
+
+    border: 0;
+    border-left: 1px solid var(--border);
+    border-radius: 0 7px 7px 0;
+
+    background: var(--panel-2);
+    box-shadow: none;
+}
+
+/* A little arrow, turned over while the list is open */
+.number-picker-button::before {
+    content: "";
+
+    display: block;
+
+    width: 8px;
+    height: 8px;
+
+    margin: -4px auto 0;
+
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+
+    transform: rotate(45deg);
+}
+
+.number-picker.open .number-picker-button::before {
+    margin-top: 4px;
+
+    transform: rotate(225deg);
+}
+
+.number-list {
+    position: fixed;
+
+    /* Above the windows it opens from */
+    z-index: 40;
+
+    max-height: 240px;
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    padding: 4px;
+
+    background: var(--panel);
+
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+
+    box-shadow: 0 10px 30px rgba(var(--shadow-rgb), 0.5);
+}
+
+:root .number-list button,
+:root .number-list button:hover {
+    display: block;
+
+    width: 100%;
+    min-height: 42px;
+
+    padding: 0 10px;
+
+    border: 0;
+    border-radius: 6px;
+
+    background: none;
+    box-shadow: none;
+
+    color: var(--text);
+
+    font-size: 16px;
+    text-align: center;
+}
+
+:root .number-list button.selected {
+    background: var(--accent);
+
+    color: var(--on-accent);
+}
+
+/* =========================================================
+   THE PHONE'S TILE VIEW (see tileView.js)
+   ========================================================= */
+
+#tileView {
+    display: none;
+}
+
+/* In the tile view, it takes the place of everything but the spell being cast */
+:root.phone.tile-view #phoneHeader,
+:root.phone.tile-view #phoneTabBar,
+:root.phone.tile-view #phonePages {
+    display: none;
+}
+
+:root.phone.tile-view #tileView {
+    flex: 1;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
+/* Nothing scrolls in this view: not the view, and not the page behind it */
+:root.phone.tile-view,
+:root.phone.tile-view body {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+:root.phone.tile-view body {
+    position: fixed;
+    inset: 0;
+
+    width: 100%;
+}
+
+:root.phone.tile-view #mainScreen {
+    height: calc(var(--tile-view-height, 100dvh) / var(--ui-zoom, 1));
+}
+
+:root.phone.tile-view #tileView {
+    touch-action: none;
+}
+
+:root.phone.tile-view #actionPanel {
+    overscroll-behavior: contain;
+}
+
+/* With the keyboard open, when there's no room (see fitTiles in tileView.js) */
+:root.phone.tile-view[data-tile-fit="compact"] #tileBoardButtons,
+:root.phone.tile-view[data-tile-fit="compact"] #tileView .tile-hint,
+:root.phone.tile-view[data-tile-fit="minimal"] #tileBoardButtons,
+:root.phone.tile-view[data-tile-fit="minimal"] #tileView .tile-hint,
+:root.phone.tile-view[data-tile-fit="minimal"] #actionPanel {
+    display: none;
+}
+
+/* A screen too small for it all */
+:root.phone.tile-view.tile-view-scrolls #tileView {
+    touch-action: pan-y;
+}
+
+:root.phone.tile-view.tile-view-scrolls #tileViewBody {
+    overflow-y: auto;
+}
+
+/* Holding a tile shouldn't select text, here or in the window that opens under your finger */
+#tileView,
+#tileMenuOverlay {
+    -webkit-user-select: none;
+    user-select: none;
+
+    -webkit-touch-callout: none;
+}
+
+/* Without this, an iPhone won't let you type in it */
+:root.phone #tileTyping {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+#tileViewHeader {
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 8px 12px;
+
+    background: var(--panel);
+
+    border-bottom: 1px solid var(--border);
+}
+
+#tileBackButton {
+    flex-shrink: 0;
+
+    min-height: 38px;
+    padding: 0 14px;
+
+    font-weight: 650;
+}
+
+#tileStatus {
+    min-width: 0;
+
+    color: var(--muted);
+
+    font-size: 14px;
+}
+
+#tileStatus.attention {
+    color: var(--danger-text);
+}
+
+#tileViewBody {
+    flex: 1;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    overflow: hidden;
+
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+}
+
+/* How much the tiles are shrunk to fit on the screen (see fitTiles in tileView.js) */
+#tileSpell,
+#tileTray {
+    zoom: var(--tile-fit, 1);
+}
+
+#tileSpellBox {
+    position: relative;
+
+    flex-shrink: 0;
+}
+
+/* Unseen, but there for the keyboard. At the top, so a phone doesn't scroll to bring it into view. */
+:root.phone #tileTyping {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 1px;
+    height: 1px;
+
+    padding: 0;
+
+    border: 0;
+
+    background: none;
+
+    color: transparent;
+    caret-color: transparent;
+
+    opacity: 0;
+}
+
+#tileSpell {
+    min-height: 74px;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 10px 14px;
+
+    padding: 10px;
+
+    background: var(--inset);
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.spell-word {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+
+/* Where the next word will start */
+.spell-next-word {
+    width: 3px;
+    height: 36px;
+
+    border-radius: 2px;
+
+    background: var(--accent);
+}
+
+.tile-placeholder {
+    margin: auto;
+
+    color: var(--muted);
+
+    font-size: 15px;
+}
+
+#tileSpellButtons,
+#tileBoardButtons {
+    flex-shrink: 0;
+
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#tileSpellButtons button,
+#tileBoardButtons button {
+    min-height: 42px;
+    padding: 4px 6px;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#tileTray {
+    flex-shrink: 0;
+
+    min-height: 58px;
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* The same tiles as on the desktop, but in a row rather than on a table */
+:root #tileView .scrabble-letter {
+    position: relative;
+
+    flex-shrink: 0;
+
+    width: 50px;
+    height: 50px;
+
+    font-size: 28px;
+
+    cursor: pointer;
+
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+
+    transform: none;
+}
+
+:root #tileSpell .scrabble-letter {
+    width: 36px;
+    height: 36px;
+
+    font-size: 20px;
+}
+
+:root #tileSpell .scrabble-letter-value {
+    right: 2px;
+    bottom: 1px;
+
+    font-size: 8px;
+}
+
+:root[data-tile-size="small"] #tileTray .scrabble-letter {
+    width: 44px;
+    height: 44px;
+
+    font-size: 24px;
+}
+
+:root[data-tile-size="large"] #tileTray .scrabble-letter {
+    width: 58px;
+    height: 58px;
+
+    font-size: 32px;
+}
+
+/* A blank standing in for a letter */
+:root #tileSpell .scrabble-letter.stand-in {
+    opacity: 0.72;
+
+    font-style: italic;
+}
+
+/* A tile that stays when the board is cleared */
+:root #tileTray .scrabble-letter.kept {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.tile-count {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+
+    min-width: 22px;
+    height: 20px;
+
+    display: grid;
+    place-items: center;
+
+    padding: 0 4px;
+
+    border-radius: 10px;
+
+    background: var(--accent);
+
+    color: var(--on-accent);
+
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+#tileView .tile-hint {
+    flex-shrink: 0;
+
+    width: auto;
+    max-width: none;
+
+    margin: 0;
+
+    text-align: left;
+
+    color: var(--muted);
+
+    font-size: 13px;
 }

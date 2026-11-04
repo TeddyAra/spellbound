@@ -1,11 +1,12 @@
-import { $, show, hide } from "./dom.js";
+import { $, show, hide, isPhone } from "./dom.js";
 import { findWords } from "./words.js";
+import { layOutForDesktop, needsDesktopLayout } from "./tileTray.js";
 import { preference } from "./preferences.js";
 import { confirmAction } from "./confirm.js";
 import { state, commit, onStateChange, saveWithoutUndo, addLog } from "./state.js";
 
 // Letter → [number of tiles in the bag, points]
-const SCRABBLE_LETTERS = {
+export const SCRABBLE_LETTERS = {
     A: [9, 1],
     B: [2, 3],
     C: [2, 3],
@@ -46,6 +47,9 @@ const TILE_SIZES = {
 
 const tileSize = () => TILE_SIZES[preference("tileSize")] ?? TILE_SIZES.normal;
 
+// Room for the menu on the left and the buttons on the right
+const SIDE_MENU_WIDTH = 400;
+
 const scrabblePool = Object.entries(SCRABBLE_LETTERS)
     .flatMap(([letter, [count]]) => Array(count).fill(letter));
 
@@ -75,7 +79,10 @@ function readBoard() {
         x: parseFloat(tile.style.left),
         y: parseFloat(tile.style.top),
         rotation: parseFloat(tile.style.getPropertyValue("--rotation")),
-        z: Number(tile.style.zIndex)
+        z: Number(tile.style.zIndex),
+
+        // So a phone knows which tiles are being kept (see tileTray.js)
+        ...(tileIsInSafeZone(tile) ? { kept: true } : {})
     }));
 }
 
@@ -84,7 +91,24 @@ function storeBoard() {
     shownBoard = JSON.stringify(state.board);
 }
 
+/* Tiles arranged on a phone get places on this board (see tileTray.js). */
+function adoptPhoneTiles() {
+    const zone = safeZone.getBoundingClientRect();
+
+    if (needsDesktopLayout(state.board, zone, tileSize())) {
+        const left = SIDE_MENU_WIDTH;
+        const width = Math.max(tileSize() * 8, window.innerWidth - left * 2);
+
+        layOutForDesktop(state.board, { left, top: 60, width }, zone, tileSize());
+        saveWithoutUndo();
+    }
+}
+
 function syncBoard() {
+    if (!isPhone()) {
+        adoptPhoneTiles();
+    }
+
     const board = JSON.stringify(state.board);
 
     if (board === shownBoard) {
@@ -198,7 +222,7 @@ function placeTile({ letter, x, y, rotation, z }) {
 
 /* A new tile: somewhere random, clear of the side menus. */
 function newTile(letter, index) {
-    const horizontalPadding = 400;
+    const horizontalPadding = SIDE_MENU_WIDTH;
     const verticalPadding = 50;
 
     const maxX = Math.max(horizontalPadding, window.innerWidth - tileSize() - horizontalPadding);
@@ -214,14 +238,23 @@ function newTile(letter, index) {
 }
 
 function spawnLetters(letters) {
-    letters.map(newTile).forEach(placeTile);
+    const tiles = letters.map(newTile);
 
     scrabbleTileZIndex += letters.length;
 
-    updateWordUnderlines();
-    storeBoard();
+    // A phone doesn't show this board, so what it knows about the tiles is only in the state (see tileView.js)
+    if (isPhone()) {
+        state.board.push(...tiles);
+    } else {
+        tiles.forEach(placeTile);
+
+        updateWordUnderlines();
+        storeBoard();
+    }
 
     commit(letters.length === 1 ? "Got 1 tile" : `Got ${letters.length} tiles`);
+
+    document.dispatchEvent(new Event("tilesdrawn"));
 }
 
 export function spawnScrabbleLetters(amount) {

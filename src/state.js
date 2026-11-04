@@ -589,7 +589,12 @@ export function normalizeBoard(board) {
             x: tile.x,
             y: tile.y,
             rotation: isNumber(tile.rotation) ? tile.rotation : 0,
-            z: isNumber(tile.z) ? tile.z : 20
+            z: isNumber(tile.z) ? tile.z : 20,
+
+            // Its place in the spell, the letter a blank stands for, and whether it stays when clearing (see tileTray.js)
+            ...(Number.isInteger(tile.line) && tile.line >= 0 ? { line: tile.line } : {}),
+            ...(/^[A-Z]$/.test(tile.as) && tile.letter === "_" ? { as: tile.as } : {}),
+            ...(tile.kept ? { kept: true } : {})
         }));
 }
 

@@ -31,7 +31,10 @@ export const DEFAULT_PREFERENCES = {
 
     // Folded open in the menu: a Golemwright's construct (see construct.js), and the saved spells (see spellSlots.js)
     constructOpen: true,
-    savedSpellsOpen: true
+    savedSpellsOpen: true,
+
+    // The page showing in the phone layout (see phone.js)
+    phonePage: "actions"
 };
 
 // Only what the player changed, so the rest keeps following the defaults

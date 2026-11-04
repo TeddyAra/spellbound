@@ -1,4 +1,5 @@
 import { $, show, hide, setValue, element } from "./dom.js";
+import { addNumberPicker } from "./numberPicker.js";
 import {
     state,
     commit,
@@ -46,6 +47,8 @@ import { armorReduces } from "./character.js";
 
 const constructOverlay = $("constructOverlay");
 const amountInput = $("constructAmountInput");
+
+addNumberPicker(amountInput);
 const nameInput = $("constructNameInput");
 
 const constructName = () => state.construct.name.trim() || "Construct";
