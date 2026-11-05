@@ -19,6 +19,7 @@ const closableOverlays = [
     "tileMenuOverlay",
     "rollDiceOverlay",
     "inventoryOverlay",
+    "notesOverlay",
     "logOverlay",
     "settingsOverlay"
 ].map($);

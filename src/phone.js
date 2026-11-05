@@ -35,6 +35,7 @@ const PLACES = () => [
     [$("constructPanel"), page("construct")],
     [$("diceGrid"), page("dice")],
     [modalOf("inventoryOverlay"), page("inventory")],
+    [modalOf("notesOverlay"), page("notes")],
     [modalOf("featuresOverlay"), page("features")],
     [modalOf("referenceOverlay"), page("reference")],
     [modalOf("characterOverlay"), page("character")],

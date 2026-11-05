@@ -332,6 +332,59 @@ describe("standard weapons", () => {
     });
 });
 
+describe("notes", () => {
+    it("starts empty", () => {
+        expect(state.notes).toBe("");
+    });
+
+    it("keeps them through a reload, exactly as typed", () => {
+        state.notes = "  Owes Bram 5 gold\n\nDon't trust the innkeeper  ";
+        commit("Changed the notes");
+        loadState();
+
+        expect(state.notes).toBe("  Owes Bram 5 gold\n\nDon't trust the innkeeper  ");
+    });
+
+    it("gives a save without notes empty ones", () => {
+        state.notes = 12;
+        commit();
+
+        expect(state.notes).toBe("");
+    });
+
+    it("are different for every character", () => {
+        state.notes = "First";
+        commit();
+
+        const first = listCharacters()[0].id;
+
+        addCharacter();
+        expect(state.notes).toBe("");
+
+        switchCharacter(first);
+        expect(state.notes).toBe("First");
+    });
+
+    it("comes along in a character file", () => {
+        state.notes = "Remember the password";
+        commit();
+
+        expect(readCharacterFile(exportCharacter()).notes).toBe("Remember the password");
+    });
+
+    it("undoes everything typed in one go as one step", () => {
+        state.notes = "H";
+        commit("Changed the notes");
+
+        state.notes = "Hi";
+        commit("Changed the notes", { merge: true });
+
+        expect(undo()).toBe("Changed the notes");
+        expect(state.notes).toBe("");
+        expect(undoLabel()).toBeNull();
+    });
+});
+
 describe("undo", () => {
     it("takes back a named change", () => {
         state.currentHealth = 5;

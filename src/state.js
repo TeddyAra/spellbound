@@ -95,6 +95,9 @@ export const state = {
     // Entries: { id, name, count }
     inventory: [],
 
+    // Whatever the player typed (see notes.js)
+    notes: "",
+
     // The letter tiles on the table (see tiles.js). Entries: { letter, x, y, rotation, z }
     board: [],
 
@@ -903,6 +906,8 @@ export function normalizeState() {
     state.inventory = Array.isArray(state.inventory)
         ? state.inventory.filter(item => typeof item?.name === "string").map(item => newItem(item))
         : [];
+
+    state.notes = typeof state.notes === "string" ? state.notes : "";
 
     normalizeSpellSlots();
 }

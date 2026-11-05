@@ -8,6 +8,7 @@ import "./reference.js";
 import "./features.js";
 import "./inventory.js";
 import "./weapons.js";
+import "./notes.js";
 import "./dicePanel.js";
 import "./diceSettings.js";
 import "./tiles.js";
