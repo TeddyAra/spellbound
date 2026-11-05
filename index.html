@@ -12,62 +12,29 @@
         <link rel="apple-touch-icon" href="/icons/icon-192.png">
         <meta name="theme-color" content="#1d2229">
 
+        <!-- Both themes' font. crossorigin lets the service worker see whether the download worked before keeping it -->
+        <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Condensed:wght@700&display=swap">
+
         <!-- The chosen theme and display preferences, set before the page draws so nothing flashes or jumps (see settings.js, preferences.js) -->
         <script>
             // The phone layout (see phone.js): a narrow window, or a phone on its side
             window.PHONE_QUERY = "(max-width: 700px), (max-height: 500px) and (pointer: coarse)";
             document.documentElement.classList.toggle("phone", window.matchMedia(window.PHONE_QUERY).matches);
 
-            // Only the chosen theme's fonts are downloaded. The Dark and Light themes use the system's own.
-            const ROBOTO = "family=Roboto:wght@400;500;700&family=Roboto+Condensed:wght@700";
-
-            const THEME_FONTS = {
-                crimson: ROBOTO,
-                beyond: ROBOTO,
-                pop: "family=Archivo:wdth,wght@125,900&family=Figtree:wght@400;600;700",
-                noir: "family=Instrument+Serif&family=Inter:wght@400;500;600"
-            };
-
-            window.loadThemeFonts = theme => {
-                const families = THEME_FONTS[theme];
-                const href = families && `https://fonts.googleapis.com/css2?${families}&display=swap`;
-                let link = document.getElementById("themeFonts");
-
-                if (!href) {
-                    link?.remove();
-                } else if (link?.href !== href) {
-                    link?.remove();
-
-                    link = document.createElement("link");
-                    link.id = "themeFonts";
-                    link.rel = "stylesheet";
-                    // Lets the service worker see whether the download worked before keeping it
-                    link.crossOrigin = "anonymous";
-                    link.href = href;
-
-                    document.head.append(link);
-                }
-            };
-
-            // The default is also in settings.js
+            // Beyond (dark) unless Crimson (light) was chosen. The light themes that were retired became Crimson, the rest Beyond.
             let startingTheme = "beyond";
 
             try {
-                // Blueprint was replaced by Crimson (see settings.js)
                 const saved = localStorage.getItem("spellboundTheme");
 
-                if (saved) {
-                    startingTheme = saved === "blueprint" ? "crimson" : saved;
+                if (["crimson", "light", "pop", "blueprint"].includes(saved)) {
+                    startingTheme = "crimson";
                 }
             } catch {
                 // Nothing saved: the default it is
             }
 
-            if (startingTheme !== "original") {
-                document.documentElement.dataset.theme = startingTheme;
-            }
-
-            window.loadThemeFonts(startingTheme);
+            document.documentElement.dataset.theme = startingTheme;
 
             try {
                 // See preferences.js
@@ -156,10 +123,10 @@
                         </strong>
                     </button>
 
-                    <div id="armorBox" class="stat-box">
-                        <span>Armor</span>
-                        <strong id="armorDisplay">0</strong>
-                        <small id="guardDCDisplay" class="stat-note">Guard DC 4</small>
+                    <div id="guardBox" class="stat-box">
+                        <span>Guard DC</span>
+                        <strong id="guardDCDisplay">4</strong>
+                        <small id="armorDisplay" class="stat-note">Armor 0</small>
                     </div>
 
                     <button id="initiativeButton" class="stat-box" title="Initiative: d20 + Move rank">
@@ -170,6 +137,11 @@
                     <div id="passiveRevealBox" class="stat-box" title="Passive Reveal: you notice hidden things with a concealment level up to this">
                         <span>Passive Reveal</span>
                         <strong id="passiveRevealDisplay">1</strong>
+                    </div>
+
+                    <div id="movementBox" class="stat-box" title="Movement: how far you can move on your casting turn. Change it in Character settings.">
+                        <span>Movement</span>
+                        <strong id="movementDisplay">30<span class="stat-unit"> ft</span></strong>
                     </div>
                 </div>
 
@@ -216,10 +188,8 @@
                     </button>
                 </div>
 
-                <button id="weaponButton" class="roll-button" title="Weapon attack: a mundane Harm action">
-                    <span id="weaponNameDisplay">Dagger</span>
-                    <span id="weaponDieDisplay">d4</span>
-                </button>
+                <!-- One per equipped weapon (see casting.js) -->
+                <div id="weaponButtons"></div>
 
                 <hr class="roll-divider">
 
@@ -469,7 +439,10 @@
                             <select class="modal-input" id="subclassInput"></select>
 
                             <label for="levelInput">Level</label>
-                            <input class="modal-input" id="levelInput" type="number" min="1" max="12" step="1" value="1">
+                            <span class="input-with-button">
+                                <input class="modal-input" id="levelInput" type="number" min="1" max="12" step="1" value="1">
+                                <button id="levelUpButton" type="button">Level up</button>
+                            </span>
 
                             <label for="passionNameInput">Passion</label>
                             <input class="modal-input" id="passionNameInput" type="text" maxlength="20" placeholder="e.g. the sea, music, the undead" spellcheck="false">
@@ -528,22 +501,16 @@
                             <span></span>
                             <span id="armorNote" class="result-label small"></span>
 
-                            <label for="weaponNameInput">Weapon</label>
+                            <label for="movementInput">Movement</label>
                             <span class="input-with-button">
-                                <input class="modal-input" id="weaponNameInput" type="text" maxlength="30" spellcheck="false">
-                                <select class="modal-input" id="weaponDieInput" aria-label="Weapon type"></select>
+                                <input class="modal-input" id="movementInput" type="number" min="0" step="5" value="30">
+                                <span class="result-label">feet</span>
                             </span>
 
-                            <span></span>
-                            <span class="input-with-button">
-                                <label class="check-row" title="A bow, sling or thrown weapon. Arcane Archers' Enchanted Arrows make its die one size bigger.">
-                                    <input id="weaponRangedInput" type="checkbox">
-                                    <span>Ranged</span>
-                                </label>
-                                <label class="check-row" title="Held in both hands, so no shield and no Duelist">
-                                    <input id="weaponTwoHandedInput" type="checkbox">
-                                    <span>Two-handed</span>
-                                </label>
+                            <span class="settings-label" title="Add and equip weapons in your inventory">Weapons</span>
+                            <span>
+                                <span id="equippedWeaponsDisplay"></span>
+                                <span class="result-label small">Change them in your inventory.</span>
                             </span>
 
                             <span class="settings-label" title="Highest level a weapon attack can reach">Weapon limit</span>
@@ -925,21 +892,107 @@
             INVENTORY OVERLAY
         ===================================================== -->
         <div id="inventoryOverlay" class="overlay hidden">
-            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="inventoryTitle">
+            <div class="modal inventory-modal" role="dialog" aria-modal="true" aria-labelledby="inventoryTitle">
                 <h2 id="inventoryTitle">Inventory</h2>
 
+                <h3>Weapons</h3>
+
+                <div id="weaponList" aria-label="Weapons"></div>
+
+                <p id="weaponsEmpty" class="result-label hidden">You have no weapons.</p>
+
+                <!-- The standard weapons, or your own (see weapons.js) -->
+                <form id="addWeaponForm" autocomplete="off">
+                    <select class="modal-input" id="standardWeaponInput" aria-label="Standard weapon"></select>
+                    <button type="submit" class="primary">Add</button>
+                    <button id="customWeaponButton" type="button">Make your own</button>
+                </form>
+
+                <form id="customWeaponForm" class="hidden" autocomplete="off">
+                    <h3 id="customWeaponTitle">New weapon</h3>
+
+                    <div class="settings-grid">
+                        <label for="customWeaponName">Name</label>
+                        <input class="modal-input" id="customWeaponName" type="text" maxlength="30" spellcheck="false" required>
+
+                        <label for="customWeaponDie">Type</label>
+                        <select class="modal-input" id="customWeaponDie"></select>
+
+                        <label for="customWeaponDescription">Description</label>
+                        <textarea class="modal-input" id="customWeaponDescription" rows="2" maxlength="200" placeholder="Optional: what it looks like or does"></textarea>
+
+                        <span></span>
+                        <span class="input-with-button">
+                            <label class="check-row" title="A bow, sling or thrown weapon. Arcane Archers' Enchanted Arrows make its die one size bigger.">
+                                <input id="customWeaponRanged" type="checkbox">
+                                <span>Ranged</span>
+                            </label>
+                            <label class="check-row" title="Held in both hands, so no shield and no Duelist">
+                                <input id="customWeaponTwoHanded" type="checkbox">
+                                <span>Two-handed</span>
+                            </label>
+                        </span>
+                    </div>
+
+                    <div class="button-pair">
+                        <button id="saveCustomWeapon" type="submit" class="primary">Add weapon</button>
+                        <button id="cancelCustomWeapon" type="button">Cancel</button>
+                    </div>
+                </form>
+
                 <hr class="roll-divider">
+
+                <h3>Items</h3>
 
                 <div id="inventoryList" aria-label="Items"></div>
 
-                <p id="inventoryEmpty" class="result-label hidden">Your inventory is empty.</p>
+                <p id="inventoryEmpty" class="result-label hidden">You have no items.</p>
 
-                <hr class="roll-divider">
-
+                <!-- The standard items, or your own (see inventory.js) -->
                 <form id="addItemForm" autocomplete="off">
-                    <input class="modal-input" id="addItemInput" type="text" placeholder="Item, e.g. Rope or Potion of Healing" aria-label="Item name">
-                    <input class="modal-input" id="addItemCount" type="number" min="1" step="1" value="1" aria-label="Amount">
+                    <select class="modal-input" id="standardItemInput" aria-label="Standard item"></select>
+                    <input class="modal-input" id="addItemCount" type="number" min="1" max="999" step="1" value="1" aria-label="Amount">
                     <button type="submit" class="primary">Add</button>
+                    <button id="customItemButton" type="button">Make your own</button>
+                </form>
+
+                <form id="customItemForm" class="hidden" autocomplete="off">
+                    <h3 id="customItemTitle">New item</h3>
+
+                    <div class="settings-grid">
+                        <label for="customItemName">Name</label>
+                        <input class="modal-input" id="customItemName" type="text" maxlength="60" spellcheck="false" required>
+
+                        <label for="customItemCount">Amount</label>
+                        <input class="modal-input" id="customItemCount" type="number" min="1" max="999" step="1" value="1">
+
+                        <label for="customItemDescription">Description</label>
+                        <textarea class="modal-input" id="customItemDescription" rows="2" maxlength="200" placeholder="Optional: what it looks like or does"></textarea>
+
+                        <label for="customItemEffect">When used</label>
+                        <select class="modal-input" id="customItemEffect">
+                            <option value="">Rolls nothing</option>
+                            <option value="heal">Heals</option>
+                            <option value="damage">Deals damage</option>
+                        </select>
+
+                        <span id="customItemDiceLabel" class="settings-label">Dice</span>
+                        <span id="customItemDiceRow" class="input-with-button">
+                            <input class="modal-input" id="customItemDice" type="number" min="1" max="20" step="1" value="1" aria-label="Number of dice">
+                            <select class="modal-input" id="customItemSides" aria-label="Die size">
+                                <option value="4">d4</option>
+                                <option value="6">d6</option>
+                                <option value="8">d8</option>
+                                <option value="10">d10</option>
+                                <option value="12">d12</option>
+                            </select>
+                        </span>
+                    </div>
+
+                    <div class="button-pair">
+                        <button id="saveCustomItem" type="submit" class="primary">Add item</button>
+                        <button id="cancelCustomItem" type="button">Cancel</button>
+                    </div>
                 </form>
 
                 <div class="actions">
@@ -966,6 +1019,7 @@
                 </div>
 
                 <div class="actions">
+                    <button id="infoResultAction" class="primary hidden"></button>
                     <button id="closeInfoResult">Close</button>
                 </div>
             </div>

@@ -19,11 +19,16 @@ import {
     STARTING_TONGUES
 } from "./rules.js";
 
+const DEFAULT_MOVEMENT = 30;
+
 export const state = {
     name: "",
     className: "wordweaver",
     subclass: "",
     level: 1,
+
+    // In feet. The rules have no number for it, so the player sets it (see character.js)
+    movement: DEFAULT_MOVEMENT,
 
     passionName: "",
 
@@ -60,7 +65,8 @@ export const state = {
     armor: 0,
     shield: false,
 
-    weapon: { name: "Dagger", die: 4, ranged: false, twoHanded: false },
+    // What the character owns. Equipped ones can be attacked with (see equipWeapon)
+    weapons: [{ id: "starting-dagger", name: "Dagger", description: "", die: 4, ranged: false, twoHanded: false, equipped: true }],
 
     // Max HP follows the class and level, unless the player rolled for it
     rolledHP: false,
@@ -425,26 +431,187 @@ export function allowedWeaponDice() {
     return [...dice].sort((a, b) => a - b);
 }
 
-/* Armor, shield, Iron Hide, and Duelist (one one-handed weapon, so no shield or two-handed weapon). */
+/*
+ * =========================================================
+ * WEAPONS
+ * =========================================================
+ *
+ * A character has two hands. A two-handed weapon takes both, anything else
+ * one, and a shield one. Weapons the class can't use stay in the inventory.
+ */
+
+export const equippedWeapons = () => state.weapons.filter(weapon => weapon.equipped);
+
+export const canEquipWeapon = weapon => allowedWeaponDice().includes(weapon.die);
+
+const handsFor = weapon => weapon.twoHanded ? 2 : 1;
+
+const freeHands = () => 2 - (state.shield ? 1 : 0) - sumOf(equippedWeapons().map(handsFor));
+
+/* A complete weapon from whatever was given: from a form, the standard list, or a save. */
+export function newWeapon({ id, name, description, die, ranged, twoHanded, equipped } = {}) {
+    return {
+        id: typeof id === "string" && id ? id : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+        name: (typeof name === "string" ? name.trim().slice(0, 30) : "") || "Weapon",
+        description: typeof description === "string" ? description.trim().slice(0, 200) : "",
+        die: WEAPON_TYPES[die] ? Number(die) : 4,
+        ranged: Boolean(ranged),
+        twoHanded: Boolean(twoHanded),
+        equipped: Boolean(equipped)
+    };
+}
+
+/* Equips it, putting away whatever it needs the hands of. Returns the names of those. */
+export function equipWeapon(weapon) {
+    const putAway = [];
+
+    weapon.equipped = false;
+
+    for (const other of equippedWeapons()) {
+        if (freeHands() >= handsFor(weapon)) {
+            break;
+        }
+
+        other.equipped = false;
+        putAway.push(other.name);
+    }
+
+    if (freeHands() < handsFor(weapon)) {
+        state.shield = false;
+        putAway.push("shield");
+    }
+
+    weapon.equipped = true;
+
+    return putAway;
+}
+
+/* Takes up the shield, putting away the last weapon(s) until a hand is free. Returns their names. */
+export function equipShield() {
+    const putAway = [];
+
+    state.shield = true;
+
+    while (freeHands() < 0) {
+        const last = equippedWeapons().at(-1);
+
+        last.equipped = false;
+        putAway.push(last.name);
+    }
+
+    return putAway;
+}
+
+/* Why Duelist doesn't count right now, or null if it does: one one-handed weapon, and nothing else. */
+export function duelistProblem() {
+    const equipped = equippedWeapons();
+
+    if (state.shield) return "not with a shield";
+    if (equipped.length === 0) return "needs a weapon";
+    if (equipped.length > 1) return "only with one weapon";
+
+    return equipped[0].twoHanded ? "not with a two-handed weapon" : null;
+}
+
+/*
+ * Old saves have one `weapon`: it becomes the only one, equipped. Weapons the
+ * class can't use and those that don't fit in two hands are put away.
+ */
+function normalizeWeapons() {
+    if (state.weapon) {
+        state.weapons = [{ ...state.weapon, equipped: true }];
+
+        delete state.weapon;
+    }
+
+    state.weapons = (Array.isArray(state.weapons) ? state.weapons : [])
+        .filter(weapon => weapon && typeof weapon === "object")
+        .map(weapon => newWeapon(weapon));
+
+    for (const weapon of equippedWeapons()) {
+        weapon.equipped = false;
+
+        if (canEquipWeapon(weapon) && freeHands() >= handsFor(weapon)) {
+            weapon.equipped = true;
+        }
+    }
+}
+
+/*
+ * =========================================================
+ * ITEMS
+ * =========================================================
+ */
+
+const ITEM_EFFECTS = ["heal", "damage"];
+const EFFECT_DICE = [4, 6, 8, 10, 12];
+
+/* What an item's Use button rolls, or null if it has none. */
+function itemEffect(effect) {
+    if (!ITEM_EFFECTS.includes(effect?.kind) || !EFFECT_DICE.includes(Number(effect.sides))) {
+        return null;
+    }
+
+    return { kind: effect.kind, dice: clamp(Math.floor(Number(effect.dice)) || 1, 1, 20), sides: Number(effect.sides) };
+}
+
+/* A complete item from whatever was given: from a form, the standard list, or a save. */
+export function newItem({ id, name, description, count, effect } = {}) {
+    return {
+        id: typeof id === "string" && id ? id : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+        name: (typeof name === "string" ? name.trim().slice(0, 60) : "") || "Item",
+        description: typeof description === "string" ? description.trim().slice(0, 200) : "",
+        count: clamp(Math.floor(Number(count)) || 1, 1, 999),
+        effect: itemEffect(effect)
+    };
+}
+
+/*
+ * Adding something you already carry raises its amount instead, and gives it
+ * any details it didn't have: older saves have just a name and an amount.
+ */
+export function addToInventory(fields) {
+    const item = newItem(fields);
+    const existing = state.inventory.find(entry => entry.name.toLowerCase() === item.name.toLowerCase());
+
+    if (!existing) {
+        state.inventory.push(item);
+
+        return item;
+    }
+
+    existing.count = Math.min(existing.count + item.count, 999);
+    existing.description ||= item.description;
+    existing.effect ??= item.effect;
+
+    return existing;
+}
+
+/* Armor, shield, Iron Hide, and Duelist. */
 export function effectiveArmor() {
     return state.armor
         + (state.shield ? 1 : 0)
         + (hasFeat("ironHide") ? 1 : 0)
-        + (hasFeat("duelist") && !state.shield && !state.weapon.twoHanded ? 1 : 0);
+        + (hasFeat("duelist") && !duelistProblem() ? 1 : 0);
 }
 
 export function initiativeBonus() {
     return rank("move") + (hasFeat("alert") ? 5 : 0);
 }
 
+/* The equipped weapon with the biggest die: the one for features that just say "your weapon die", like Parry. */
+export function strongestWeapon() {
+    return equippedWeapons().reduce((best, weapon) => !best || weapon.die > best.die ? weapon : best, null);
+}
+
 /* Arcane Archer: Enchanted Arrows makes a ranged weapon die one size bigger. */
-export const enchantedArrows = () => subclassIs("arcaneArcher") && state.weapon.ranged;
+export const enchantedArrows = (weapon = strongestWeapon()) => subclassIs("arcaneArcher") && Boolean(weapon?.ranged);
 
 /* Spellblade: Weapon Mastery and Enchanted Arrows each make the weapon die one size bigger. */
-export function weaponDie() {
+export function weaponDie(weapon = strongestWeapon()) {
     const masterful = state.className === "spellblade" && state.level >= 6;
 
-    return biggerDie(state.weapon.die, (masterful ? 1 : 0) + (enchantedArrows() ? 1 : 0));
+    return biggerDie(weapon?.die ?? 4, (masterful ? 1 : 0) + (enchantedArrows(weapon) ? 1 : 0));
 }
 
 /* Spellfury: weapon attacks deal one extra weapon die. */
@@ -615,11 +782,17 @@ export function normalizeAction(action) {
         school: action.school,
         mode: action.mode,
         slotIndex: Number.isInteger(action.slotIndex) ? action.slotIndex : null,
+        weaponId: typeof action.weaponId === "string" ? action.weaponId : null,
         level: action.level,
         highest: Number(action.highest) || 0,
         precise: Boolean(action.precise),
         split
     };
+}
+
+/* One level up, stopping at the highest level. The caller commits. */
+export function levelUp() {
+    state.level = Math.min(state.level + 1, MAX_LEVEL);
 }
 
 /* Keeps every value in range, e.g. after loading a save or changing level. */
@@ -645,6 +818,11 @@ export function normalizeState() {
 
     state.level = clamp(Number(state.level) || 1, 1, MAX_LEVEL);
 
+    // Characters from before movement existed get the default
+    const movement = Math.floor(Number(state.movement));
+
+    state.movement = movement >= 0 ? movement : DEFAULT_MOVEMENT;
+
     // Points are never taken away automatically: spending too many is shown as a reminder instead
     for (const school of RANKED_SCHOOLS) {
         state.rankPoints[school] = Math.max(0, Math.floor(Number(state.rankPoints[school]) || 0));
@@ -658,21 +836,7 @@ export function normalizeState() {
     state.armor = clamp(Math.floor(Number(state.armor) || 0), 0, Math.min(maxArmor(), ARMOR_TYPES.length - 1));
     state.shield = Boolean(state.shield) && canUseShield();
 
-    const weaponDice = allowedWeaponDice();
-
-    state.weapon = {
-        name: typeof state.weapon?.name === "string" ? state.weapon.name : "",
-        die: WEAPON_TYPES[state.weapon?.die] && weaponDice.includes(Number(state.weapon.die))
-            ? Number(state.weapon.die)
-            : weaponDice[0],
-        ranged: Boolean(state.weapon?.ranged),
-        twoHanded: Boolean(state.weapon?.twoHanded)
-    };
-
-    // A two-handed weapon leaves no hand for a shield
-    if (state.weapon.twoHanded) {
-        state.shield = false;
-    }
+    normalizeWeapons();
 
     state.rolledHP = Boolean(state.rolledHP);
 
@@ -737,7 +901,7 @@ export function normalizeState() {
     };
 
     state.inventory = Array.isArray(state.inventory)
-        ? state.inventory.filter(item => typeof item?.name === "string")
+        ? state.inventory.filter(item => typeof item?.name === "string").map(item => newItem(item))
         : [];
 
     normalizeSpellSlots();

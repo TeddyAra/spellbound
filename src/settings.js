@@ -14,70 +14,29 @@ import { renderDiceSettings } from "./diceSettings.js";
 
 const THEME_KEY = "spellboundTheme";
 
-// Also in index.html
-const DEFAULT_THEME = "beyond";
-
 // Theme key → name, a short description, and swatches for its preview
 const THEMES = {
-    // Saved as "original", from before it was renamed
-    original: {
-        name: "Dark",
-        description: "Dark, with violet accents",
-        swatches: ["#101116", "#1b1d25", "#9d7cff", "#f3f3f5"]
-    },
-    light: {
-        name: "Light",
-        description: "The dark theme, but light",
-        swatches: ["#f5f5f9", "#ffffff", "#7c5cf0", "#16171d"]
-    },
-    crimson: {
-        name: "Crimson",
-        description: "White sheets in crimson frames",
-        swatches: ["#262626", "#ffffff", "#c53131", "#e3e7eb"]
-    },
-    pop: {
-        name: "Pop",
-        description: "Sunny gradient and chunky outlines",
-        swatches: ["#f4787f", "#fbef82", "#6be675", "#161616"]
-    },
     beyond: {
-        name: "Beyond",
-        description: "Dark slate and blue, like D&D Beyond",
+        name: "Dark",
+        description: "Dark slate and blue",
         swatches: ["#1d2229", "#3d4855", "#1b9af7", "#e40712"]
     },
-    noir: {
-        name: "Noir",
-        description: "Pitch black with burnt orange",
-        swatches: ["#000000", "#222222", "#d4471f", "#ededed"]
+    crimson: {
+        name: "Light",
+        description: "White sheets in crimson frames",
+        swatches: ["#262626", "#ffffff", "#c53131", "#e3e7eb"]
     }
 };
 
 const settingsOverlay = $("settingsOverlay");
 
+/* index.html has already worked this out from the saved choice, retired themes included. */
 function savedTheme() {
-    try {
-        const theme = localStorage.getItem(THEME_KEY);
-
-        // Blueprint was replaced by Crimson
-        if (theme === "blueprint") {
-            return "crimson";
-        }
-
-        return THEMES[theme] ? theme : DEFAULT_THEME;
-    } catch {
-        return DEFAULT_THEME;
-    }
+    return document.documentElement.dataset.theme;
 }
 
 function applyTheme(theme) {
-    // Only this theme's fonts are downloaded (see index.html)
-    window.loadThemeFonts?.(theme);
-
-    if (theme === "original") {
-        delete document.documentElement.dataset.theme;
-    } else {
-        document.documentElement.dataset.theme = theme;
-    }
+    document.documentElement.dataset.theme = theme;
 }
 
 function setTheme(theme) {
@@ -203,5 +162,3 @@ settingsOverlay.addEventListener("click", event => {
         closeColorPicker();
     }
 });
-
-applyTheme(savedTheme());

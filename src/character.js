@@ -10,6 +10,7 @@ import {
     rawRank,
     classBonus,
     canRaiseRank,
+    levelUp,
     rankPointsLeft,
     schoolsOverCap,
     schoolName,
@@ -19,7 +20,9 @@ import {
     calculatedMaxHealth,
     maxArmor,
     canUseShield,
-    allowedWeaponDice,
+    equippedWeapons,
+    equipShield,
+    duelistProblem,
     effectiveArmor,
     initiativeBonus,
     weaponDie,
@@ -45,7 +48,6 @@ import {
     SUBCLASS_LEVEL,
     TONGUES,
     ARMOR_TYPES,
-    WEAPON_TYPES,
     rankCap,
     guardDC,
     poolNotation
@@ -133,7 +135,7 @@ export const armorReduces = armor => damage => damage > 0 ? Math.max(1, damage -
 
 /* Parry (Spellblade, level 3; Spellguard, level 2): the weapon die, rolled twice with a shield. */
 function canParry() {
-    return state.className === "spellblade" && (state.level >= 3 || subclassIs("spellguard"));
+    return state.className === "spellblade" && (state.level >= 3 || subclassIs("spellguard")) && equippedWeapons().length > 0;
 }
 
 const parryDice = () => `${state.shield ? 2 : 1}d${weaponDie()}`;
@@ -268,16 +270,14 @@ function renderStats() {
     $("characterNameDisplay").textContent = state.name.trim() || "Unnamed adventurer";
     $("characterClassDisplay").textContent = classLine();
 
-    $("armorDisplay").textContent = effectiveArmor();
-    $("guardDCDisplay").textContent = `Guard DC ${guardDC(state.level)}`;
-    $("armorBox").title = `Armor reduces every instance of damage, to a minimum of 1.\n\n` +
-        `Guard DC ${guardDC(state.level)}: the DC when an enemy aims a spell or mundane action at you. ` +
-        `The DM can raise it by 1 or 2 when the attack suits you poorly, or lower it when it exploits a weakness.`;
+    $("guardDCDisplay").textContent = guardDC(state.level);
+    $("armorDisplay").textContent = `Armor ${effectiveArmor()}`;
+    $("guardBox").title = `Guard DC ${guardDC(state.level)}: the DC when an enemy aims a spell or mundane action at you. ` +
+        `The DM can raise it by 1 or 2 when the attack suits you poorly, or lower it when it exploits a weakness.\n\n` +
+        `Armor ${effectiveArmor()}: reduces every instance of damage, to a minimum of 1.`;
     $("initiativeDisplay").textContent = formatModifier(initiativeBonus());
     $("passiveRevealDisplay").textContent = rank("reveal");
-
-    $("weaponNameDisplay").textContent = state.weapon.name.trim() || "Weapon attack";
-    $("weaponDieDisplay").textContent = `d${weaponDie()}`;
+    $("movementDisplay").replaceChildren(String(state.movement), element("span", "stat-unit", " ft"));
 
     $("shortRestsDisplay").textContent = `${state.shortRests} / 2`;
 
@@ -485,13 +485,13 @@ const nameInput = $("nameInput");
 const classInput = $("classInput");
 const subclassInput = $("subclassInput");
 const levelInput = $("levelInput");
+const levelUpButton = $("levelUpButton");
+const movementInput = $("movementInput");
 const passionNameInput = $("passionNameInput");
 const maxHPInput = $("maxHPInput");
 const rolledHPInput = $("rolledHPInput");
 const armorInput = $("armorInput");
 const shieldInput = $("shieldInput");
-const weaponNameInput = $("weaponNameInput");
-const weaponDieInput = $("weaponDieInput");
 
 classInput.replaceChildren(...Object.entries(CLASSES).map(([key, info]) => {
     const option = element("option", null, info.name);
@@ -702,20 +702,12 @@ function renderEquipment() {
     if (hasFeat("ironHide")) extras.push("Iron Hide +1");
 
     if (hasFeat("duelist")) {
-        extras.push(state.shield ? "Duelist: not with a shield" : state.weapon.twoHanded ? "Duelist: not with a two-handed weapon" : "Duelist +1");
+        extras.push(duelistProblem() ? `Duelist: ${duelistProblem()}` : "Duelist +1");
     }
 
     $("armorNote").textContent = `Armor value ${effectiveArmor()}` + (extras.length ? ` (${extras.join(", ")})` : "");
 
-    setValue(weaponNameInput, state.weapon.name);
-    $("weaponRangedInput").checked = state.weapon.ranged;
-    $("weaponTwoHandedInput").checked = state.weapon.twoHanded;
-
-    fillSelect(
-        weaponDieInput,
-        allowedWeaponDice().map(die => [die, `${WEAPON_TYPES[die]} (d${die})`]),
-        state.weapon.die
-    );
+    $("equippedWeaponsDisplay").textContent = equippedWeapons().map(weapon => `${weapon.name} (d${weaponDie(weapon)})`).join(", ") || "None equipped";
 
     $("weaponLimitDisplay").textContent = `${weaponMortalLimit()} · ${mortalLimitSources("weapon").join(", ")}`;
 }
@@ -727,6 +719,9 @@ function renderSettings() {
     classInput.value = state.className;
     renderSubclassOptions();
     setValue(levelInput, state.level);
+    levelUpButton.disabled = state.level >= MAX_LEVEL;
+    levelUpButton.title = state.level >= MAX_LEVEL ? `Level ${MAX_LEVEL} is the highest level` : `Go up to level ${state.level + 1}`;
+    setValue(movementInput, state.movement);
     setValue(passionNameInput, state.passionName);
 
     $("classSummary").textContent =
@@ -802,6 +797,24 @@ levelInput.addEventListener("change", () => {
     levelInput.value = state.level;
 });
 
+levelUpButton.addEventListener("click", () => {
+    levelUp();
+    commit(`Levelled up to ${state.level}`);
+});
+
+movementInput.addEventListener("input", () => {
+    const value = parseInt(movementInput.value, 10);
+
+    if (!Number.isNaN(value)) {
+        state.movement = Math.max(0, value);
+        commit();
+    }
+});
+
+movementInput.addEventListener("change", () => {
+    movementInput.value = state.movement;
+});
+
 passionNameInput.addEventListener("input", () => {
     state.passionName = passionNameInput.value.slice(0, 20);
     commit();
@@ -835,39 +848,20 @@ armorInput.addEventListener("change", () => {
 });
 
 shieldInput.addEventListener("change", () => {
-    state.shield = shieldInput.checked;
-
-    if (state.shield) {
-        state.weapon.twoHanded = false;
-    }
-
-    commit();
-});
-
-weaponNameInput.addEventListener("input", () => {
-    state.weapon.name = weaponNameInput.value.slice(0, 30);
-    commit();
-});
-
-$("weaponRangedInput").addEventListener("change", event => {
-    state.weapon.ranged = event.target.checked;
-    commit();
-});
-
-/* A two-handed weapon leaves no hand for a shield (and turns Duelist off). */
-$("weaponTwoHandedInput").addEventListener("change", event => {
-    state.weapon.twoHanded = event.target.checked;
-
-    if (state.weapon.twoHanded) {
+    if (!shieldInput.checked) {
         state.shield = false;
+        commit();
+
+        return;
     }
 
-    commit();
-});
+    const putAway = equipShield();
 
-weaponDieInput.addEventListener("change", () => {
-    state.weapon.die = Number(weaponDieInput.value);
-    commit();
+    if (putAway.length) {
+        commit(`Took up the shield and put away ${putAway.join(" and ")}`, { toast: true });
+    } else {
+        commit();
+    }
 });
 
 addNumberPicker(healthAmountInput);

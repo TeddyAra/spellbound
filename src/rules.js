@@ -78,6 +78,66 @@ export const WEAPON_TYPES = {
     10: "Heavy"
 };
 
+/* The weapons offered in the inventory, by type. Anything else can be made there too (see weapons.js). */
+export const STANDARD_WEAPONS = [
+    { name: "Dagger", die: 4 },
+    { name: "Dart", die: 4, ranged: true },
+    { name: "Sling", die: 4, ranged: true },
+    { name: "Whip", die: 4 },
+
+    { name: "Club", die: 6 },
+    { name: "Hammer", die: 6 },
+    { name: "Handaxe", die: 6 },
+    { name: "Javelin", die: 6, ranged: true },
+    { name: "Mace", die: 6 },
+    { name: "Quarterstaff", die: 6, twoHanded: true },
+    { name: "Shortbow", die: 6, ranged: true, twoHanded: true },
+    { name: "Shortsword", die: 6 },
+    { name: "Spear", die: 6 },
+
+    { name: "Battleaxe", die: 8 },
+    { name: "Crossbow", die: 8, ranged: true, twoHanded: true },
+    { name: "Flail", die: 8 },
+    { name: "Longbow", die: 8, ranged: true, twoHanded: true },
+    { name: "Longsword", die: 8 },
+    { name: "Morningstar", die: 8 },
+    { name: "Rapier", die: 8 },
+    { name: "Scimitar", die: 8 },
+    { name: "Warhammer", die: 8 },
+
+    { name: "Greataxe", die: 10, twoHanded: true },
+    { name: "Greatclub", die: 10, twoHanded: true },
+    { name: "Greatsword", die: 10, twoHanded: true },
+    { name: "Halberd", die: 10, twoHanded: true },
+    { name: "Heavy crossbow", die: 10, ranged: true, twoHanded: true },
+    { name: "Maul", die: 10, twoHanded: true }
+];
+
+/*
+ * The items offered in the inventory. Anything else can be made there too (see inventory.js).
+ *   effect: what its Use button rolls: { kind: "heal" or "damage", dice, sides }
+ *   amount: how many you get at once, if not 1
+ */
+export const STANDARD_ITEMS = [
+    { group: "Healing", name: "Potion of Healing", description: "Bonus action: heals 2d8.", effect: { kind: "heal", dice: 2, sides: 8 } },
+    { group: "Healing", name: "Greater Potion of Healing", description: "Bonus action: heals 4d8.", effect: { kind: "heal", dice: 4, sides: 8 } },
+    { group: "Healing", name: "Bandages", description: "For first aid: add 1 to the total of the roll." },
+    { group: "Healing", name: "Antidote", description: "Ends one poison." },
+    { group: "Healing", name: "Healer's Kit", description: "Supplies for first aid." },
+
+    { group: "Combat", name: "Alchemist's Fire", description: "Thrown as a bonus action: 2d6 damage.", effect: { kind: "damage", dice: 2, sides: 6 } },
+    { group: "Combat", name: "Smoke Bomb", description: "Thrown as a bonus action: blocks sight within 10 feet for 1 round." },
+    { group: "Combat", name: "Ammunition", description: "Arrows, bolts or sling stones.", amount: 20 },
+
+    { group: "Adventuring gear", name: "Ink and Quill", description: "For writing spells and runes." },
+    { group: "Adventuring gear", name: "Rations", description: "A day's food." },
+    { group: "Adventuring gear", name: "Waterskin", description: "Holds a day's water." },
+    { group: "Adventuring gear", name: "Bedroll", description: "For sleeping outdoors." },
+    { group: "Adventuring gear", name: "Rope", description: "50 feet." },
+    { group: "Adventuring gear", name: "Torch", description: "Gives light for an hour." },
+    { group: "Adventuring gear", name: "Thieves' Tools", description: "For picking locks as a mundane action." }
+];
+
 // Armor value → type
 export const ARMOR_TYPES = ["None", "Light", "Medium", "Heavy"];
 

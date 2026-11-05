@@ -134,6 +134,21 @@ const SECTIONS = {
         note: "A spell can affect as many creatures as it has effect dice."
     }),
 
+    creationQuality: () => tableSection({
+        title: "Creation Quality",
+        head: ["Level", "Quality", "Largest size"],
+        rows: [
+            ["1", "Crude: a chipped, dull sword", "Something you can hold"],
+            ["2", "Serviceable", "Something you can carry"],
+            ["3", "Good, well made", "Furniture"],
+            ["4", "Fine", "A cart"],
+            ["5", "Masterwork", "A house"],
+            ["6", "Exceptional", "A hall"],
+            ["7", "Legendary", "A fortress"],
+            ["8", "Wondrous", "A castle"]
+        ]
+    }),
+
     mundane: () => textSection("Mundane Actions", [
         "No tiles, no backfire, and a mortal limit of level 3 unless a feature raises it."
     ]),
@@ -194,9 +209,9 @@ const SECTIONS = {
 
 /* Three columns of about the same height; the glossary fills what's left of the last. */
 const COLUMNS = [
-    ["coreLoop", "castingPools", "difficulty", "volume", "mundane"],
-    ["effectDice", "savingThrows", "lastingEffects", "deathRolls"],
-    ["everyDie", "tongues", "glossary"]
+    ["coreLoop", "castingPools", "difficulty", "volume", "mundane", "lastingEffects"],
+    ["effectDice", "savingThrows", "deathRolls", "everyDie"],
+    ["creationQuality", "tongues", "glossary"]
 ];
 
 /*

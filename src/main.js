@@ -7,6 +7,7 @@ import "./construct.js";
 import "./reference.js";
 import "./features.js";
 import "./inventory.js";
+import "./weapons.js";
 import "./dicePanel.js";
 import "./diceSettings.js";
 import "./tiles.js";

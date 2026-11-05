@@ -13,6 +13,8 @@ import {
     hasFeat,
     weaponDie,
     weaponExtraDice,
+    equippedWeapons,
+    strongestWeapon,
     battleHymnOnSelf,
     enchantedArrows,
     effectiveArmor,
@@ -49,7 +51,7 @@ import { openSaveSpell, hasEmptySlot } from "./spellSlots.js";
  *   spell     a new spell: draws tiles equal to the total
  *   saved     a saved spell: casts at its saved level, then may grow
  *   mundane   no tiles, level capped by the mortal limit
- *   weapon    a mundane Harm action that rolls the weapon die per level
+ *   weapon    a mundane Harm action that rolls one equipped weapon's die per level
  *   save      a saving throw: only success matters
  *   counter   Prepare: each surge lowers an enemy spell's level
  *
@@ -77,9 +79,9 @@ const actionPanel = $("actionPanel");
 const dcInput = $("dcInput");
 
 // What's being set up in the roll window
-let setup = { school: "harm", mode: "spell", slotIndex: null, extraDice: 0 };
+let setup = { school: "harm", mode: "spell", slotIndex: null, weaponId: null, extraDice: 0 };
 
-// The last roll: { school, mode, slotIndex, sides, rolls, rerolled: Set, dc, overchannel }
+// The last roll: { school, mode, slotIndex, weaponId, sides, rolls, rerolled: Set, dc, overchannel }
 let roll = null;
 
 /* The modes a school can be rolled for. */
@@ -98,6 +100,9 @@ function modesFor(school) {
 
     return modes;
 }
+
+/* The weapon a roll or action is for. If it has been thrown away since: the best one left. */
+const attackWeapon = ({ weaponId }) => state.weapons.find(weapon => weapon.id === weaponId) ?? strongestWeapon();
 
 /* The school a roll uses: weapon attacks always roll Harm. */
 const rollSchool = ({ school, mode }) => isWeaponMode(mode) ? "harm" : school;
@@ -184,7 +189,8 @@ function modeHint() {
         case "mundane":
             return `No tiles, no backfire. Level capped at your mortal limit of ${mortalLimit(school, lettered(setup))}.`;
         case "weapon":
-            return `Damage: d${weaponDie()} per level. Mortal limit ${weaponMortalLimit()}.`;
+            return `Damage: d${weaponDie(attackWeapon(setup))} per level. Mortal limit ${weaponMortalLimit()}.` +
+                (attackWeapon(setup)?.description ? ` ${attackWeapon(setup).description}` : "");
         case "save":
             return `Resists: ${SAVING_THROWS[school]}. Against a spell, the DC is its level + 3.`;
         case "counter":
@@ -217,17 +223,22 @@ function modeButtons() {
         return [];
     }
 
-    return modesFor(setup.school).map(mode => {
-        const button = element("button", mode === setup.mode ? "selected" : null, MODES[mode].label);
+    const modeButton = (label, selected, change) => {
+        const button = element("button", selected ? "selected" : null, label);
 
         button.type = "button";
         button.addEventListener("click", () => {
-            setup.mode = mode;
+            Object.assign(setup, change);
             renderSetup();
         });
 
         return button;
-    });
+    };
+
+    // Each equipped weapon is a mode of its own
+    return modesFor(setup.school).flatMap(mode => mode === "weapon"
+        ? equippedWeapons().map(weapon => modeButton(weapon.name, setup.mode === "weapon" && setup.weaponId === weapon.id, { mode, weaponId: weapon.id }))
+        : [modeButton(MODES[mode].label, mode === setup.mode, { mode })]);
 }
 
 function renderSetup() {
@@ -237,7 +248,7 @@ function renderSetup() {
     $("rollSetupTitle").textContent = setup.mode === "saved"
         ? state.spellSlots[setup.slotIndex].name.toUpperCase()
         : setup.mode === "weapon"
-            ? state.weapon.name.trim() || "Weapon attack"
+            ? attackWeapon(setup)?.name ?? "Weapon attack"
             : isConstruct(setup)
                 ? `${constructName()} ${setup.mode === "constructWeapon" ? "attack" : "action"}`
                 : schoolName(setup.school);
@@ -260,9 +271,9 @@ function renderSetup() {
         (bonuses.length ? ` (${bonuses.join(", ")})` : "");
 }
 
-/* Opens the roll window for a school, a weapon attack, or a saved spell (slotIndex). */
-export function openRollSetup(school, mode = "spell", slotIndex = null) {
-    setup = { school, mode, slotIndex, extraDice: 0, lettered: false };
+/* Opens the roll window for a school, a weapon attack (weaponId), or a saved spell (slotIndex). */
+export function openRollSetup(school, mode = "spell", slotIndex = null, weaponId = null) {
+    setup = { school, mode, slotIndex, weaponId, extraDice: 0, lettered: false };
     dcInput.value = preference("rememberDC") ? preference("lastDC") : "";
 
     renderSetup();
@@ -334,7 +345,20 @@ for (const button of document.querySelectorAll(".school-button")) {
     button.addEventListener("click", () => openRollSetup(button.dataset.school));
 }
 
-$("weaponButton").addEventListener("click", () => openRollSetup("harm", "weapon"));
+/* One button per equipped weapon, above the schools. */
+function weaponButton(weapon) {
+    const button = element("button", "roll-button");
+
+    button.title = `${weapon.name}: a mundane Harm action` + (weapon.description ? `\n\n${weapon.description}` : "");
+    button.append(element("span", null, weapon.name), element("span", "weapon-die", `d${weaponDie(weapon)}`));
+    button.addEventListener("click", () => openRollSetup("harm", "weapon", null, weapon.id));
+
+    return button;
+}
+
+document.addEventListener("statechange", () => {
+    $("weaponButtons").replaceChildren(...equippedWeapons().map(weaponButton));
+});
 
 /*
  * =========================================================
@@ -714,7 +738,7 @@ function rollWeaponDamage(level, mode = "weapon") {
         return rollEffect(`${constructName()} Damage`, level, constructDie());
     }
 
-    return rollEffect("Weapon Damage", level + weaponExtraDice(), weaponDie(), { extra: warChant() });
+    return rollEffect(`${attackWeapon(action)?.name ?? "Weapon"} Damage`, level + weaponExtraDice(), weaponDie(attackWeapon(action)), { extra: warChant() });
 }
 
 /* Harm, Aid and Passion spells can share their dice between targets (see splitDice in rules.js). */
@@ -913,8 +937,8 @@ function effectButtons() {
         }
 
         // Volley (Arcane Archer): a second target, its damage rolled separately
-        if (enchantedArrows() && state.level >= 5) {
-            add(`Volley: second target ${level + weaponExtraDice()}d${weaponDie()}`, () => rollWeaponDamage(level));
+        if (enchantedArrows(attackWeapon(action)) && state.level >= 5) {
+            add(`Volley: second target ${level + weaponExtraDice()}d${weaponDie(attackWeapon(action))}`, () => rollWeaponDamage(level));
         }
     } else if (mode === "mundane") {
         if (school === "aid") {
@@ -984,7 +1008,7 @@ function actionHint() {
             warChant() ? "War Chant +1d4" : null
         ].filter(Boolean);
 
-        const parts = [`Damage: ${level + weaponExtraDice()}d${weaponDie()}${warChant() ? " + 1d4" : ""}${extras.length ? ` (${extras.join(", ")})` : ""}.`];
+        const parts = [`Damage: ${level + weaponExtraDice()}d${weaponDie(attackWeapon(action))}${warChant() ? " + 1d4" : ""}${extras.length ? ` (${extras.join(", ")})` : ""}.`];
 
         // Bladeword: 4 letters, 5 from Weapon Mastery, one more with Charged Blade, no limit from Spellstorm
         if (state.className === "spellblade") {
@@ -1028,7 +1052,7 @@ function renderActionPanel() {
         spell: `${schoolName(school)} spell`,
         saved: state.spellSlots[action.slotIndex]?.name.toUpperCase() ?? "Saved spell",
         mundane: `mundane ${schoolName(school)} action`,
-        weapon: state.weapon.name.trim() ? `${state.weapon.name.trim()} attack` : "weapon attack",
+        weapon: attackWeapon(action) ? `${attackWeapon(action).name} attack` : "weapon attack",
         constructWeapon: `${constructName()} attack`,
         constructAction: `${constructName()} action`
     }[mode];
@@ -1066,6 +1090,7 @@ function openActionPanel(level) {
         school: roll.school,
         mode: roll.mode,
         slotIndex: roll.slotIndex,
+        weaponId: roll.weaponId,
         level,
         highest: Math.max(...roll.rolls),
         precise: false,

@@ -11,8 +11,9 @@ const logDetail = rows => rows.map(([label, value]) => label ? `${label}: ${valu
  *   rows: [[label, value], ...]
  *   list: optional { title, values } rendered as small boxes (dice, letters)
  *   log:  false for a message that isn't something that happened
+ *   action: optional { label, onClick }, a main button that also closes the popup
  */
-export function showInfoResult(title, rows, list = null, { log = true } = {}) {
+export function showInfoResult(title, rows, list = null, { log = true, action = null } = {}) {
     if (log) {
         addLog(title, logDetail(rows), list?.values ?? []);
     }
@@ -48,6 +49,15 @@ export function showInfoResult(title, rows, list = null, { log = true } = {}) {
     } else {
         hide(listBox);
     }
+
+    const actionButton = $("infoResultAction");
+
+    actionButton.classList.toggle("hidden", !action);
+    actionButton.textContent = action?.label ?? "";
+    actionButton.onclick = action && (() => {
+        hide(infoResultOverlay);
+        action.onClick();
+    });
 
     show(infoResultOverlay);
 }
