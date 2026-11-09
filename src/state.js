@@ -377,7 +377,10 @@ export const constructDown = () => constructParts().every(part => part.destroyed
 export const partsStanding = () => constructParts().filter(part => !part.destroyed).length;
 
 /* A fresh small construct, at full hit points. */
-export const newHelper = () => ({ damage: 0, destroyed: false });
+export const newHelper = () => ({ name: "", damage: 0, destroyed: false });
+
+/* A long rest repairs or rebuilds a small construct, and it keeps its name. */
+export const restedHelper = helper => ({ ...newHelper(), name: helper.name });
 
 /*
  * When Colossus ends, the extra hit points go first: what's left of its
@@ -408,7 +411,7 @@ export function constructDie() {
 /* Colossus (Warforger, level 10). */
 export const canColossus = () => subclassIs("warforger") && state.level >= 10;
 
-/* Field Repairs (level 3): mundane Change and Create actions repair it, and it can be rebuilt during a short rest. */
+/* Field Repairs (level 3): mundane Change and Create actions repair it, and it regains hit points during short rests. */
 export const hasFieldRepairs = () => hasConstruct() && state.level >= 3;
 
 /*
@@ -420,7 +423,29 @@ export const hasFieldRepairs = () => hasConstruct() && state.level >= 3;
 /* Martial Training (feat), War Chant (Skald) and Carved Arms (Runecarver) allow medium armor and martial weapons. */
 const martial = () => hasFeat("martialTraining") || subclassIs("skald") || subclassIs("runecarver");
 
-export const maxArmor = () => Math.max(characterClass().armor, martial() ? 2 : 0);
+/* Medium armor from the class, Martial Training, War Chant or Carved Arms: needed for Heavy Armor Training. */
+const mediumArmor = () => characterClass().armor >= 2 || martial();
+
+export const maxArmor = () => Math.max(characterClass().armor, martial() ? 2 : 0, hasFeat("heavyArmorTraining") && mediumArmor() ? 3 : 0);
+
+/* Why a feat can't be taken yet, or null: too low a level, or Heavy Armor Training without medium armor. */
+export function featLock(feat) {
+    if ((feat.minLevel ?? 1) > state.level) {
+        return `Needs level ${feat.minLevel}`;
+    }
+
+    if (feat.requires === "mediumArmor" && !mediumArmor()) {
+        return "Needs medium armor first, such as from Martial Training";
+    }
+
+    return null;
+}
+
+/* Fleet-Footed: 10 feet further. */
+export const movementSpeed = () => state.movement + (hasFeat("fleetFooted") ? 10 : 0);
+
+/* Your Reveal rank, 1 higher with Observant. */
+export const passiveReveal = () => rank("reveal") + (hasFeat("observant") ? 1 : 0);
 
 export const canUseShield = () => Boolean(characterClass().shield) || hasFeat("shieldAdept");
 
@@ -724,24 +749,57 @@ function schoolChoices(choices, length) {
     });
 }
 
-/* Two Tongues, and one more for every time Polyglot was taken, up to every Tongue there is. */
-export const tongueCount = () => Math.min(Object.keys(TONGUES).length, STARTING_TONGUES + featCount("polyglot"));
+/*
+ * Tongues are learned in order: the native Tongue first, then a second one,
+ * then one more each time Polyglot is taken. You're fluent in your native
+ * Tongue and in any Tongue learned twice, and only fluent Tongues give their
+ * perk. The others you speak well, but without the perk. So a Tongue can be
+ * picked twice at most, and the native one only once (it's already fluent).
+ */
 
-/* A list of `length` Tongues (or "" for not chosen yet), keeping what was picked and never one twice. */
-function tongueChoices(choices, length) {
-    const seen = new Set();
+/* How many times `key` can be picked, going by the native Tongue. */
+const tongueLimit = (key, native) => key === native ? 1 : 2;
+
+/* Two learnings, and one more per Polyglot, up to being fluent in every Tongue. */
+export const tongueCount = () => Math.min(Object.keys(TONGUES).length * 2 - 1, STARTING_TONGUES + featCount("polyglot"));
+
+/* A list of `length` Tongues (or "" for not chosen yet), keeping what was picked, as often as allowed. */
+export function tongueChoices(choices, length) {
+    const counts = {};
+    const native = Array.isArray(choices) && TONGUES[choices[0]] ? choices[0] : "";
 
     return Array.from({ length }, (_, index) => {
         const choice = Array.isArray(choices) ? choices[index] : "";
 
-        if (!TONGUES[choice] || seen.has(choice)) {
+        if (!TONGUES[choice] || (counts[choice] ?? 0) >= tongueLimit(choice, native)) {
             return "";
         }
 
-        seen.add(choice);
+        counts[choice] = (counts[choice] ?? 0) + 1;
 
         return choice;
     });
+}
+
+/* Whether the Tongue at `index` could be `key` without picking it too often. */
+export function tongueAllowedAt(key, index, choices = state.tongues) {
+    const native = index === 0 ? key : choices[0];
+    const elsewhere = choices.filter((other, otherIndex) => other === key && otherIndex !== index).length;
+
+    return elsewhere < tongueLimit(key, native);
+}
+
+/* Native, or learned twice: you gain its perk. */
+export const isFluent = (key, choices = state.tongues) =>
+    Boolean(TONGUES[key]) && (choices[0] === key || choices.filter(choice => choice === key).length >= 2);
+
+/* The Tongues you speak, each once, fluent ones first: [key, fluent]. */
+export function knownTongues(choices = state.tongues) {
+    const known = [...new Set(choices.filter(key => TONGUES[key]))];
+
+    return known
+        .map(key => [key, isFluent(key, choices)])
+        .sort(([, a], [, b]) => Number(b) - Number(a));
 }
 
 const isNumber = value => typeof value === "number" && Number.isFinite(value);
@@ -892,7 +950,11 @@ export function normalizeState() {
 
     state.construct.helpers = (helpers.length ? helpers : Array.from({ length: maxHelpers() }, newHelper))
         .slice(0, maxHelpers())
-        .map(helper => ({ damage: Math.floor(Number(helper?.damage) || 0), destroyed: Boolean(helper?.destroyed) }));
+        .map(helper => ({
+            name: typeof helper?.name === "string" ? helper.name.slice(0, 30) : "",
+            damage: Math.floor(Number(helper?.damage) || 0),
+            destroyed: Boolean(helper?.destroyed)
+        }));
 
     for (const helper of state.construct.helpers) {
         helper.damage = helper.destroyed ? 0 : clamp(helper.damage, 0, partMaxHealth() - 1);

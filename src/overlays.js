@@ -11,6 +11,7 @@ const closableOverlays = [
     "featuresOverlay",
     "hpManagerOverlay",
     "constructOverlay",
+    "modulesOverlay",
     "referenceOverlay",
     "glossaryOverlay",
     "rollSetupOverlay",

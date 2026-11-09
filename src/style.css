@@ -3936,7 +3936,7 @@ select.modal-input:disabled {
 
 :root.phone #statGrid {
     /* One row, with a little extra room for HP's two numbers */
-    grid-template-columns: minmax(0, 1.35fr) repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr));
     gap: 8px 6px;
 }
 
@@ -4353,7 +4353,7 @@ select.modal-input:disabled {
         flex: 1;
         min-width: 0;
 
-        grid-template-columns: minmax(0, 1.15fr) repeat(4, minmax(0, 0.95fr)) minmax(0, 1.4fr);
+        grid-template-columns: minmax(0, 1.15fr) repeat(3, minmax(0, 0.95fr)) minmax(0, 1.4fr);
     }
 
     :root.phone #statGrid .stat-box {
@@ -4895,4 +4895,97 @@ select.modal-input:disabled {
     color: var(--muted);
 
     font-size: 13px;
+}
+
+/* =========================================================
+   SAVING THROWS PAGE (phone only; see saves.js)
+   ========================================================= */
+
+#savesPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#saveButtons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#savesReveal .stat-box {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+    min-height: 50px;
+
+    padding: 8px 14px;
+}
+
+#savesReveal .stat-box strong {
+    font-size: 19px;
+}
+
+.save-button {
+    min-height: 62px;
+}
+
+.roll-button span.save-name {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    white-space: normal;
+}
+
+.save-name small {
+    color: var(--muted);
+
+    text-transform: none;
+    letter-spacing: 0;
+
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.25;
+}
+
+/* Room for another module */
+#constructModulesButton.attention #constructModulesDisplay {
+    color: var(--accent);
+}
+
+/* Which Tongues give their perk, under the dropdowns */
+.tongue-choices .tongue-summary {
+    flex-basis: 100%;
+
+    margin: 0;
+}
+
+/* The construct's Guard DC and armor: a plain row, not a button */
+.construct-stat {
+    cursor: default;
+}
+
+:root #constructGuardRow.roll-button,
+:root #constructGuardRow.roll-button:hover {
+    border-color: transparent;
+
+    background: transparent;
+    box-shadow: none;
+}
+
+#constructPanel #constructGuardRow {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.construct-stat small {
+    margin-right: 6px;
+
+    color: var(--muted);
+
+    font-size: 12px;
+    font-weight: 600;
 }

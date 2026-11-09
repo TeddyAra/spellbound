@@ -34,7 +34,9 @@ import {
     SPELL_LEVEL_SCALE,
     CREATION_QUALITY,
     biggerDie,
-    splitDice
+    splitDice,
+    poolNotation,
+    replaceOnes
 } from "./rules.js";
 import { rollDice, rollDiceSets } from "./dice.js";
 import { preference, setPreference } from "./preferences.js";
@@ -175,6 +177,16 @@ function levelCap(options) {
  * =========================================================
  */
 
+/* Athlete and Stealthy only cover some Move actions, so they're a reminder to add the die rather than added for you. */
+function moveFeatHint(school) {
+    const hints = [
+        hasFeat("athlete") ? "Athlete: one extra die for climbing, jumping and swimming." : null,
+        hasFeat("stealthy") ? "Stealthy: one extra die for sneaking and hiding." : null
+    ].filter(Boolean);
+
+    return school === "move" && hints.length ? ` ${hints.join(" ")}` : "";
+}
+
 function modeHint() {
     const { school, mode } = setup;
 
@@ -187,7 +199,7 @@ function modeHint() {
             return `Casts ${slot.name.toUpperCase()} at level ${slot.level}. No tiles. A successful cast may grow it.`;
         }
         case "mundane":
-            return `No tiles, no backfire. Level capped at your mortal limit of ${mortalLimit(school, lettered(setup))}.`;
+            return `No tiles, no backfire. Level capped at your mortal limit of ${mortalLimit(school, lettered(setup))}.` + moveFeatHint(school);
         case "weapon":
             return `Damage: d${weaponDie(attackWeapon(setup))} per level. Mortal limit ${weaponMortalLimit()}.` +
                 (attackWeapon(setup)?.description ? ` ${attackWeapon(setup).description}` : "");
@@ -349,8 +361,15 @@ for (const button of document.querySelectorAll(".school-button")) {
 function weaponButton(weapon) {
     const button = element("button", "roll-button");
 
-    button.title = `${weapon.name}: a mundane Harm action` + (weapon.description ? `\n\n${weapon.description}` : "");
-    button.append(element("span", null, weapon.name), element("span", "weapon-die", `d${weaponDie(weapon)}`));
+    const pool = poolNotation(rank("harm"));
+    const stats = element("span", "school-rank");
+
+    // Rolled with your Harm pool, damage from the weapon die
+    stats.append(element("small", null, pool), element("span", "weapon-die", `d${weaponDie(weapon)}`));
+
+    button.title = `${weapon.name}: a mundane Harm action. Roll ${pool}, then d${weaponDie(weapon)} damage per level` +
+        (weapon.description ? `\n\n${weapon.description}` : "");
+    button.append(element("span", null, weapon.name), stats);
     button.addEventListener("click", () => openRollSetup("harm", "weapon", null, weapon.id));
 
     return button;
@@ -911,6 +930,42 @@ function ambushDice() {
     return state.level >= 9 ? 4 : state.level >= 6 ? 3 : 2;
 }
 
+/* Cutthroat features from that level on: Low Blow (2), Vicious (5), Carve a Path (10). */
+const cutthroat = level => subclassIs("cutthroat") && state.level >= level;
+
+/* Ambush, with Vicious rerolling its 1s once and making the target bleed. */
+async function rollAmbush() {
+    const count = ambushDice();
+
+    if (!cutthroat(5)) {
+        return rollEffect("Ambush", count, 6);
+    }
+
+    const rolls = await rollDice(`${count}d6`);
+
+    if (!rolls) {
+        return;
+    }
+
+    const ones = rolls.filter(roll => roll === 1).length;
+    const rerolls = ones ? await rollDice(`${ones}d6`) : [];
+
+    if (!rerolls) {
+        return;
+    }
+
+    const final = replaceOnes(rolls, rerolls);
+    const rows = [[`${count}d6`, rolls.join(" + ")]];
+
+    if (ones) {
+        rows.push([`Vicious: rerolled ${ones === 1 ? "the 1" : `${ones} 1s`}`, rerolls.join(" + ")]);
+    }
+
+    rows.push(["Total", sum(final)], ["Bleeding", "1d4 at the start of each of its turns"]);
+
+    showInfoResult("Ambush", rows, { title: "Ambush dice", values: final });
+}
+
 function effectButtons() {
     const { school, mode, level } = action;
     const buttons = [];
@@ -972,7 +1027,7 @@ function effectButtons() {
     }
 
     if (state.className === "trickster" && (mode === "weapon" || (mode !== "mundane" && school === "harm"))) {
-        add(`Ambush +${ambushDice()}d6`, () => rollEffect("Ambush", ambushDice(), 6));
+        add(`Ambush +${ambushDice()}d6`, rollAmbush);
     }
 
     if (mode === "spell" && hasEmptySlot()) {
@@ -1010,11 +1065,22 @@ function actionHint() {
 
         const parts = [`Damage: ${level + weaponExtraDice()}d${weaponDie(attackWeapon(action))}${warChant() ? " + 1d4" : ""}${extras.length ? ` (${extras.join(", ")})` : ""}.`];
 
-        // Bladeword: 4 letters, 5 from Weapon Mastery, one more with Charged Blade, no limit from Spellstorm
+        // Bladeword: level 1, level 2 from Weapon Mastery, the attack's level and spreading from Spellstorm.
+        // The tiles are the limit. Charged Blade can keep them for the next one.
         if (state.className === "spellblade") {
-            const letters = state.level >= 12 ? null : (state.level >= 6 ? 5 : 4) + (hasFeat("chargedBlade") ? 1 : 0);
+            const bladewordLevel = state.level >= 12 ? level : state.level >= 6 ? 2 : 1;
 
-            parts.push(letters ? `If it hits, spell a Bladeword of up to ${letters} letters.` : "If it hits, spell a Bladeword of any length.");
+            parts.push(`If it hits, spell a Bladeword with the tiles you drew, for a level ${bladewordLevel} effect.` +
+                (state.level >= 12 ? " Spellstorm: it also affects every enemy within 10 feet of the target." : "") +
+                (hasFeat("chargedBlade") ? " Charged Blade: or keep the tiles for your next Bladeword." : ""));
+        }
+
+        if (cutthroat(2)) {
+            parts.push("Low Blow: if it deals damage, you can trip or disarm the target without rolling.");
+        }
+
+        if (cutthroat(10)) {
+            parts.push("Carve a Path: move up to your speed and hit every enemy you pass. The first takes all the damage and your Ambush, the rest half, without Ambush.");
         }
 
         return parts.join(" ");

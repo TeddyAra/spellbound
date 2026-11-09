@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
     state,
+    maxArmor,
+    featLock,
+    movementSpeed,
+    passiveReveal,
     commit,
     loadState,
     undo,
@@ -33,9 +37,15 @@ import {
     strongestWeapon,
     weaponDie,
     newItem,
-    addToInventory
+    addToInventory,
+    newHelper,
+    restedHelper,
+    tongueChoices,
+    tongueAllowedAt,
+    isFluent,
+    knownTongues
 } from "../src/state.js";
-import { STANDARD_ITEMS, STANDARD_WEAPONS } from "../src/rules.js";
+import { STANDARD_ITEMS, STANDARD_WEAPONS, annotatedLevel, replaceOnes, CLASSES, GENERAL_FEATS } from "../src/rules.js";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -802,5 +812,192 @@ describe("the rules", () => {
 
         expect(state.level).toBe(12);
         expect(state.currentHealth).toBe(0);
+    });
+});
+
+describe("a Clockmaker's small constructs", () => {
+    function clockmaker() {
+        state.className = "golemwright";
+        state.subclass = "clockmaker";
+        state.level = 3;
+        state.rankPoints.create = 2;
+        commit();
+        state.construct.helpers = [newHelper(), newHelper()];
+        commit();
+    }
+
+    it("each have a name of their own, kept per save", () => {
+        clockmaker();
+
+        expect(state.construct.helpers.length).toBeGreaterThan(1);
+
+        state.construct.helpers[0].name = "Tick";
+        state.construct.helpers[1].name = "Tock";
+        commit();
+        loadState();
+
+        expect(state.construct.helpers.map(helper => helper.name).slice(0, 2)).toEqual(["Tick", "Tock"]);
+    });
+
+    it("get an empty name when saved before they had one, and never a too long one", () => {
+        clockmaker();
+
+        state.construct.helpers[0] = { damage: 0, destroyed: false };
+        state.construct.helpers[1].name = "x".repeat(50);
+        commit();
+
+        expect(state.construct.helpers[0].name).toBe("");
+        expect(state.construct.helpers[1].name).toHaveLength(30);
+    });
+
+    it("keep their names when a long rest repairs or rebuilds them", () => {
+        expect(restedHelper({ name: "Tock", damage: 4, destroyed: true })).toEqual({ name: "Tock", damage: 0, destroyed: false });
+    });
+});
+
+describe("Tongues", () => {
+    it("are fluent when native or learned twice, and only spoken otherwise", () => {
+        const choices = ["hearthspeech", "ashen", "leafweave", "ashen"];
+
+        expect(isFluent("hearthspeech", choices)).toBe(true);
+        expect(isFluent("ashen", choices)).toBe(true);
+        expect(isFluent("leafweave", choices)).toBe(false);
+        expect(isFluent("deepcant", choices)).toBe(false);
+        expect(knownTongues(choices)).toEqual([["hearthspeech", true], ["ashen", true], ["leafweave", false]]);
+    });
+
+    it("can be picked twice at most, and the native one only once", () => {
+        expect(tongueChoices(["ashen", "ashen", "leafweave", "leafweave", "leafweave"], 5))
+            .toEqual(["ashen", "", "leafweave", "leafweave", ""]);
+    });
+
+    it("offer a Tongue only where picking it isn't too often", () => {
+        const choices = ["ashen", "leafweave", "", ""];
+
+        expect(tongueAllowedAt("ashen", 2, choices)).toBe(false);
+        expect(tongueAllowedAt("leafweave", 2, choices)).toBe(true);
+        expect(tongueAllowedAt("leafweave", 3, ["ashen", "leafweave", "leafweave", ""])).toBe(false);
+
+        // The native Tongue can't be one you already learned twice
+        expect(tongueAllowedAt("leafweave", 0, ["", "leafweave", "leafweave"])).toBe(false);
+    });
+
+    it("grow by one per Polyglot, kept per save", () => {
+        state.tongues = ["hearthspeech", "deepcant"];
+        state.feats = { polyglot: 1 };
+        commit();
+
+        expect(state.tongues).toHaveLength(3);
+
+        state.tongues[2] = "deepcant";
+        commit();
+        loadState();
+
+        expect(isFluent("deepcant")).toBe(true);
+    });
+});
+
+describe("inks and tools", () => {
+    it("are in the inventory's own groups", () => {
+        const group = name => STANDARD_ITEMS.find(item => item.name === name)?.group;
+
+        expect(group("Floating Ink")).toBe("Inks");
+        expect(group("Waterproof Ink")).toBe("Inks");
+        expect(group("Thieves' Tools")).toBe("Tools");
+        expect(group("Scribe's Kit")).toBe("Tools");
+    });
+});
+
+describe("Annotated Spells", () => {
+    it("starts a saved spell at the roll, at least 2, never above the rank", () => {
+        expect(annotatedLevel(1, 4)).toBe(2);
+        expect(annotatedLevel(3, 4)).toBe(3);
+        expect(annotatedLevel(6, 4)).toBe(4);
+        expect(annotatedLevel(7, 6)).toBe(6);
+        expect(annotatedLevel(2, 2)).toBe(2);
+    });
+});
+
+describe("the Cutthroat", () => {
+    it("replaces the Gambler, with Low Blow, Vicious and Carve a Path", () => {
+        const { subclasses } = CLASSES.trickster;
+
+        expect(subclasses.gambler).toBeUndefined();
+        expect(subclasses.cutthroat.features.map(feature => [feature.level, feature.name]))
+            .toEqual([[2, "Low Blow"], [5, "Vicious"], [10, "Carve a Path"]]);
+    });
+
+    it("lets a Gambler from an old save choose a new subclass", () => {
+        state.className = "trickster";
+        state.subclass = "gambler";
+        commit();
+
+        expect(state.subclass).toBe("");
+
+        state.subclass = "cutthroat";
+        commit();
+
+        expect(state.subclass).toBe("cutthroat");
+    });
+
+    it("rerolls each 1 of its Ambush dice once, in order", () => {
+        expect(replaceOnes([1, 4, 1, 6], [3, 1])).toEqual([3, 4, 1, 6]);
+        expect(replaceOnes([2, 5], [])).toEqual([2, 5]);
+    });
+});
+
+describe("the new general feats", () => {
+    const feat = key => GENERAL_FEATS.find(item => item.key === key);
+
+    it("put the weapon and armor feats in a Combat group", () => {
+        const combat = GENERAL_FEATS.filter(item => item.group === "Combat").map(item => item.key);
+
+        expect(combat).toEqual(["charger", "dualWielder", "heavyArmorTraining", "martialTraining", "savageAttacker", "shieldAdept", "warCaster"]);
+    });
+
+    it("only allow Heavy Armor Training with medium armor, and then allow heavy armor", () => {
+        state.className = "wordweaver";
+        state.feats = {};
+        commit();
+
+        expect(featLock(feat("heavyArmorTraining"))).toMatch(/medium armor/);
+
+        state.feats = { heavyArmorTraining: 1 };
+        commit();
+
+        expect(maxArmor()).toBe(0);
+
+        state.feats = { martialTraining: 1, heavyArmorTraining: 1 };
+        commit();
+
+        expect(featLock(feat("heavyArmorTraining"))).toBeNull();
+        expect(maxArmor()).toBe(3);
+
+        state.className = "spellblade";
+        state.feats = { heavyArmorTraining: 1 };
+        commit();
+
+        expect(maxArmor()).toBe(3);
+    });
+
+    it("lock feats below their level", () => {
+        state.level = 1;
+        commit();
+
+        expect(featLock(feat("warCaster"))).toMatch(/level 4/);
+    });
+
+    it("add 10 feet with Fleet-Footed and 1 passive Reveal with Observant", () => {
+        state.feats = {};
+        commit();
+
+        const movement = movementSpeed();
+        const reveal = passiveReveal();
+
+        state.feats = { fleetFooted: 1, observant: 1 };
+        commit();
+
+        expect(movementSpeed()).toBe(movement + 10);
+        expect(passiveReveal()).toBe(reveal + 1);
     });
 });

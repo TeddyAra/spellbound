@@ -129,13 +129,29 @@ export const STANDARD_ITEMS = [
     { group: "Combat", name: "Smoke Bomb", description: "Thrown as a bonus action: blocks sight within 10 feet for 1 round." },
     { group: "Combat", name: "Ammunition", description: "Arrows, bolts or sling stones.", amount: 20 },
 
-    { group: "Adventuring gear", name: "Ink and Quill", description: "For writing spells and runes." },
     { group: "Adventuring gear", name: "Rations", description: "A day's food." },
     { group: "Adventuring gear", name: "Waterskin", description: "Holds a day's water." },
     { group: "Adventuring gear", name: "Bedroll", description: "For sleeping outdoors." },
     { group: "Adventuring gear", name: "Rope", description: "50 feet." },
     { group: "Adventuring gear", name: "Torch", description: "Gives light for an hour." },
-    { group: "Adventuring gear", name: "Thieves' Tools", description: "For picking locks as a mundane action." }
+
+    // For written spells and runes: what they're written in decides what they survive
+    { group: "Inks", name: "Ink and Quill", description: "Ordinary ink, for writing spells and runes. It runs in water and burns in fire." },
+    { group: "Inks", name: "Waterproof Ink", description: "Writing in it survives rain, rivers and washing." },
+    { group: "Inks", name: "Fireproof Ink", description: "Writing in it survives fire and great heat." },
+    { group: "Inks", name: "Invisible Ink", description: "Writing in it can't be seen until it's heated, or found with a Reveal spell." },
+    { group: "Inks", name: "Glowing Ink", description: "Writing in it gives dim light within 5 feet, and can be read in the dark." },
+    { group: "Inks", name: "Floating Ink", description: "Can be drawn in the air. Spells and runes written in it hang where you drew them, with no surface needed." },
+
+    // A mundane action has to be something a skilled person could do with the tools they have
+    { group: "Tools", name: "Thieves' Tools", description: "For picking locks and disarming traps as a mundane action." },
+    { group: "Tools", name: "Scribe's Kit", description: "Parchment, quills and a penknife. For copying, forging and mending writing." },
+    { group: "Tools", name: "Engraver's Tools", description: "For carving words and runes into wood, stone and metal." },
+    { group: "Tools", name: "Tinker's Tools", description: "For building, fixing and taking apart small mechanisms." },
+    { group: "Tools", name: "Smith's Tools", description: "For forging and repairing metal weapons, armor and objects. Bigger work needs a forge." },
+    { group: "Tools", name: "Carpenter's Tools", description: "For building and repairing things made of wood." },
+    { group: "Tools", name: "Alchemist's Kit", description: "For brewing potions, acids and powders." },
+    { group: "Tools", name: "Herbalism Kit", description: "For finding herbs and making salves and remedies." }
 ];
 
 // Armor value → type
@@ -211,7 +227,7 @@ export function constructFrame(level) {
 export const MODULES = {
     plating: { name: "Plating", text: "It has 1 more armor." },
     toolkit: { name: "Toolkit", text: "Instead of attacking, it can take a mundane Change or Create action, using its attack rank." },
-    springs: { name: "Springs", text: "It moves twice as far as you can, and climbs and leaps as easily as it walks." },
+    springs: { name: "Springs", text: "It moves twice as far as you can (three times as far with Heavy Frame), and climbs and leaps as easily as it walks." },
     ballista: { name: "Ballista", text: "Its weapon attack can hit targets up to 60 feet away." },
     lanternEyes: { name: "Lantern Eyes", text: "It can see in the dark, and can shed bright light up to 30 feet around it." },
     compartment: { name: "Compartment", spareParts: true, text: "Holds up to 3 hidden objects. Once per round, it can place one, hand it to someone next to it, or throw it 30 feet, without using its action." },
@@ -227,10 +243,11 @@ export const SUBCLASS_LEVEL = 2;
  * =========================================================
  *
  * The grammar a spell is cast in. Knowing a spell's Tongue lets you read
- * or copy its magic; each Tongue you know also gives a small perk (`short`
- * is its one-line version, for the quick reference).
- * Everyone starts with two (the first is their native Tongue), and Polyglot
- * teaches one more each time it's taken.
+ * or copy its magic; each Tongue you're fluent in also gives a small perk
+ * (`short` is its one-line version, for the quick reference). Everyone
+ * starts with two: their native Tongue, which they're fluent in, and one
+ * they speak well. Polyglot teaches one more, or makes them fluent in one
+ * they already speak (see tongueChoices in state.js).
  */
 
 export const STARTING_TONGUES = 2;
@@ -346,7 +363,7 @@ export const CLASSES = {
                 name: "Archivist",
                 features: [
                     { level: 2, name: "Catalogue", text: "2 extra spell slots. Roll twice to grow a saved spell and use the higher result." },
-                    { level: 5, name: "Annotated Spells", text: "When you save a spell, it starts at level 2 instead of 1." },
+                    { level: 5, name: "Annotated Spells", text: "When you save a spell, roll one die of its school's casting pool. It starts at that level, at least 2, up to your rank." },
                     { level: 10, name: "Grand Library", text: "Once per combat, cast two saved spells on the same casting turn. Roll for the lower-ranked school." }
                 ]
             }
@@ -511,7 +528,7 @@ export const CLASSES = {
             { level: 1, name: "Handy", text: "Mundane Change and Create actions have a mortal limit of 4." },
             { level: 1, name: "Modules", text: "Choose modules for your construct when you build it (1, 2 at level 6, 3 at level 12). Swap them during a long rest. Pick them in your construct's window." },
             { level: 1, name: "Tinker's Eye", text: "Things you make with Create are one quality step better, though not bigger." },
-            { level: 3, name: "Field Repairs", text: "Mundane Change and Create actions can repair your construct, like first aid with d8s. A destroyed construct can be rebuilt during a short rest, with half its hit points." },
+            { level: 3, name: "Field Repairs", text: "Mundane Change and Create actions can repair your construct, like first aid with d8s. It regains hit points during rests like you do." },
             { level: 6, name: "Upgraded Frame", text: "Your construct attacks with rank 3 and a d8, and has a second module." },
             { level: 9, name: "Masterwork", text: "Once per long rest, a creation gains a lasting property from a school at rank 3+, from engineering rather than magic. 3 such items at once." },
             { level: 12, name: "Grand Engine", text: "Your construct attacks with rank 4 and a d10, and has a third module. Once per long rest, build a copy of it from what's around you, which falls apart after an hour." }
@@ -529,7 +546,7 @@ export const CLASSES = {
             warforger: {
                 name: "Warforger",
                 features: [
-                    { level: 2, name: "Heavy Frame", text: "Your construct can be as big as a horse, and has 1 more armor. Ride it: it moves twice as far as you can, and you add one die to saving throws against being pushed, grabbed or knocked down." },
+                    { level: 2, name: "Heavy Frame", text: "Your construct can be as big as a horse, and has 1 more armor. Ride it: it moves twice as far as you can (three times with Springs), and you add one die to saving throws against being pushed, grabbed or knocked down." },
                     { level: 5, name: "Sweeping Blows", text: "Once per round, its weapon attack also hits one other creature next to the target, rolling damage separately." },
                     { level: 10, name: "Colossus", text: "Once per long rest, your construct grows huge for 3 rounds: twice the hit points, weapon die one size bigger. Each attack hits one target with its weapon die twice per level, or stomps every enemy within 10 feet." }
                 ]
@@ -597,12 +614,12 @@ export const CLASSES = {
                     { level: 10, name: "Thousand Faces", text: "While Thrown Voice lasts, look like any humanoid you've seen. One extra use of Thrown Voice." }
                 ]
             },
-            gambler: {
-                name: "Gambler",
+            cutthroat: {
+                name: "Cutthroat",
                 features: [
-                    { level: 2, name: "Loaded Dice", text: "Once per round, reroll one die of your casting pool." },
-                    { level: 5, name: "Double or Nothing", text: "Before rolling: on success, 1 level higher; on failure, two dice fewer next time." },
-                    { level: 10, name: "House Always Wins", text: "Once per combat, replace one die of an enemy's roll with your own roll." }
+                    { level: 2, name: "Low Blow", text: "Once per round, when your weapon attack deals damage, trip or disarm the target without rolling, if the DM agrees. Tripped: one die fewer next time. Disarmed: no attacks with that weapon until it's picked back up. Ambush also works on creatures that are knocked down, grabbed or disarmed." },
+                    { level: 5, name: "Vicious", text: "Reroll 1s on your Ambush dice, once. Your Ambush makes the target bleed: 1d4 at the start of each of its turns, until it's healed, bandaged (an action) or the combat ends. Doesn't stack." },
+                    { level: 10, name: "Carve a Path", text: "A weapon attack can hit every enemy you pass next to while you move up to your speed, with one roll. Roll damage once: the first target takes it all plus Ambush, the others half, without Ambush." }
                 ]
             }
         },
@@ -610,8 +627,8 @@ export const CLASSES = {
         feats: [
             { key: "lightFingers", name: "Light Fingers", text: "Sleight takes 2 tiles." },
             { key: "silverLies", name: "Silver Lies", text: "A successful mundane Control in combat makes the target distracted for Ambush." },
-            { key: "dirtyFighting", name: "Dirty Fighting", minLevel: 4, text: "When your weapon hits, roll a d6. On 5–6, trip, blind or disarm. Tripped or blinded: one die fewer next time. Disarmed: no attacks with that weapon until it's picked back up." },
-            { key: "uncannyDodge", name: "Uncanny Dodge", minLevel: 4, text: "Once per round, halve the damage from one hit." },
+            { key: "dirtyFighting", name: "Dirty Fighting", minLevel: 4, text: "When your weapon hits, you can try to trip or disarm the target: roll one die the size of your Control dice, against a DC the DM sets as for any action. The DM decides if it's possible. Tripped: one die fewer next time. Disarmed: no attacks with that weapon until it's picked back up." },
+            { key: "uncannyDodge", name: "Uncanny Dodge", minLevel: 4, text: "Once per round, as a reaction, halve the damage from one hit." },
             { key: "masterThief", name: "Master Thief", minLevel: 8, text: "Use Twist the Word twice per combat." }
         ]
     },
@@ -635,11 +652,11 @@ export const CLASSES = {
 
         features: [
             { level: 1, name: "Weapon Training", text: "Weapon attacks have a mortal limit of 4." },
-            { level: 1, name: "Bladeword", text: "On a weapon attack, draw tiles equal to your highest die. If it hits, spell a word of up to 4 letters for a level 1 effect from a school at rank 2+." },
+            { level: 1, name: "Bladeword", text: "On a weapon attack, draw tiles equal to your highest die. If it hits, spell a word with them for a level 1 effect from a school at rank 2+." },
             { level: 3, name: "Parry", text: "Once per round, when hit, reduce the damage by a roll of your weapon die. With a shield, roll it twice and add them." },
-            { level: 6, name: "Weapon Mastery", text: "Weapon die one size bigger, mortal limit 5. Bladewords up to 5 letters at level 2." },
+            { level: 6, name: "Weapon Mastery", text: "Weapon die one size bigger, mortal limit 5. Bladewords take effect at level 2." },
             { level: 9, name: "Cleave", text: "When your attack drops an enemy, deal half its damage to another enemy next to you." },
-            { level: 12, name: "Spellstorm", text: "Bladewords have no letter limit and take effect at your attack's level." }
+            { level: 12, name: "Spellstorm", text: "Bladewords take effect at your attack's level, and spread to every enemy within 10 feet of the target." }
         ],
 
         subclasses: {
@@ -671,7 +688,7 @@ export const CLASSES = {
 
         feats: [
             { key: "duelist", name: "Duelist", text: "+1 armor while you fight with a single one-handed weapon and nothing in your other hand." },
-            { key: "chargedBlade", name: "Charged Blade", text: "Your Bladewords can have one more letter." },
+            { key: "chargedBlade", name: "Charged Blade", text: "Instead of spelling a Bladeword, keep its tiles (also after a miss) and add them to your next one. Kept tiles return to the pile when the combat ends." },
             { key: "arcaneRiposte", name: "Arcane Riposte", minLevel: 4, text: "When Parry reduces a hit to 0, make a level 1 weapon attack against the attacker." },
             { key: "eldritchReach", name: "Eldritch Reach", minLevel: 4, text: "Melee weapon attacks can hit a target up to 15 feet away." },
             { key: "battleCaster", name: "Battle Caster", minLevel: 8, text: "Once per combat, a weapon attack and a saved spell in the same pre-turn." }
@@ -752,19 +769,32 @@ export const CLASSES = {
 
 export const GENERAL_FEATS = [
     { group: "Body and mind", key: "alert", name: "Alert", text: "+5 to initiative. You can't be caught unaware, so Ambush only works on you if you're distracted or next to one of the Trickster's allies." },
+    { group: "Body and mind", key: "athlete", name: "Athlete", text: "Add one die to mundane Move actions for climbing, jumping and swimming. You climb at full speed." },
+    { group: "Body and mind", key: "fleetFooted", name: "Fleet-Footed", text: "You move 10 feet further, and rough ground doesn't slow you down." },
+    { group: "Body and mind", key: "hardToKill", name: "Hard to Kill", text: "Death rolls succeed on 8 or higher. Three successes wake you right away with 1 HP." },
     { group: "Body and mind", key: "lucky", name: "Lucky", text: "Once per long rest, reroll your whole casting pool." },
-    { group: "Body and mind", key: "martialTraining", name: "Martial Training", text: "Martial weapons and medium armor." },
-    { group: "Body and mind", key: "shieldAdept", name: "Shield Adept", text: "You can use shields." },
     { group: "Body and mind", key: "tough", name: "Tough", repeatable: 2, text: "+2 maximum hit points per level." },
     { group: "Body and mind", key: "steadyMind", name: "Steady Mind", minLevel: 4, text: "Add one die to saving throws." },
 
-    { group: "Skill", key: "trained", name: "Trained", repeatable: 99, text: "A school's mundane mortal limit is 1 higher, up to 5. Pick the school below." },
-    { group: "Skill", key: "persuasive", name: "Persuasive", text: "Add one die to mundane Control actions." },
+    { group: "Combat", key: "charger", name: "Charger", text: "Move at least 20 feet straight toward a creature before a melee weapon attack: one extra weapon die." },
+    { group: "Combat", key: "dualWielder", name: "Dual Wielder", text: "With a light weapon in each hand, once per round after a successful weapon attack, a level 1 attack with the other weapon, no extra roll." },
+    { group: "Combat", key: "heavyArmorTraining", name: "Heavy Armor Training", requires: "mediumArmor", text: "You can wear heavy armor. You must already be able to wear medium armor." },
+    { group: "Combat", key: "martialTraining", name: "Martial Training", text: "Martial weapons and medium armor." },
+    { group: "Combat", key: "savageAttacker", name: "Savage Attacker", text: "Once per round, reroll a weapon attack's damage and use either total." },
+    { group: "Combat", key: "shieldAdept", name: "Shield Adept", text: "You can use shields." },
+    { group: "Combat", key: "warCaster", name: "War Caster", minLevel: 4, text: "An opportunity attack can be one of your saved spells instead." },
+
+    { group: "Skill", key: "artisan", name: "Artisan", repeatable: 99, text: "Choose a set of tools: mundane actions with them have a mortal limit 1 higher, up to 5, and take half the time." },
     { group: "Skill", key: "keenSenses", name: "Keen Senses", text: "Add one die to mundane Reveal actions." },
     { group: "Skill", key: "medic", name: "Medic", text: "Short rests heal you and resting allies extra equal to your level. First aid cures poison and disease." },
+    { group: "Skill", key: "observant", name: "Observant", text: "Your passive Reveal is 1 higher." },
+    { group: "Skill", key: "persuasive", name: "Persuasive", text: "Add one die to mundane Control actions." },
+    { group: "Skill", key: "stealthy", name: "Stealthy", text: "Add one die to mundane Move actions for sneaking and hiding." },
+    { group: "Skill", key: "trained", name: "Trained", repeatable: 99, text: "A school's mundane mortal limit is 1 higher, up to 5. Pick the school below." },
 
     { group: "Spellcraft", key: "extraSlot", name: "Extra Slot", repeatable: 99, text: "One extra spell slot." },
-    { group: "Spellcraft", key: "polyglot", name: "Polyglot", repeatable: 99, text: "Learn another Tongue, and gain its perk. Pick it in Character settings." },
+    { group: "Spellcraft", key: "polyglot", name: "Polyglot", repeatable: 99, text: "Learn another Tongue, or learn one you already speak a second time to become fluent and gain its perk. Pick it in Character settings." },
+    { group: "Spellcraft", key: "lingeringMagic", name: "Lingering Magic", minLevel: 4, text: "Once per combat, an effect lasting until the end of your next turn lasts one more round." },
     { group: "Spellcraft", key: "signatureSpell", name: "Signature Spell", minLevel: 4, text: "Once per combat, cast a chosen saved spell without rolling." },
     { group: "Spellcraft", key: "spellFocusHarm", name: "Spell Focus (Harm)", minLevel: 4, text: "Harm spells roll effect dice one size bigger." },
     { group: "Spellcraft", key: "spellFocusAid", name: "Spell Focus (Aid)", minLevel: 4, text: "Aid spells roll effect dice one size bigger." },
@@ -790,4 +820,14 @@ export function featsFor(className) {
         .map(feat => ({ ...feat, group: `${CLASSES[className].name}` }));
 
     return [...classFeats, ...GENERAL_FEATS];
+}
+
+/* Annotated Spells (Archivist, level 5): a saved spell starts at a roll of its school's die, at least 2, never above the rank. */
+export const annotatedLevel = (roll, schoolRank) => Math.min(schoolRank, Math.max(2, roll));
+
+/* Vicious (Cutthroat): the 1s are rerolled once, in order. Rolls without a reroll stay as they were. */
+export function replaceOnes(rolls, rerolls) {
+    let next = 0;
+
+    return rolls.map(roll => roll === 1 && next < rerolls.length ? rerolls[next++] : roll);
 }

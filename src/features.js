@@ -8,7 +8,9 @@ import {
     maxSignatureUses,
     signatureHasUses,
     maxRunes,
-    schoolName
+    schoolName,
+    knownTongues,
+    featLock
 } from "./state.js";
 import { RANKED_SCHOOLS, SUBCLASS_LEVEL, TONGUES, featsAllowed, featsFor } from "./rules.js";
 import { takenFeats, unusedFeats } from "./reminders.js";
@@ -72,18 +74,26 @@ function renderFeatures() {
         cards.push(element("p", "settings-note", "Choose a subclass in Character settings at level 2 to see its features."));
     }
 
-    // Every Tongue you know gives a small perk
+    // Only Tongues you're fluent in (native, or learned twice) give their perk
     cards.push(element("div", "rolls-title feature-group", "Tongues"));
 
-    const known = state.tongues.filter(key => TONGUES[key]);
+    const known = knownTongues();
 
-    for (const key of known) {
+    for (const [key, fluent] of known.filter(([, fluent]) => fluent)) {
         const tongue = TONGUES[key];
 
-        cards.push(featureCard(tongue.perk, tongue.text, null, key === state.tongues[0] ? `${tongue.name} · native` : tongue.name));
+        cards.push(featureCard(tongue.perk, tongue.text, null, `${tongue.name} · ${key === state.tongues[0] ? "native" : "fluent"}`));
     }
 
-    if (known.length < state.tongues.length) {
+    const spoken = known.filter(([, fluent]) => !fluent).map(([key]) => TONGUES[key].name);
+
+    if (spoken.length) {
+        cards.push(element("p", "settings-note",
+            `Well-spoken in ${spoken.join(", ")}: you speak and read ${spoken.length === 1 ? "it" : "them"}, but gain no perk. ` +
+            "Learn a Tongue a second time with Polyglot to become fluent."));
+    }
+
+    if (state.tongues.some(key => !TONGUES[key])) {
         cards.push(element("p", "settings-note", "Choose your Tongues in Character settings to see their perks."));
     }
 
@@ -141,13 +151,15 @@ function trainedSchoolPicker() {
 
 function featRow(feat) {
     const count = featCount(feat.key);
-    const tooLow = (feat.minLevel ?? 1) > state.level;
+    const lock = featLock(feat);
+    const tooLow = lock !== null;
 
     // A label would pass clicks on the text to the counter's first button
     const row = element(feat.repeatable ? "div" : "label", "feat-row");
 
     row.classList.toggle("taken", count > 0);
     row.classList.toggle("locked", tooLow && count === 0);
+    row.title = tooLow && count === 0 ? lock : "";
 
     const text = element("span", "feat-text");
     const name = element("strong", null, feat.name);

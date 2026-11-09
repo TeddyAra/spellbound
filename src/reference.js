@@ -201,7 +201,7 @@ const SECTIONS = {
         title: "Tongues",
         head: ["Tongue", "Perk"],
         rows: Object.values(TONGUES).map(tongue => [tongue.name, tongue.short]),
-        note: "Knowing a spell's Tongue lets you lip-read or copy it. Countering, tiles, written spells, runes, potions and constructs don't need one."
+        note: "Only your native Tongue and Tongues you learned twice (fluent) give their perk. Knowing a spell's Tongue lets you lip-read or copy it. Countering, tiles, written spells, runes, potions and constructs don't need one."
     }),
 
     glossary: () => glossaryPreview()
@@ -228,12 +228,12 @@ const GLOSSARY = [
     ["Casting pool", "The dice you roll for a school, based on your rank in it."],
     ["Casting turn", "The second part of every round, when you resolve what you chose in your pre-turn."],
     ["Concealment level", "How well something is hidden, from 1 to 8. You notice it automatically if your passive Reveal equals or beats it."],
-    ["Construct", "A Golemwright's companion, built from scrap during a long rest. It acts on its creator's casting turn, right after them."],
+    ["Construct", "A Golemwright's companion, built from scrap during a long rest. It acts on its creator's casting turn, right after them, and has the same Guard DC as its creator."],
     ["Death roll", "The d20 you roll every round while downed."],
     ["Difficulty (DC)", "The number at least one die in your casting pool must equal or beat to succeed."],
     ["Downed", "At 0 hit points and unconscious."],
     ["Effect dice", "The dice you roll for damage or healing: one die per level. A spell can share them between several creatures, at least one die each."],
-    ["Guard DC", "The default difficulty for actions aimed at a creature. An enemy's depends on its tier, and a player character's on their level: 4 at levels 1–4, 5 at 5–8, 6 at 9–12."],
+    ["Guard DC", "The default difficulty for actions aimed at a creature. An enemy's depends on its tier, and a player character's on their level: 4 at levels 1–4, 5 at 5–8, 6 at 9–12. A construct has the same Guard DC as the character who built it."],
     ["Hit points", "How much damage you can take before you're downed."],
     ["Known spell", "An enemy's version of a saved spell."],
     ["Level (character)", "How experienced your character is, from 1 to 12."],
@@ -260,7 +260,7 @@ const GLOSSARY = [
     ["Subclass", "A specialization within your class, chosen at level 2."],
     ["Surge", "A die in your casting pool that rolls 5 or higher. Each surge adds 1 to your level."],
     ["Tiles", "The letter tiles you draw to spell your spells."],
-    ["Tongue", "The grammar a spell is cast in. Knowing it lets you read or copy that magic, and gives a small perk. You start with two; the first is your native Tongue."],
+    ["Tongue", "The grammar a spell is cast in. Knowing it lets you read or copy that magic. You start with two: your native Tongue, which you speak fluently and which gives its perk, and a second you speak well, without the perk. Learn a Tongue twice (Polyglot) to become fluent in it."],
     ["Volume", "How loudly you cast a spell: whisper, speak or shout. It decides your spell's range and who hears it."],
     ["Ward", "Anything that absorbs damage for a creature, such as a magical barrier, a protective creature, or a Warden's shield. Wards come from Aid spells and some features. Only the strongest one counts."]
 ];

@@ -29,7 +29,7 @@ import {
     availableModules,
     hasModule
 } from "./state.js";
-import { poolNotation, MODULES } from "./rules.js";
+import { poolNotation, guardDC, MODULES } from "./rules.js";
 import { preference, setPreference } from "./preferences.js";
 import { openRollSetup } from "./casting.js";
 import { armorReduces } from "./character.js";
@@ -40,9 +40,8 @@ import { armorReduces } from "./character.js";
  * Create actions instead), and for a Warforger, Colossus. A Clockmaker has
  * several small constructs instead (Little Helpers), each with its own share
  * of the hit points, added and removed here. At 0 HP a construct is destroyed
- * until the next long rest, or short rest with Field Repairs (see the rests
- * in character.js). Its part of the menu folds shut so it's out of the way
- * when it isn't needed.
+ * until the next long rest (see the rests in character.js). Its part of the
+ * menu folds shut so it's out of the way when it isn't needed.
  */
 
 const constructOverlay = $("constructOverlay");
@@ -58,8 +57,13 @@ let selected = 0;
 
 const selectedPart = () => constructParts()[Math.min(selected, constructParts().length - 1)];
 
-/* "Cog", or "Cog 2" for one of a Clockmaker's small constructs. */
-const partName = index => hasHelpers() ? `${constructName()} ${index + 1}` : constructName();
+/* "Construct 2" for one of a Clockmaker's small constructs that hasn't been given a name of its own. */
+const defaultHelperName = index => `${constructName()} ${index + 1}`;
+
+/* "Cog", or for one of a Clockmaker's small constructs, its own name. */
+const partName = index => hasHelpers()
+    ? state.construct.helpers[index]?.name.trim() || defaultHelperName(index)
+    : constructName();
 
 const partHPText = part => part.destroyed ? "Destroyed" : `${partHealth(part)} / ${partMaxHealth()}`;
 
@@ -77,7 +81,7 @@ function renderHelpers() {
         const button = element("button", "roll-button");
 
         button.type = "button";
-        button.title = `Damage or heal ${partName(index)}`;
+        button.title = `Damage, heal or rename ${partName(index)}`;
         button.classList.toggle("destroyed", helper.destroyed);
         button.append(element("span", null, partName(index)), element("span", null, partHPText(helper)));
         button.addEventListener("click", () => openConstruct(index));
@@ -119,6 +123,18 @@ function renderConstructPanel() {
 
     alignWithStats();
 
+    // The same as yours, for one construct or many
+    $("constructGuardDisplay").textContent = guardDC(state.level);
+    $("constructArmorDisplay").textContent = `Armor ${constructArmor()}`;
+
+    const modules = state.construct.modules.length;
+
+    $("constructModulesDisplay").textContent = `${modules} / ${maxModules()}`;
+    $("constructModulesButton").classList.toggle("attention", modules < maxModules());
+    $("constructModulesButton").title = state.construct.modules.length
+        ? `Modules: ${state.construct.modules.map(key => MODULES[key].name).join(", ")}`
+        : "Choose its modules";
+
     $("constructAttackDisplay").textContent = `${poolNotation(constructRank())} · d${constructDie()}`;
     $("constructAttackButton").classList.toggle("roll-disabled", destroyed);
 
@@ -150,21 +166,21 @@ function renderConstructModal() {
     $("constructModalMax").textContent = partMaxHealth();
     $("constructArmorHint").textContent = constructArmor();
 
-    setValue(nameInput, state.construct.name);
+    // Each small construct has a name of its own
+    setValue(nameInput, hasHelpers() ? part.name : state.construct.name);
+    nameInput.placeholder = hasHelpers() ? defaultHelperName(constructParts().indexOf(part)) : "e.g. Cog, Old Bolts";
 
-    const rebuild = `You can build a new one during your next ${state.level >= 3 ? "short or long rest (Field Repairs: with half its hit points)" : "long rest"}.`;
+    const rebuild = "You can build a new one during your next long rest.";
 
     $("constructInfo").textContent = part.destroyed
         ? `Destroyed. ${rebuild}`
         : hasHelpers()
             ? `One of ${constructParts().length} small constructs, each no bigger than a cat. They share ${constructMaxHealth()} hit points ` +
-              `(${partMaxHealth()} each), armor ${constructArmor()} and their modules. On your casting turn, one makes the attack, ` +
+              `(${partMaxHealth()} each), armor ${constructArmor()} and modules. On your casting turn, one makes the attack, ` +
               `and each of the others can do a simple task that needs no roll.`
             : `Made of scrap, no bigger than ${hasWarforgerFrame() ? "a horse" : "a person"}. Armor ${constructArmor()}. ` +
               `Its attack is rolled during your pre-turn, right after yours, and it acts right after you on your casting turn. ` +
               `It follows your spoken commands (no action), and otherwise stays next to you and defends you.`;
-
-    renderModules();
 }
 
 /* Opens the window for the construct at `index` (always 0 without Little Helpers). */
@@ -188,6 +204,8 @@ function renderModules() {
     const chosen = state.construct.modules.length;
     const max = maxModules();
 
+    $("modulesInfo").textContent = `Chosen when you build ${hasHelpers() ? "your constructs" : "your construct"}, and swapped during a long rest. ` +
+        (hasHelpers() ? "All of your small constructs share them." : "");
     $("moduleSummary").textContent = `${chosen} / ${max}`;
     $("moduleSummary").classList.toggle("attention", chosen < max);
 
@@ -231,6 +249,10 @@ function render() {
     if (!constructOverlay.classList.contains("hidden")) {
         renderConstructModal();
     }
+
+    if (!$("modulesOverlay").classList.contains("hidden")) {
+        renderModules();
+    }
 }
 
 /*
@@ -272,6 +294,13 @@ $("constructHPButton").addEventListener("click", () => openConstruct(0));
 
 $("closeConstruct").addEventListener("click", () => hide(constructOverlay));
 
+$("constructModulesButton").addEventListener("click", () => {
+    renderModules();
+    show($("modulesOverlay"));
+});
+
+$("closeModules").addEventListener("click", () => hide($("modulesOverlay")));
+
 $("constructDamageButton").addEventListener("click", () => {
     const damage = amount();
     const part = selectedPart();
@@ -310,7 +339,7 @@ $("constructHealButton").addEventListener("click", () => {
     }
 
     part.damage = Math.max(0, part.damage - healing);
-    commit(`Healed ${constructName()}`, { toast: true });
+    commit(`Healed ${partName(constructParts().indexOf(part))}`, { toast: true });
     addLog(`${partName(constructParts().indexOf(part))}: healing`, `Healed ${healing}. HP ${partHealth(part)} / ${partMaxHealth()}`);
 
     $("constructMessage").textContent = `Healed ${healing}.`;
@@ -342,7 +371,14 @@ $("helperMinus").addEventListener("click", () => {
 });
 
 nameInput.addEventListener("input", () => {
-    state.construct.name = nameInput.value.slice(0, 30);
+    const name = nameInput.value.slice(0, 30);
+
+    if (hasHelpers()) {
+        selectedPart().name = name;
+    } else {
+        state.construct.name = name;
+    }
+
     commit();
 });
 

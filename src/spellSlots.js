@@ -14,7 +14,8 @@ import {
     characterClass,
     featCount
 } from "./state.js";
-import { MAGIC_SCHOOLS, baseSpellSlots } from "./rules.js";
+import { MAGIC_SCHOOLS, baseSpellSlots, castingPool, annotatedLevel } from "./rules.js";
+import { rollDice } from "./dice.js";
 import { openRollSetup } from "./casting.js";
 import { preference, setPreference } from "./preferences.js";
 
@@ -215,18 +216,29 @@ const saveSpellInput = $("saveSpellInput");
 
 let savingSchool = "harm";
 
-/* Archivist: Annotated Spells start at level 2. A saved spell is never above the rank. */
-function startingLevel(school) {
-    const level = subclassIs("archivist") && state.level >= 5 ? 2 : 1;
+/* Archivist (level 5): Annotated Spells roll for their starting level. */
+const annotated = () => subclassIs("archivist") && state.level >= 5;
 
-    return Math.min(level, rank(school));
+/* The die Annotated Spells rolls: the size of the school's casting pool. */
+const annotatedDie = school => castingPool(rank(school)).sides;
+
+/* A saved spell starts at level 1, or with Annotated Spells, a roll (at least 2, up to the rank). Null if the roll was cancelled. */
+async function startingLevel(school) {
+    if (!annotated() || rank(school) < 2) {
+        return 1;
+    }
+
+    const rolls = await rollDice(`1d${annotatedDie(school)}`);
+
+    return rolls ? annotatedLevel(rolls[0], rank(school)) : null;
 }
 
 export function openSaveSpell(school) {
     savingSchool = school;
 
-    $("saveSpellInfo").textContent =
-        `Saves the spell as a level ${startingLevel(school)} ${schoolName(school)} spell in an empty slot.`;
+    $("saveSpellInfo").textContent = annotated() && rank(school) >= 2
+        ? `Saves the spell as a ${schoolName(school)} spell in an empty slot. Annotated Spells: roll a d${annotatedDie(school)} for its level, at least 2, up to your rank of ${rank(school)}.`
+        : `Saves the spell as a level 1 ${schoolName(school)} spell in an empty slot.`;
     $("saveSpellMessage").textContent = "";
 
     // On a phone, the tile view already has it spelled out
@@ -236,7 +248,7 @@ export function openSaveSpell(school) {
     saveSpellInput.focus();
 }
 
-$("saveSpellForm").addEventListener("submit", event => {
+$("saveSpellForm").addEventListener("submit", async event => {
     event.preventDefault();
 
     const name = saveSpellInput.value.trim();
@@ -254,11 +266,20 @@ $("saveSpellForm").addEventListener("submit", event => {
         return;
     }
 
-    state.spellSlots[index] = { name: name.toUpperCase(), school: savingSchool, level: startingLevel(savingSchool) };
-    commit(`Saved ${name.toUpperCase()}`);
-    addLog("Saved a spell", `${name.toUpperCase()}: level ${state.spellSlots[index].level} ${schoolName(savingSchool)}`);
+    const school = savingSchool;
 
     hide(saveSpellOverlay);
+
+    const level = await startingLevel(school);
+
+    // The roll was cancelled, or the slot was filled in the meantime
+    if (level === null || !isEmptySlot(state.spellSlots[index])) {
+        return;
+    }
+
+    state.spellSlots[index] = { name: name.toUpperCase(), school, level };
+    commit(`Saved ${name.toUpperCase()} at level ${level}`, annotated() ? { toast: true } : undefined);
+    addLog("Saved a spell", `${name.toUpperCase()}: level ${level} ${schoolName(school)}`);
 });
 
 $("cancelSaveSpell").addEventListener("click", () => hide(saveSpellOverlay));

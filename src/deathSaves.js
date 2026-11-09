@@ -1,5 +1,5 @@
 import { $, element } from "./dom.js";
-import { state, commit } from "./state.js";
+import { state, commit, hasFeat } from "./state.js";
 import { rollDice } from "./dice.js";
 import { showInfoResult } from "./results.js";
 import { updateCurrentHealth } from "./character.js";
@@ -14,9 +14,15 @@ import { updateCurrentHealth } from "./character.js";
  *   20             you wake up with 1 HP
  * Taking damage at 0 HP is a failure too, and any healing clears them all
  * (see updateCurrentHealth in character.js).
+ *
+ * Hard to Kill (feat): a success on 8 or higher, and three successes wake you
+ * right away with 1 HP instead of after an hour.
  */
 
 const MAX_SAVES = 3;
+
+/* The lowest roll that's a success: 10, or 8 with Hard to Kill. */
+export const deathRollTarget = () => hasFeat("hardToKill") ? 8 : 10;
 
 const panel = $("deathSaves");
 
@@ -83,6 +89,7 @@ export function renderDeathSaves() {
     status.dataset.kind = isDead() ? "dead" : isStable() ? "stable" : "";
 
     $("rollDeathSave").disabled = isDead() || isStable();
+    $("rollDeathSave").title = `d20 at the start of every round: ${deathRollTarget()} or higher succeeds, 1 is two failures, 20 wakes you with 1 HP`;
 }
 
 $("rollDeathSave").addEventListener("click", async () => {
@@ -103,8 +110,16 @@ $("rollDeathSave").addEventListener("click", async () => {
         return;
     }
 
-    if (roll >= 10) {
+    if (roll >= deathRollTarget()) {
         state.deathSaves.successes = Math.min(MAX_SAVES, state.deathSaves.successes + 1);
+
+        if (isStable() && hasFeat("hardToKill")) {
+            updateCurrentHealth(1, { label: "Death roll", toast: false });
+            showInfoResult("Death Roll", [["Roll", roll], ["Result", "Third success. Hard to Kill: you wake up with 1 HP"]]);
+
+            return;
+        }
+
         result = isStable() ? "Success: you're stable" : "Success";
     } else {
         deathSaveFailed(roll === 1 ? 2 : 1);

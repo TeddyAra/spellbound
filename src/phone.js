@@ -31,6 +31,7 @@ const PLACES = () => [
     [$("shortRestButton"), $("phoneRests")],
     [$("longRestButton"), $("phoneRests")],
     [$("rollMenu"), page("actions")],
+    [$("passiveRevealBox"), $("savesReveal")],
     [$("savedSpells"), page("spells")],
     [$("constructPanel"), page("construct")],
     [$("diceGrid"), page("dice")],

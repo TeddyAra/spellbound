@@ -12,6 +12,8 @@ import {
     canRaiseRank,
     levelUp,
     rankPointsLeft,
+    tongueAllowedAt,
+    knownTongues,
     schoolsOverCap,
     schoolName,
     mortalLimit,
@@ -36,7 +38,9 @@ import {
     constructParts,
     partMaxHealth,
     partHealth,
-    newHelper,
+    restedHelper,
+    passiveReveal,
+    movementSpeed,
     signatureHasUses,
     runesLast
 } from "./state.js";
@@ -276,8 +280,8 @@ function renderStats() {
         `The DM can raise it by 1 or 2 when the attack suits you poorly, or lower it when it exploits a weakness.\n\n` +
         `Armor ${effectiveArmor()}: reduces every instance of damage, to a minimum of 1.`;
     $("initiativeDisplay").textContent = formatModifier(initiativeBonus());
-    $("passiveRevealDisplay").textContent = rank("reveal");
-    $("movementDisplay").replaceChildren(String(state.movement), element("span", "stat-unit", " ft"));
+    $("passiveRevealDisplay").textContent = passiveReveal();
+    $("movementDisplay").replaceChildren(String(movementSpeed()), element("span", "stat-unit", " ft"));
 
     $("shortRestsDisplay").textContent = `${state.shortRests} / 2`;
 
@@ -352,7 +356,8 @@ $("shortRestButton").addEventListener("click", async () => {
 
     rows.push(["Healed", healing], ["HP", `${state.currentHealth} / ${state.maxHealth}`]);
 
-    if (hasConstruct()) {
+    // Constructs only recover during short rests with Field Repairs
+    if (hasFieldRepairs()) {
         rows.push(...await restConstruct(count, hitDie, medic));
     }
 
@@ -360,10 +365,10 @@ $("shortRestButton").addEventListener("click", async () => {
 });
 
 /*
- * A construct recovers during short rests like you do: its own roll of your
- * hit dice. A Clockmaker's small constructs share that one roll, the most
- * damaged first. With Field Repairs, destroyed ones are rebuilt with half
- * their hit points instead. Returns the rows for the rest's result.
+ * With Field Repairs, a construct recovers during short rests like you do:
+ * its own roll of your hit dice. A Clockmaker's small constructs share that
+ * one roll, the most damaged first. Destroyed ones wait for a long rest.
+ * Returns the rows for the rest's result.
  */
 async function restConstruct(count, hitDie, medic) {
     const parts = constructParts();
@@ -387,17 +392,6 @@ async function restConstruct(count, hitDie, medic) {
                 healing -= healed;
             }
         }
-    }
-
-    const destroyed = parts.filter(part => part.destroyed);
-
-    if (hasFieldRepairs() && destroyed.length) {
-        for (const part of destroyed) {
-            part.destroyed = false;
-            part.damage = partMaxHealth() - Math.floor(partMaxHealth() / 2);
-        }
-
-        rows.push([`Rebuilt (Field Repairs)`, parts.length > 1 ? `${destroyed.length}, at half HP` : "At half HP"]);
     }
 
     // The same undo step as the rest itself
@@ -459,7 +453,7 @@ $("longRestButton").addEventListener("click", async () => {
             destroyed: false,
             colossusRounds: 0,
             colossusUsed: false,
-            helpers: state.construct.helpers.map(newHelper)
+            helpers: state.construct.helpers.map(restedHelper)
         };
     }
 
@@ -734,24 +728,28 @@ function renderSettings() {
 }
 
 /*
- * One dropdown per Tongue the character knows: two to start, one more per
- * Polyglot. A Tongue picked in one dropdown isn't offered in the others.
+ * One dropdown per time the character learned a Tongue: two to start, one
+ * more per Polyglot. Picking one you already speak makes you fluent in it.
+ * Under them, which ones you're fluent in (with their perk) and which you
+ * only speak well.
  */
 function renderTongues() {
     const container = $("tongueChoices");
 
-    container.replaceChildren(...state.tongues.map((choice, index) => {
+    const selects = state.tongues.map((choice, index) => {
         const select = element("select", "modal-input");
-        const takenElsewhere = state.tongues.filter((other, otherIndex) => other && otherIndex !== index);
-        const placeholder = index === 0 ? "Native Tongue" : "Choose a Tongue";
+        const placeholder = index === 0 ? "Native Tongue" : index === 1 ? "Second Tongue" : "Polyglot: choose a Tongue";
 
         select.setAttribute("aria-label", index === 0 ? "Native Tongue" : `Tongue ${index + 1}`);
+
+        // A Tongue already spoken elsewhere: picking it here makes you fluent
+        const spokenElsewhere = key => index > 0 && state.tongues.some((other, otherIndex) => other === key && otherIndex !== index);
 
         fillSelect(select, [
             ["", placeholder],
             ...Object.entries(TONGUES)
-                .filter(([key]) => !takenElsewhere.includes(key))
-                .map(([key, tongue]) => [key, tongue.name])
+                .filter(([key]) => key === choice || tongueAllowedAt(key, index))
+                .map(([key, tongue]) => [key, spokenElsewhere(key) ? `${tongue.name} (fluent)` : tongue.name])
         ], choice);
 
         select.classList.toggle("needs-attention", !choice);
@@ -763,7 +761,21 @@ function renderTongues() {
         });
 
         return select;
-    }));
+    });
+
+    const known = knownTongues();
+    const names = fluent => known.filter(([, isFluent]) => isFluent === fluent).map(([key]) => TONGUES[key].name).join(", ");
+    const summary = element("span", "settings-note tongue-summary");
+
+    if (known.length) {
+        summary.append(element("strong", null, "Fluent: "), names(true) || "none");
+
+        if (names(false)) {
+            summary.append(" · ", element("strong", null, "Well-spoken: "), `${names(false)} (no perk)`);
+        }
+    }
+
+    container.replaceChildren(...selects, ...(known.length ? [summary] : []));
 }
 
 nameInput.addEventListener("input", () => {

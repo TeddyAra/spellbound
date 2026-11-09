@@ -248,7 +248,7 @@
                         <span aria-hidden="true">◂</span>
                     </button>
 
-                    <button id="constructHPButton" class="roll-button" title="Damage, heal, rename your construct or choose its modules">
+                    <button id="constructHPButton" class="roll-button" title="Damage, heal or rename your construct">
                         <span>Hit points</span>
                         <span id="constructHPDisplay">13 / 13</span>
                     </button>
@@ -264,6 +264,17 @@
                     </div>
 
                     <div id="helperList"></div>
+
+                    <!-- The same as yours, for every construct (see construct.js) -->
+                    <div id="constructGuardRow" class="roll-button construct-stat" title="Its Guard DC is the same as yours: the DC when an enemy aims a spell or mundane action at it">
+                        <span>Guard DC</span>
+                        <span><small id="constructArmorDisplay">Armor 1</small> <strong id="constructGuardDisplay">4</strong></span>
+                    </div>
+
+                    <button id="constructModulesButton" class="roll-button" title="Choose its modules">
+                        <span>Modules</span>
+                        <span id="constructModulesDisplay">0 / 1</span>
+                    </button>
 
                     <button id="constructAttackButton" class="roll-button" title="Rolled during your pre-turn, right after your own roll. It attacks right after you, on your casting turn">
                         <span>Attack</span>
@@ -301,26 +312,35 @@
 
                 <nav id="phoneTabs" aria-label="Pages">
                     <button type="button" data-page="actions">Actions</button>
+                    <button type="button" data-page="saves">Saving throws</button>
                     <button type="button" data-page="spells">Saved spells</button>
                     <button id="constructTab" type="button" data-page="construct">Construct</button>
                     <button type="button" data-page="dice">Dice</button>
                     <button type="button" data-page="inventory">Inventory</button>
                     <button type="button" data-page="notes">Notes</button>
-                    <button id="featuresTab" type="button" data-page="features">Features</button>
                     <button type="button" data-page="reference">Reference</button>
+                    <button id="featuresTab" type="button" data-page="features">Features</button>
                     <button id="characterTab" type="button" data-page="character">Character</button>
                 </nav>
                 </div>
 
                 <div id="phonePages">
                     <section id="phonePage-actions" data-page="actions" aria-label="Actions"></section>
+                    <!-- Phone only. The passive Reveal box moves in above the buttons (see phone.js and saves.js) -->
+                    <section id="phonePage-saves" data-page="saves" aria-label="Saving throws">
+                        <div id="savesPanel">
+                            <div id="savesReveal"></div>
+                            <div id="saveButtons"></div>
+                            <p class="settings-note">Roll the school that fits how you resist. Against a spell, the DC is its level + 3. Against anything else, the DM sets it.</p>
+                        </div>
+                    </section>
                     <section id="phonePage-spells" data-page="spells" aria-label="Saved spells"></section>
                     <section id="phonePage-construct" data-page="construct" aria-label="Construct"></section>
                     <section id="phonePage-dice" data-page="dice" aria-label="Dice"></section>
                     <section id="phonePage-inventory" data-page="inventory" aria-label="Inventory"></section>
                     <section id="phonePage-notes" data-page="notes" aria-label="Notes"></section>
-                    <section id="phonePage-features" data-page="features" aria-label="Features"></section>
                     <section id="phonePage-reference" data-page="reference" aria-label="Quick reference"></section>
+                    <section id="phonePage-features" data-page="features" aria-label="Features"></section>
                     <section id="phonePage-character" data-page="character" aria-label="Character"></section>
                 </div>
 
@@ -675,18 +695,31 @@
 
                 <p id="constructMessage" class="result-label"></p>
 
-                <hr class="roll-divider">
+                <div class="actions">
+                    <button id="closeConstruct">Close</button>
+                </div>
+            </div>
+        </div>
 
-                <!-- Chosen when it's built, swapped during a long rest (see construct.js) -->
+        <!-- =====================================================
+            MODULES OVERLAY (Golemwright; see construct.js)
+            Chosen when it's built, swapped during a long rest
+        ===================================================== -->
+        <div id="modulesOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modulesTitle">
+                <h2 id="modulesTitle">Modules</h2>
+
+                <p id="modulesInfo" class="settings-note"></p>
+
                 <div class="rolls-title feature-group">
-                    <span>Modules</span>
+                    <span>Chosen</span>
                     <span id="moduleSummary" class="fold-count"></span>
                 </div>
 
                 <div id="moduleList"></div>
 
                 <div class="actions">
-                    <button id="closeConstruct">Close</button>
+                    <button id="closeModules">Close</button>
                 </div>
             </div>
         </div>
