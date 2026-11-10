@@ -1602,52 +1602,79 @@ button:disabled {
     gap: 8px;
 }
 
-#rollMenu > .rolls-title {
-    margin: 0 0 -2px 4px;
+/*
+ * =========================================================
+ * MENU PAGES (see menuPages.js)
+ * Three headers side by side under the general info, each showing its page.
+ * They look like headings in every theme, so the id beats the themes' button styles.
+ * =========================================================
+ */
+
+#menuTabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    margin-top: 4px;
+
+    border-bottom: 1px solid var(--border);
 }
 
-/*
- * A heading that folds the list under it open or shut (Saved spells). It
- * looks like the plain heading in every theme, so the id beats the themes'
- * button styles.
- */
-:root #rollMenu > .fold-toggle,
-:root #rollMenu > .fold-toggle:hover {
-    width: calc(100% - 4px);
+:root #menuTabs button,
+:root #menuTabs button:hover {
+    min-width: 0;
     min-height: 0;
 
-    display: flex;
-    align-items: center;
-    gap: 6px;
-
-    padding: 2px 0;
+    margin-bottom: -1px;
+    padding: 8px 2px 7px;
 
     background: none;
-    border: none;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
     box-shadow: none;
 
-    text-align: left;
+    color: var(--muted);
+
+    font-family: var(--font-label, inherit);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
 
     cursor: pointer;
 }
 
-#rollMenu > .fold-toggle:hover,
-#rollMenu > .fold-toggle:focus-visible {
+#menuTabs button:hover,
+#menuTabs button:focus-visible {
     color: var(--text);
 }
 
-.fold-arrow {
-    display: inline-block;
+:root #menuTabs button.active {
+    border-bottom-color: var(--accent);
 
-    width: 1em;
-
-    transition: transform 0.15s;
+    color: var(--text);
 }
 
-.fold-toggle.folded .fold-arrow {
-    transform: rotate(-90deg);
+#menuPages,
+.menu-page {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
+#menuPages {
+    padding-top: 4px;
+}
+
+/* Only the chosen page, except on the phone, where each has a page of its own */
+:root:not(.phone) #rollMenu:not([data-page="actions"]) #menuPage-actions,
+:root:not(.phone) #rollMenu:not([data-page="saves"]) #menuPage-saves,
+:root:not(.phone) #rollMenu:not([data-page="spells"]) #menuPage-spells {
+    display: none;
+}
+
+/* The number of modules chosen, at the end of their heading */
 .fold-count {
     margin-left: auto;
     margin-right: 4px;
@@ -2323,25 +2350,11 @@ select.modal-input:disabled {
     display: none;
 }
 
-/* HP and guard DC on one row, then initiative, passive Reveal and movement on the next */
+/* HP and guard DC on one row, then initiative and movement on the next (passive Reveal is on the Saves & senses page) */
 #statGrid {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
-}
-
-#statGrid > * {
-    grid-column: span 2;
-}
-
-#statGrid > #hpManagerButton,
-#statGrid > #guardBox {
-    grid-column: span 3;
-}
-
-/* Passive Reveal's label takes two lines: the numbers still line up */
-#statGrid > :not(#hpManagerButton, #guardBox) strong {
-    margin-top: auto;
 }
 
 #statGrid .stat-box > span {
@@ -3190,7 +3203,6 @@ select.modal-input:disabled {
 
     /* Only on screens too short for it all: a column scrolls rather than spilling over */
     overflow-y: auto;
-    scrollbar-width: thin;
 }
 
 .reference-card {
@@ -4152,13 +4164,10 @@ select.modal-input:disabled {
 
 :root.phone #rollMenu > hr,
 :root.phone #rollMenu > .two-column:empty,
-:root.phone #savedSpellsToggle {
+:root.phone #menuTabs,
+:root.phone #menuPage-saves,
+:root.phone #menuPage-spells {
     display: none;
-}
-
-/* A page is always open, however it was left on a bigger screen */
-:root.phone #savedSpells.hidden {
-    display: flex !important;
 }
 
 :root.phone #savedSpells {
@@ -4566,6 +4575,76 @@ select.modal-input:disabled {
     margin: 0 auto 14px;
 }
 
+/* The version under the logo, which opens the list of changes (see changelog.js). Plain text in every theme. */
+:root #versionButton,
+:root #versionButton:hover {
+    display: block;
+
+    min-width: 0;
+    min-height: 0;
+
+    margin: -8px auto 10px;
+    padding: 2px 6px;
+
+    background: none;
+    border: none;
+    box-shadow: none;
+
+    color: var(--muted);
+
+    text-transform: none;
+    letter-spacing: 0;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+#versionButton:hover,
+#versionButton:focus-visible {
+    color: var(--text);
+    text-decoration: underline;
+}
+
+#changelogOverlay .modal {
+    width: min(620px, 96vw);
+}
+
+#changelogList {
+    max-height: 62vh;
+    overflow-y: auto;
+}
+
+.changelog-entry h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+
+    margin: 0 0 8px;
+}
+
+.changelog-entry h3 small {
+    color: var(--muted);
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.changelog-entry ul {
+    margin: 0 0 16px;
+    padding-left: 20px;
+
+    color: var(--muted);
+
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.changelog-entry li + li {
+    margin-top: 4px;
+}
+
 /* =========================================================
    THE PHONE'S TILE VIEW (see tileView.js)
    ========================================================= */
@@ -4898,7 +4977,7 @@ select.modal-input:disabled {
 }
 
 /* =========================================================
-   SAVING THROWS PAGE (phone only; see saves.js)
+   SAVES & SENSES PAGE (see saves.js)
    ========================================================= */
 
 #savesPanel {
@@ -4913,42 +4992,77 @@ select.modal-input:disabled {
     gap: 10px;
 }
 
-#savesReveal .stat-box {
-    flex-direction: row;
-    justify-content: space-between;
+/*
+ * Passive Reveal: something to read rather than press. No frame and no hover
+ * like the buttons have, but a tinted panel with an accent edge and a big
+ * number, so it's not lost among them either. What it means is in its tooltip.
+ */
+.sense-row {
+    display: flex;
     align-items: center;
+    gap: 12px;
 
-    width: 100%;
-    min-height: 50px;
+    padding: 10px 14px 10px 12px;
 
-    padding: 8px 14px;
+    background: color-mix(in srgb, var(--accent) 9%, var(--inset));
+
+    border-left: 3px solid var(--accent);
+    border-radius: 4px 8px 8px 4px;
+
+    cursor: default;
 }
 
-#savesReveal .stat-box strong {
-    font-size: 19px;
+.sense-icon {
+    flex-shrink: 0;
+
+    width: 22px;
+    height: 22px;
+
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
-.save-button {
-    min-height: 62px;
+.sense-name {
+    flex: 1;
+    min-width: 0;
+
+    font-family: var(--font-label, inherit);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
-.roll-button span.save-name {
+.sense-value {
+    flex-shrink: 0;
+
+    min-width: 1.4em;
+
+    color: var(--text);
+
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1;
+    text-align: right;
+}
+
+:root.phone .sense-row {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+/* The modules, under their heading, spaced like the feats */
+#moduleList {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-
-    white-space: normal;
+    gap: 8px;
 }
 
-.save-name small {
-    color: var(--muted);
-
-    text-transform: none;
-    letter-spacing: 0;
-
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 1.25;
+#modulesOverlay .feature-group {
+    margin-bottom: 8px;
 }
 
 /* Room for another module */
@@ -4988,4 +5102,475 @@ select.modal-input:disabled {
 
     font-size: 12px;
     font-weight: 600;
+}
+
+/* =========================================================
+   RULES SEARCH, at the top of the quick reference (see rulesSearch.js)
+   ========================================================= */
+
+/* The title on the left, the search on the right */
+#referenceHeader {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 20px;
+
+    margin-bottom: 14px;
+}
+
+#referenceOverlay #referenceHeader h2 {
+    margin: 0;
+}
+
+#rulesSearchBar {
+    flex: 0 1 520px;
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.rules-search-field {
+    position: relative;
+
+    flex: 1;
+    min-width: 0;
+}
+
+.rules-search-field svg {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+
+    width: 18px;
+    height: 18px;
+
+    transform: translateY(-50%);
+
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+
+    pointer-events: none;
+}
+
+#rulesSearchInput {
+    width: 100%;
+
+    padding: 9px 36px 9px 37px;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    background: var(--input);
+    color: var(--text);
+}
+
+#rulesSearchInput:focus {
+    outline: none;
+
+    border-color: var(--accent);
+}
+
+/* The browser's own clear button: there's one of ours */
+#rulesSearchInput::-webkit-search-cancel-button {
+    display: none;
+}
+
+:root #rulesSearchClose,
+:root #rulesSearchClose:hover {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+
+    width: 30px;
+    min-width: 0;
+    height: 30px;
+    min-height: 0;
+
+    padding: 0;
+
+    transform: translateY(-50%);
+
+    background: none;
+    border: 0;
+    box-shadow: none;
+
+    color: var(--muted);
+
+    font-size: 22px;
+    line-height: 1;
+}
+
+#rulesSearchClose:hover,
+#rulesSearchClose:focus-visible {
+    color: var(--text);
+}
+
+.rules-dm-toggle {
+    flex-shrink: 0;
+
+    margin: 0;
+
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+/* While searching, the panel takes the quick reference's place and scrolls */
+#rulesSearchPanel {
+    flex: 1;
+    min-height: 0;
+
+    overflow-y: auto;
+
+    padding-right: 4px;
+}
+
+.rules-search-status {
+    margin: 0 0 12px;
+
+    color: var(--muted);
+
+    font-size: 14px;
+}
+
+.rules-search-heading {
+    margin: 0 0 8px;
+
+    color: var(--muted);
+
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* Suggestions: a chip per section */
+.rules-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+:root .rules-suggestion {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+
+    padding: 7px 12px;
+
+    text-align: left;
+}
+
+.rules-suggestion strong {
+    font-size: 14px;
+}
+
+.rules-suggestion small {
+    color: var(--muted);
+
+    font-size: 12px;
+}
+
+/* Results: one card per section or glossary term */
+.rules-results {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    max-width: 900px;
+}
+
+:root .rules-result {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+
+    width: 100%;
+
+    padding: 10px 14px;
+
+    background: var(--inset);
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: none;
+
+    text-align: left;
+    text-transform: none;
+    letter-spacing: 0;
+
+    font-family: inherit;
+    font-weight: 400;
+}
+
+:root button.rules-result:hover,
+:root button.rules-result:focus-visible {
+    border-color: var(--accent);
+}
+
+/* Read in place: nothing to open */
+.rules-result-glossary {
+    cursor: default;
+}
+
+.rules-result-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rules-path {
+    min-width: 0;
+
+    overflow: hidden;
+
+    color: var(--muted);
+
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rules-tag {
+    flex-shrink: 0;
+
+    padding: 1px 6px;
+
+    border: 1px solid var(--border);
+    border-radius: 4px;
+
+    color: var(--muted);
+
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.rules-tag-dm {
+    border-color: var(--accent);
+
+    color: var(--accent);
+}
+
+.rules-result-title {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.rules-snippet {
+    color: var(--muted);
+
+    font-size: 13.5px;
+    line-height: 1.45;
+}
+
+.rules-mark {
+    padding: 0 1px;
+
+    border-radius: 3px;
+
+    background: color-mix(in srgb, var(--accent) 28%, transparent);
+    color: var(--text);
+}
+
+:root .rules-more-button {
+    margin-top: 12px;
+
+    padding: 8px 14px;
+
+    font-size: 14px;
+}
+
+/* A section, read in full */
+.rules-article-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding-bottom: 10px;
+
+    background: var(--panel);
+}
+
+:root .rules-back {
+    flex-shrink: 0;
+
+    padding: 6px 12px;
+
+    font-size: 14px;
+}
+
+.rules-article {
+    max-width: 760px;
+
+    font-size: 15px;
+    line-height: 1.55;
+}
+
+.rules-part + .rules-part {
+    margin-top: 22px;
+}
+
+.rules-part.current .rules-title {
+    color: var(--accent);
+}
+
+.rules-title {
+    margin: 0 0 8px;
+}
+
+h3.rules-title {
+    font-size: 21px;
+}
+
+h4.rules-title {
+    font-size: 18px;
+}
+
+h5.rules-title {
+    font-size: 16px;
+}
+
+.rules-subheading {
+    margin: 14px 0 4px;
+
+    font-size: 15px;
+}
+
+.rules-article p {
+    margin: 0 0 10px;
+}
+
+.rules-article p.rules-line {
+    margin: 0 0 2px;
+}
+
+.rules-article ul,
+.rules-article ol {
+    margin: 0 0 10px;
+    padding-left: 22px;
+}
+
+.rules-article li + li {
+    margin-top: 4px;
+}
+
+.rules-article a {
+    color: var(--accent);
+}
+
+.rules-table-scroll {
+    margin: 4px 0 12px;
+
+    overflow-x: auto;
+}
+
+.rules-article .reference-table {
+    font-size: 14px;
+}
+
+.rules-article .reference-table th,
+.rules-article .reference-table td {
+    padding: 4px 10px;
+
+    vertical-align: top;
+}
+
+.rules-rule {
+    margin: 10px 0;
+}
+
+/* Notes and stat blocks from the rulebook, in a box */
+.rules-box {
+    margin: 4px 0 12px;
+    padding: 10px 14px 2px;
+
+    background: var(--inset);
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.rules-box-note {
+    border-left: 3px solid var(--accent);
+}
+
+/* Narrow screens: the search gets its own row under the title */
+@media (max-width: 1000px) {
+    #rulesSearchBar {
+        flex-basis: 100%;
+    }
+
+    #rulesSearchPanel {
+        overflow: visible;
+    }
+
+    .rules-article-bar {
+        position: static;
+
+        background: none;
+    }
+}
+
+/* The phone: the page has no title, so the search is at the very top */
+:root.phone #referenceTitle {
+    display: none;
+}
+
+:root.phone #rulesSearchBar {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+}
+
+:root.phone .rules-search-field {
+    flex-basis: 100%;
+}
+
+/* At 16px, phones don't zoom in when typing */
+:root.phone #rulesSearchInput {
+    font-size: 16px;
+}
+
+/* A bigger box, and the whole row as tall as a fingertip */
+:root.phone .rules-dm-toggle {
+    min-height: 44px;
+    gap: 12px;
+
+    padding-right: 12px;
+
+    font-size: 16px;
+}
+
+:root.phone .rules-dm-toggle input {
+    width: 26px;
+    height: 26px;
+
+    --check-radius: 6px;
+}
+
+:root.phone .rules-dm-toggle input::before {
+    width: 15px;
+    height: 15px;
+}
+
+:root.phone #rulesSearchPanel {
+    overflow: visible;
+}
+
+:root.phone .rules-article-bar {
+    /* Not stuck to the top here, so no background: the phone's pages have none of their own */
+    position: static;
+
+    background: none;
 }

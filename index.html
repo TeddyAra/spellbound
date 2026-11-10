@@ -141,15 +141,21 @@
                         <strong id="initiativeDisplay">+1</strong>
                     </button>
 
-                    <div id="passiveRevealBox" class="stat-box" title="Passive Reveal: you notice hidden things with a concealment level up to this">
-                        <span>Passive Reveal</span>
-                        <strong id="passiveRevealDisplay">1</strong>
-                    </div>
-
                     <div id="movementBox" class="stat-box" title="Movement: how far you can move on your casting turn. Change it in Character settings.">
                         <span>Movement</span>
                         <strong id="movementDisplay">30<span class="stat-unit"> ft</span></strong>
                     </div>
+                </div>
+
+                <div id="restButtons" class="two-column">
+                    <button id="shortRestButton" class="roll-button" title="Roll half your level in hit dice and heal that much. Two a day.">
+                        <span>Short<em class="rest-word"> rest</em></span>
+                        <span id="shortRestsDisplay">0 / 2</span>
+                    </button>
+
+                    <button id="longRestButton" class="roll-button" title="Regain all hit points and uses of your signature ability">
+                        <span>Long<em class="rest-word"> rest</em></span>
+                    </button>
                 </div>
 
                 <!-- At 0 HP (see deathSaves.js) -->
@@ -173,66 +179,80 @@
                     <button id="rollDeathSave" class="primary" title="d20 at the start of every round: 10 or higher succeeds, 1 is two failures, 20 wakes you with 1 HP">Roll death roll</button>
                 </div>
 
-                <!-- The class's signature ability (see signature.js) -->
-                <div id="signaturePanel">
-                    <button id="signatureButton" class="roll-button">
-                        <span id="signatureName">Torrent of Words</span>
-                        <span id="signatureUses">2 / 2</span>
-                    </button>
+                <!--
+                    Three pages under the general info, picked with these headers (see menuPages.js).
+                    The phone has pages of its own: the actions page stays here, the other two move out (see phone.js).
+                -->
+                <nav id="menuTabs" aria-label="Menu pages">
+                    <button type="button" data-menu-page="actions">Actions</button>
+                    <button type="button" data-menu-page="saves">Saves &amp; senses</button>
+                    <button type="button" data-menu-page="spells">Saved spells</button>
+                </nav>
 
-                    <div id="runeCounter" class="roll-button hidden">
-                        <span>Runes</span>
-                        <span class="counter">
-                            <button id="runeMinus" type="button" aria-label="Use up a rune">−</button>
-                            <strong id="runeCount">0 / 2</strong>
-                            <button id="runePlus" type="button" aria-label="Write a rune">+</button>
-                        </span>
-                    </div>
+                <div id="menuPages">
+                    <section id="menuPage-actions" class="menu-page" data-menu-page="actions" aria-label="Actions">
+                        <!-- The class's signature ability (see signature.js) -->
+                        <div id="signaturePanel">
+                            <button id="signatureButton" class="roll-button">
+                                <span id="signatureName">Torrent of Words</span>
+                                <span id="signatureUses">2 / 2</span>
+                            </button>
 
-                    <button id="nextRoundButton" class="roll-button hidden" title="Counts down your signature ability">
-                        <span>Next round</span>
-                        <span id="roundsLeftDisplay">3 rounds left</span>
-                    </button>
-                </div>
+                            <div id="runeCounter" class="roll-button hidden">
+                                <span>Runes</span>
+                                <span class="counter">
+                                    <button id="runeMinus" type="button" aria-label="Use up a rune">−</button>
+                                    <strong id="runeCount">0 / 2</strong>
+                                    <button id="runePlus" type="button" aria-label="Write a rune">+</button>
+                                </span>
+                            </div>
 
-                <!-- One per equipped weapon (see casting.js) -->
-                <div id="weaponButtons"></div>
+                            <button id="nextRoundButton" class="roll-button hidden" title="Counts down your signature ability">
+                                <span>Next round</span>
+                                <span id="roundsLeftDisplay">3 rounds left</span>
+                            </button>
+                        </div>
 
-                <hr class="roll-divider">
+                        <!-- One per equipped weapon (see casting.js) -->
+                        <div id="weaponButtons"></div>
 
-                <div id="schoolGrid" class="two-column">
-                    <button class="roll-button school-button" data-school="harm"></button>
-                    <button class="roll-button school-button" data-school="aid"></button>
-                    <button class="roll-button school-button" data-school="change"></button>
-                    <button class="roll-button school-button" data-school="move"></button>
-                    <button class="roll-button school-button" data-school="control"></button>
-                    <button class="roll-button school-button" data-school="reveal"></button>
-                    <button class="roll-button school-button" data-school="create"></button>
-                    <button class="roll-button school-button" data-school="passion"></button>
-                </div>
+                        <hr class="roll-divider">
 
-                <hr class="roll-divider">
+                        <div id="schoolGrid" class="two-column">
+                            <button class="roll-button school-button" data-school="harm"></button>
+                            <button class="roll-button school-button" data-school="aid"></button>
+                            <button class="roll-button school-button" data-school="change"></button>
+                            <button class="roll-button school-button" data-school="move"></button>
+                            <button class="roll-button school-button" data-school="control"></button>
+                            <button class="roll-button school-button" data-school="reveal"></button>
+                            <button class="roll-button school-button" data-school="create"></button>
+                            <button class="roll-button school-button" data-school="passion"></button>
+                        </div>
+                    </section>
 
-                <!-- Folds open or shut (see spellSlots.js) -->
-                <button id="savedSpellsToggle" class="rolls-title fold-toggle" aria-expanded="true" aria-controls="savedSpells">
-                    <span class="fold-arrow" aria-hidden="true">▾</span>
-                    <span>Saved spells</span>
-                    <span id="savedSpellsCount" class="fold-count"></span>
-                </button>
+                    <!-- Passive Reveal, then the saving throws (see saves.js). The phone moves the whole panel to a page of its own (see phone.js) -->
+                    <section id="menuPage-saves" class="menu-page" data-menu-page="saves" aria-label="Saves and senses">
+                        <div id="savesPanel">
+                            <!-- Not a button: something to read, so no frame, and nothing happens on hover -->
+                            <div id="passiveRevealRow" class="sense-row" title="Passive Reveal: without rolling, you notice hidden things up to this concealment level">
+                                <svg class="sense-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
 
-                <div id="savedSpells"></div>
+                                <strong class="sense-name">Passive Reveal</strong>
 
-                <hr class="roll-divider">
+                                <strong id="passiveRevealDisplay" class="sense-value">1</strong>
+                            </div>
 
-                <div class="two-column">
-                    <button id="shortRestButton" class="roll-button" title="Roll half your level in hit dice and heal that much. Two a day.">
-                        <span>Short<em class="rest-word"> rest</em></span>
-                        <span id="shortRestsDisplay">0 / 2</span>
-                    </button>
+                            <div id="saveButtons"></div>
+                        </div>
+                    </section>
 
-                    <button id="longRestButton" class="roll-button" title="Regain all hit points and uses of your signature ability">
-                        <span>Long<em class="rest-word"> rest</em></span>
-                    </button>
+                    <!-- See spellSlots.js -->
+                    <section id="menuPage-spells" class="menu-page" data-menu-page="spells" aria-label="Saved spells">
+                        <div id="savedSpells"></div>
+                    </section>
                 </div>
             </div>
 
@@ -312,7 +332,7 @@
 
                 <nav id="phoneTabs" aria-label="Pages">
                     <button type="button" data-page="actions">Actions</button>
-                    <button type="button" data-page="saves">Saving throws</button>
+                    <button type="button" data-page="saves">Saves &amp; senses</button>
                     <button type="button" data-page="spells">Saved spells</button>
                     <button id="constructTab" type="button" data-page="construct">Construct</button>
                     <button type="button" data-page="dice">Dice</button>
@@ -326,14 +346,7 @@
 
                 <div id="phonePages">
                     <section id="phonePage-actions" data-page="actions" aria-label="Actions"></section>
-                    <!-- Phone only. The passive Reveal box moves in above the buttons (see phone.js and saves.js) -->
-                    <section id="phonePage-saves" data-page="saves" aria-label="Saving throws">
-                        <div id="savesPanel">
-                            <div id="savesReveal"></div>
-                            <div id="saveButtons"></div>
-                            <p class="settings-note">Roll the school that fits how you resist. Against a spell, the DC is its level + 3. Against anything else, the DM sets it.</p>
-                        </div>
-                    </section>
+                    <section id="phonePage-saves" data-page="saves" aria-label="Saves and senses"></section>
                     <section id="phonePage-spells" data-page="spells" aria-label="Saved spells"></section>
                     <section id="phonePage-construct" data-page="construct" aria-label="Construct"></section>
                     <section id="phonePage-dice" data-page="dice" aria-label="Dice"></section>
@@ -729,7 +742,29 @@
         ===================================================== -->
         <div id="referenceOverlay" class="overlay hidden">
             <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="referenceTitle">
-                <h2 id="referenceTitle">Quick Reference</h2>
+                <div id="referenceHeader">
+                    <h2 id="referenceTitle">Quick Reference</h2>
+
+                    <!-- Searches the rulebook (see rulesSearch.js) -->
+                    <div id="rulesSearchBar">
+                        <div class="rules-search-field">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="10.5" cy="10.5" r="6.5" />
+                                <path d="m15.5 15.5 5 5" />
+                            </svg>
+                            <input id="rulesSearchInput" type="search" placeholder="Search the rulebook" autocomplete="off" spellcheck="false" aria-label="Search the rulebook" aria-controls="rulesSearchPanel">
+                            <button id="rulesSearchClose" class="hidden" type="button" aria-label="Close the search" title="Back to the quick reference">×</button>
+                        </div>
+
+                        <label class="check-row rules-dm-toggle" title="Also search the chapters for the DM: running enemies, the example enemies, judging spells and feature interactions">
+                            <input id="rulesSearchDM" type="checkbox">
+                            <span>DM chapters</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Instead of the quick reference while searching -->
+                <div id="rulesSearchPanel" class="hidden" aria-live="polite"></div>
 
                 <div id="referenceContent"></div>
 
@@ -1089,6 +1124,9 @@
             <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
                 <img id="settingsLogo" src="./imgs/logo.png" alt="Spellbound">
 
+                <!-- Opens the list of changes (see changelog.js) -->
+                <button id="versionButton" type="button" title="What's changed in each version"></button>
+
                 <h2 id="settingsTitle">Settings</h2>
 
                 <div class="settings-columns">
@@ -1109,6 +1147,29 @@
                                 <button type="button" data-value="large">Large</button>
                             </div>
                         </div>
+
+                        <hr class="roll-divider">
+
+                        <h3>Tiles</h3>
+
+                        <div class="settings-grid">
+                            <span class="settings-label">Tile size</span>
+                            <div class="mode-buttons" data-preference="tileSize">
+                                <button type="button" data-value="small">Small</button>
+                                <button type="button" data-value="normal">Normal</button>
+                                <button type="button" data-value="large">Large</button>
+                            </div>
+                        </div>
+
+                        <label class="check-row">
+                            <input type="checkbox" data-preference="letterScores">
+                            <span>Show letter scores</span>
+                        </label>
+
+                        <label class="check-row">
+                            <input type="checkbox" data-preference="wordUnderlines">
+                            <span>Underline words</span>
+                        </label>
                     </div>
 
                     <div class="settings-column">
@@ -1153,29 +1214,6 @@
 
                         <hr class="roll-divider">
 
-                        <h3>Tiles</h3>
-
-                        <div class="settings-grid">
-                            <span class="settings-label">Tile size</span>
-                            <div class="mode-buttons" data-preference="tileSize">
-                                <button type="button" data-value="small">Small</button>
-                                <button type="button" data-value="normal">Normal</button>
-                                <button type="button" data-value="large">Large</button>
-                            </div>
-                        </div>
-
-                        <label class="check-row">
-                            <input type="checkbox" data-preference="letterScores">
-                            <span>Show letter scores</span>
-                        </label>
-
-                        <label class="check-row">
-                            <input type="checkbox" data-preference="wordUnderlines">
-                            <span>Underline words</span>
-                        </label>
-
-                        <hr class="roll-divider">
-
                         <h3>Ask before</h3>
 
                         <label class="check-row">
@@ -1193,6 +1231,21 @@
                 <div class="actions">
                     <button id="testDiceButton" class="primary">Test dice</button>
                     <button id="closeSettings">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =====================================================
+            WHAT'S NEW: the version and its changes, opened from Settings (see changelog.js)
+        ===================================================== -->
+        <div id="changelogOverlay" class="overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="changelogTitle">
+                <h2 id="changelogTitle">What's new</h2>
+
+                <div id="changelogList"></div>
+
+                <div class="actions">
+                    <button id="closeChangelog" type="button">Close</button>
                 </div>
             </div>
         </div>

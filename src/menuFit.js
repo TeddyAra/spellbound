@@ -18,6 +18,5 @@ function fitMenu() {
 onStateChange(fitMenu);
 onResize(fitMenu);
 
-// Text size, and folding the saved spells away
+// Text size, and switching menu pages (see menuPages.js)
 document.addEventListener("preferenceschange", fitMenu);
-$("savedSpellsToggle").addEventListener("click", fitMenu);

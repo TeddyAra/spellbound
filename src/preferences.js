@@ -29,12 +29,17 @@ export const DEFAULT_PREFERENCES = {
     // "small", "normal" or "large"
     textSize: "normal",
 
-    // Folded open in the menu: a Golemwright's construct (see construct.js), and the saved spells (see spellSlots.js)
+    // Folded open next to the menu: a Golemwright's construct (see construct.js)
     constructOpen: true,
-    savedSpellsOpen: true,
 
-    // The page showing in the phone layout (see phone.js)
-    phonePage: "actions"
+    // The page showing under the menu's general info (see menuPages.js), and in the phone layout (see phone.js)
+    menuPage: "actions",
+    phonePage: "actions",
+
+    // The rules search (see rulesSearch.js): whether it searches the DM chapters too,
+    // and how often each section was opened, for the suggestions ({ id: count })
+    rulesSearchDM: false,
+    rulesSearchHistory: {}
 };
 
 // Only what the player changed, so the rest keeps following the defaults

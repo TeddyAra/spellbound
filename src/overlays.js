@@ -22,7 +22,8 @@ const closableOverlays = [
     "inventoryOverlay",
     "notesOverlay",
     "logOverlay",
-    "settingsOverlay"
+    "settingsOverlay",
+    "changelogOverlay"
 ].map($);
 
 for (const overlay of closableOverlays) {
