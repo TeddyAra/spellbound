@@ -245,6 +245,17 @@
                                 <strong id="passiveRevealDisplay" class="sense-value">1</strong>
                             </div>
 
+                            <!-- Only for races with darkvision -->
+                            <div id="darkvisionRow" class="sense-row hidden" title="Darkvision: you can see in the dark up to 60 feet away, in shades of grey">
+                                <svg class="sense-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />
+                                </svg>
+
+                                <strong class="sense-name">Darkvision</strong>
+
+                                <strong class="sense-value">60 ft</strong>
+                            </div>
+
                             <div id="saveButtons"></div>
                         </div>
                     </section>
@@ -477,6 +488,9 @@
                             <label for="classInput">Class</label>
                             <select class="modal-input" id="classInput"></select>
 
+                            <label for="raceInput">Race</label>
+                            <select class="modal-input" id="raceInput"></select>
+
                             <label for="subclassInput">Subclass</label>
                             <select class="modal-input" id="subclassInput"></select>
 
@@ -495,6 +509,7 @@
                         </div>
 
                         <p id="classSummary" class="settings-note"></p>
+                        <p id="raceSummary" class="settings-note hidden"></p>
 
                         <hr class="roll-divider">
 
@@ -537,6 +552,18 @@
                                 <label id="shieldRow" class="check-row">
                                     <input id="shieldInput" type="checkbox">
                                     <span>Shield (+1)</span>
+                                </label>
+                            </span>
+
+                            <span></span>
+                            <span class="input-with-button">
+                                <label id="magicArmorRow" class="check-row" title="Magic armor: 1 more armor (see Magic Weapons and Armor)">
+                                    <input id="magicArmorInput" type="checkbox">
+                                    <span>Magic armor (+1)</span>
+                                </label>
+                                <label id="magicShieldRow" class="check-row" title="A magic shield: 1 more armor (see Magic Weapons and Armor)">
+                                    <input id="magicShieldInput" type="checkbox">
+                                    <span>Magic shield (+1)</span>
                                 </label>
                             </span>
 
@@ -806,6 +833,12 @@
                     <span>Reading, deciphering or spotting writing, symbols or traps (Lettered: mortal limit 4)</span>
                 </label>
 
+                <!-- A race's knack raises the mortal limit for some actions only -->
+                <label id="knackRow" class="check-row hidden">
+                    <input id="knackInput" type="checkbox">
+                    <span id="knackLabel"></span>
+                </label>
+
                 <div class="modal-element">
                     <label for="dcInput" title="Leave empty if the DM keeps it secret">
                         DC <span class="result-label">(optional)</span>
@@ -994,6 +1027,14 @@
 
                         <label for="customWeaponDie">Type</label>
                         <select class="modal-input" id="customWeaponDie"></select>
+
+                        <label for="customWeaponBonus">Magic</label>
+                        <select class="modal-input" id="customWeaponBonus" title="A +2 or +3 weapon also makes its target's Guard DC 1 lower">
+                            <option value="0">None</option>
+                            <option value="1">+1: +1 damage</option>
+                            <option value="2">+2: +2 damage, Guard DC 1 lower</option>
+                            <option value="3">+3: +3 damage, Guard DC 1 lower</option>
+                        </select>
 
                         <label for="customWeaponDescription">Description</label>
                         <textarea class="modal-input" id="customWeaponDescription" rows="2" maxlength="200" placeholder="Optional: what it looks like or does"></textarea>

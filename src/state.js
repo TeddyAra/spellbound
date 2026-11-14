@@ -16,7 +16,8 @@ import {
     constructFrame,
     MODULES,
     TONGUES,
-    STARTING_TONGUES
+    STARTING_TONGUES,
+    RACES
 } from "./rules.js";
 
 const DEFAULT_MOVEMENT = 30;
@@ -25,6 +26,12 @@ export const state = {
     name: "",
     className: "wordweaver",
     subclass: "",
+
+    // A key of RACES, or "" while none is chosen (characters from before races existed)
+    race: "",
+
+    // Human: the school picked for the knack
+    knackSchools: [],
     level: 1,
 
     // In feet. The rules have no number for it, so the player sets it (see character.js)
@@ -64,9 +71,12 @@ export const state = {
     // Index into ARMOR_TYPES, which is also its armor value
     armor: 0,
     shield: false,
+    // +1 armor and a +1 shield (see "Magic Weapons and Armor")
+    magicArmor: false,
+    magicShield: false,
 
     // What the character owns. Equipped ones can be attacked with (see equipWeapon)
-    weapons: [{ id: "starting-dagger", name: "Dagger", description: "", die: 4, ranged: false, twoHanded: false, equipped: true }],
+    weapons: [{ id: "starting-dagger", name: "Dagger", description: "", die: 4, bonus: 0, ranged: false, twoHanded: false, equipped: true }],
 
     // Max HP follows the class and level, unless the player rolled for it
     rolledHP: false,
@@ -134,6 +144,9 @@ export function schoolName(school) {
  */
 
 export const characterClass = () => CLASSES[state.className];
+
+/* The race, or null while none is chosen. */
+export const characterRace = () => RACES[state.race] ?? null;
 
 export function subclassIs(key) {
     return state.subclass === key && state.level >= SUBCLASS_LEVEL;
@@ -234,8 +247,16 @@ function classWeaponLimit() {
 
 const keeperOfLore = school => school === "reveal" && subclassIs("keeperOfLore") ? 1 : 0;
 
-export function mortalLimit(school, lettered = false) {
-    return raise(classLimit(school, lettered)[0], trainedCount(school) + keeperOfLore(school));
+/* Human: the knack covers every mundane action in the chosen school. */
+const schoolKnack = school => state.race === "human" && state.knackSchools.includes(school) ? 1 : 0;
+
+/* Other races: the knack only covers some actions in these schools, so the player ticks it when rolling. */
+export const canUseKnack = school => Boolean(characterRace()?.knack.schools?.includes(school));
+
+const knackSteps = (school, knack) => schoolKnack(school) + (knack && canUseKnack(school) ? 1 : 0);
+
+export function mortalLimit(school, lettered = false, knack = false) {
+    return raise(classLimit(school, lettered)[0], trainedCount(school) + keeperOfLore(school) + knackSteps(school, knack));
 }
 
 /* Battle Rhythm (Skald) only counts while Battle Hymn lasts. */
@@ -245,7 +266,7 @@ const battleRhythm = () => subclassIs("skald") && state.level >= 5 && signatureA
 export function weaponMortalLimit() {
     const base = Math.max(classLimit("harm")[0], classWeaponLimit()[0]);
 
-    return raise(base, trainedCount("harm") + (battleRhythm() ? 1 : 0));
+    return raise(base, trainedCount("harm") + schoolKnack("harm") + (battleRhythm() ? 1 : 0));
 }
 
 /* Where a school's mortal limit comes from, for tooltips. */
@@ -265,6 +286,10 @@ export function mortalLimitSources(school) {
         sources.push("Well of Stories: +1");
     }
 
+    if (schoolKnack(school === "weapon" ? "harm" : school)) {
+        sources.push("Human knack: +1");
+    }
+
     if (school === "weapon" && battleRhythm()) {
         sources.push("Battle Rhythm: +1");
     }
@@ -275,6 +300,10 @@ export function mortalLimitSources(school) {
 
     if (canBeLettered(school)) {
         sources.push("Lettered: 4 for writing, symbols and traps");
+    }
+
+    if (canUseKnack(school)) {
+        sources.push(`${characterRace().name} knack: +1 for ${characterRace().knack.text.toLowerCase()}`);
     }
 
     return sources;
@@ -447,6 +476,8 @@ export const movementSpeed = () => state.movement + (hasFeat("fleetFooted") ? 10
 /* Your Reveal rank, 1 higher with Observant. */
 export const passiveReveal = () => rank("reveal") + (hasFeat("observant") ? 1 : 0);
 
+export const isSmall = () => characterRace()?.size === "Small";
+
 export const canUseShield = () => Boolean(characterClass().shield) || hasFeat("shieldAdept");
 
 export function allowedWeaponDice() {
@@ -454,6 +485,11 @@ export function allowedWeaponDice() {
 
     if (martial()) {
         dice.add(8);
+    }
+
+    // Small creatures can't use heavy weapons
+    if (isSmall()) {
+        dice.delete(10);
     }
 
     return [...dice].sort((a, b) => a - b);
@@ -477,12 +513,14 @@ const handsFor = weapon => weapon.twoHanded ? 2 : 1;
 const freeHands = () => 2 - (state.shield ? 1 : 0) - sumOf(equippedWeapons().map(handsFor));
 
 /* A complete weapon from whatever was given: from a form, the standard list, or a save. */
-export function newWeapon({ id, name, description, die, ranged, twoHanded, equipped } = {}) {
+export function newWeapon({ id, name, description, die, bonus, ranged, twoHanded, equipped } = {}) {
     return {
         id: typeof id === "string" && id ? id : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
         name: (typeof name === "string" ? name.trim().slice(0, 30) : "") || "Weapon",
         description: typeof description === "string" ? description.trim().slice(0, 200) : "",
         die: WEAPON_TYPES[die] ? Number(die) : 4,
+        // A magic weapon's +1 to +3
+        bonus: Math.min(3, Math.max(0, Math.floor(Number(bonus) || 0))),
         ranged: Boolean(ranged),
         twoHanded: Boolean(twoHanded),
         equipped: Boolean(equipped)
@@ -615,10 +653,23 @@ export function addToInventory(fields) {
     return existing;
 }
 
-/* Armor, shield, Iron Hide, and Duelist. */
+/* Magic Weapons and Armor: a +2 or +3 weapon makes its target's Guard DC 1 lower. */
+export const weaponGuardReduction = weapon => (weapon?.bonus ?? 0) >= 2 ? 1 : 0;
+
+/* "+2 " before a magic weapon's name, nothing for an ordinary one. */
+export const weaponBonusPrefix = weapon => weapon?.bonus ? `+${weapon.bonus} ` : "";
+
+/* Magic armor and shields only count while worn. */
+export const magicArmorCounts = () => state.magicArmor && state.armor > 0;
+export const magicShieldCounts = () => state.magicShield && state.shield;
+
+/* Armor, shield, magic armor and shield, Iron Hide, and Duelist. */
 export function effectiveArmor() {
     return state.armor
+        + (state.armor === 0 ? characterRace()?.scales ?? 0 : 0)
         + (state.shield ? 1 : 0)
+        + (magicArmorCounts() ? 1 : 0)
+        + (magicShieldCounts() ? 1 : 0)
         + (hasFeat("ironHide") ? 1 : 0)
         + (hasFeat("duelist") && !duelistProblem() ? 1 : 0);
 }
@@ -657,7 +708,8 @@ export function calculatedMaxHealth() {
 
     return info.hitDie + 6
         + (state.level - 1) * info.fixedHP
-        + featCount("tough") * 2 * state.level;
+        + featCount("tough") * 2 * state.level
+        + (characterRace()?.hpPerLevel ?? 0) * state.level;
 }
 
 /*
@@ -877,6 +929,12 @@ export function normalizeState() {
         state.subclass = "";
     }
 
+    if (!RACES[state.race]) {
+        state.race = "";
+    }
+
+    state.knackSchools = schoolChoices(state.knackSchools, characterRace()?.knack.chooseSchool ? 1 : 0);
+
     state.level = clamp(Number(state.level) || 1, 1, MAX_LEVEL);
 
     // Characters from before movement existed get the default
@@ -896,6 +954,8 @@ export function normalizeState() {
 
     state.armor = clamp(Math.floor(Number(state.armor) || 0), 0, Math.min(maxArmor(), ARMOR_TYPES.length - 1));
     state.shield = Boolean(state.shield) && canUseShield();
+    state.magicArmor = Boolean(state.magicArmor);
+    state.magicShield = Boolean(state.magicShield);
 
     normalizeWeapons();
 
@@ -1006,6 +1066,25 @@ function migrateRunesmith(saved) {
     saved.signature = { used: 0, roundsLeft: 0, ongoing: false };
 }
 
+/*
+ * Feats that were replaced by another feat in the same place: a saved
+ * character keeps the feat slot instead of silently losing it.
+ */
+const RENAMED_FEATS = { dirtyFighting: "dirtyTricks" };
+
+export function migrateFeats(feats = {}) {
+    const migrated = { ...feats };
+
+    for (const [old, replacement] of Object.entries(RENAMED_FEATS)) {
+        if (old in migrated) {
+            migrated[replacement] = Math.max(Number(migrated[replacement]) || 0, Number(migrated[old]) || 0);
+            delete migrated[old];
+        }
+    }
+
+    return migrated;
+}
+
 /* Replaces the whole character with saved data, filling in anything it's missing with the defaults. */
 function applySaved(saved) {
     if (saved.ranks && !saved.rankPoints) {
@@ -1023,7 +1102,7 @@ function applySaved(saved) {
     Object.assign(state, defaults, saved);
 
     state.rankPoints = { ...defaults.rankPoints, ...saved.rankPoints };
-    state.feats = { ...saved.feats };
+    state.feats = migrateFeats(saved.feats);
     state.construct = { ...defaults.construct, ...saved.construct };
 
     delete state.ranks;

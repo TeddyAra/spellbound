@@ -12,6 +12,8 @@ import {
     subclassIs,
     hasFeat,
     weaponDie,
+    weaponGuardReduction,
+    weaponBonusPrefix,
     weaponExtraDice,
     equippedWeapons,
     strongestWeapon,
@@ -26,7 +28,9 @@ import {
     partMaxHealth,
     colossusActive,
     hasFieldRepairs,
-    canBeLettered
+    canBeLettered,
+    canUseKnack,
+    characterRace
 } from "./state.js";
 import {
     castingPool,
@@ -117,6 +121,9 @@ function poolRank(options) {
 /* Runesmith (Lettered): ticked for Reveal actions on writing, symbols and traps. */
 const lettered = ({ school, mode, lettered }) => mode === "mundane" && Boolean(lettered) && canBeLettered(school);
 
+/* A race's knack: ticked for the kind of action it covers. */
+const knack = ({ school, mode, knack }) => mode === "mundane" && Boolean(knack) && canUseKnack(school);
+
 /* Dice added by feats: [label, count]. */
 function automaticDice({ school, mode }) {
     const dice = [];
@@ -161,7 +168,7 @@ function levelCap(options) {
     }
 
     if (mode === "mundane") {
-        return Math.min(rank(school), mortalLimit(school, lettered(options)));
+        return Math.min(rank(school), mortalLimit(school, lettered(options), knack(options)));
     }
 
     if (mode === "weapon") {
@@ -199,9 +206,9 @@ function modeHint() {
             return `Casts ${slot.name.toUpperCase()} at level ${slot.level}. No tiles. A successful cast may grow it.`;
         }
         case "mundane":
-            return `No tiles, no backfire. Level capped at your mortal limit of ${mortalLimit(school, lettered(setup))}.` + moveFeatHint(school);
+            return `No tiles, no backfire. Level capped at your mortal limit of ${mortalLimit(school, lettered(setup), knack(setup))}.` + moveFeatHint(school);
         case "weapon":
-            return `Damage: d${weaponDie(attackWeapon(setup))} per level. Mortal limit ${weaponMortalLimit()}.` +
+            return `Damage: d${weaponDie(attackWeapon(setup))} per level${magicHint(attackWeapon(setup))}. Mortal limit ${weaponMortalLimit()}.` +
                 (attackWeapon(setup)?.description ? ` ${attackWeapon(setup).description}` : "");
         case "save":
             return `Resists: ${SAVING_THROWS[school]}. Against a spell, the DC is its level + 3.`;
@@ -275,6 +282,12 @@ function renderSetup() {
 
     $("letteredRow").classList.toggle("hidden", !(setup.mode === "mundane" && canBeLettered(setup.school)));
     $("letteredInput").checked = Boolean(setup.lettered);
+    $("knackRow").classList.toggle("hidden", !(setup.mode === "mundane" && canUseKnack(setup.school)));
+    $("knackInput").checked = Boolean(setup.knack);
+
+    if (characterRace()) {
+        $("knackLabel").textContent = `${characterRace().knack.text} (${characterRace().name} knack: mortal limit +1)`;
+    }
     $("extraDiceDisplay").textContent = setup.extraDice > 0 ? `+${setup.extraDice}` : setup.extraDice;
 
     const bonuses = automaticDice(setup).map(([label, count]) => `${label} +${count}`);
@@ -285,7 +298,7 @@ function renderSetup() {
 
 /* Opens the roll window for a school, a weapon attack (weaponId), or a saved spell (slotIndex). */
 export function openRollSetup(school, mode = "spell", slotIndex = null, weaponId = null) {
-    setup = { school, mode, slotIndex, weaponId, extraDice: 0, lettered: false };
+    setup = { school, mode, slotIndex, weaponId, extraDice: 0, lettered: false, knack: false };
     dcInput.value = preference("rememberDC") ? preference("lastDC") : "";
 
     renderSetup();
@@ -308,6 +321,11 @@ $("extraDicePlus").addEventListener("click", () => {
 
 $("letteredInput").addEventListener("change", event => {
     setup.lettered = event.target.checked;
+    renderSetup();
+});
+
+$("knackInput").addEventListener("change", event => {
+    setup.knack = event.target.checked;
     renderSetup();
 });
 
@@ -357,6 +375,15 @@ for (const button of document.querySelectorAll(".school-button")) {
     button.addEventListener("click", () => openRollSetup(button.dataset.school));
 }
 
+/* ", +2 (magic). Its target's Guard DC is 1 lower" for a magic weapon. */
+function magicHint(weapon) {
+    if (!weapon?.bonus) {
+        return "";
+    }
+
+    return ` +${weapon.bonus} (magic)` + (weaponGuardReduction(weapon) ? `. Its target's Guard DC is ${weaponGuardReduction(weapon)} lower` : "");
+}
+
 /* One button per equipped weapon, above the schools. */
 function weaponButton(weapon) {
     const button = element("button", "roll-button");
@@ -367,9 +394,9 @@ function weaponButton(weapon) {
     // Rolled with your Harm pool, damage from the weapon die
     stats.append(element("small", null, pool), element("span", "weapon-die", `d${weaponDie(weapon)}`));
 
-    button.title = `${weapon.name}: a mundane Harm action. Roll ${pool}, then d${weaponDie(weapon)} damage per level` +
+    button.title = `${weaponBonusPrefix(weapon)}${weapon.name}: a mundane Harm action. Roll ${pool}, then d${weaponDie(weapon)} damage per level${magicHint(weapon)}` +
         (weapon.description ? `\n\n${weapon.description}` : "");
-    button.append(element("span", null, weapon.name), stats);
+    button.append(element("span", null, weaponBonusPrefix(weapon) + weapon.name), stats);
     button.addEventListener("click", () => openRollSetup("harm", "weapon", null, weapon.id));
 
     return button;
@@ -702,7 +729,7 @@ let action = null;
  * targets, each with its own total. A bonus per die (e.g. Healing Hymn's +1)
  * follows the dice: 2d8 + 2 and 1d8 + 1.
  */
-async function rollEffect(title, count, sides, { split = [count], bonusPerDie = 0, bonusLabel = null, extra = null } = {}) {
+async function rollEffect(title, count, sides, { split = [count], bonusPerDie = 0, bonusLabel = null, extra = null, flat = null } = {}) {
     // An extra die of another size, e.g. War Chant's 1d4: { sides, label }
     const sets = await rollDiceSets(`${count}d${sides}` + (extra ? `+1d${extra.sides}` : ""));
 
@@ -725,7 +752,12 @@ async function rollEffect(title, count, sides, { split = [count], bonusPerDie = 
             rows.push([`${extra.label} (1d${extra.sides})`, `+${extraRoll}`]);
         }
 
-        rows.push(["Total", sum(rolls) + bonus + extraRoll]);
+        // A fixed bonus once per hit, e.g. a magic weapon's +2: { amount, label }
+        if (flat) {
+            rows.push([flat.label, `+${flat.amount}`]);
+        }
+
+        rows.push(["Total", sum(rolls) + bonus + extraRoll + (flat?.amount ?? 0)]);
 
         showInfoResult(title, rows, { title: "Effect dice", values: sets.flat() });
 
@@ -757,7 +789,12 @@ function rollWeaponDamage(level, mode = "weapon") {
         return rollEffect(`${constructName()} Damage`, level, constructDie());
     }
 
-    return rollEffect(`${attackWeapon(action)?.name ?? "Weapon"} Damage`, level + weaponExtraDice(), weaponDie(attackWeapon(action)), { extra: warChant() });
+    const weapon = attackWeapon(action);
+
+    return rollEffect(`${weapon?.name ?? "Weapon"} Damage`, level + weaponExtraDice(), weaponDie(weapon), {
+        extra: warChant(),
+        flat: weapon?.bonus ? { amount: weapon.bonus, label: `Magic weapon (+${weapon.bonus})` } : null
+    });
 }
 
 /* Harm, Aid and Passion spells can share their dice between targets (see splitDice in rules.js). */
@@ -1060,10 +1097,13 @@ function actionHint() {
     if (mode === "weapon") {
         const extras = [
             weaponExtraDice() ? "Spellfury +1 die" : null,
-            warChant() ? "War Chant +1d4" : null
+            warChant() ? "War Chant +1d4" : null,
+            attackWeapon(action)?.bonus ? `magic +${attackWeapon(action).bonus}` : null
         ].filter(Boolean);
 
-        const parts = [`Damage: ${level + weaponExtraDice()}d${weaponDie(attackWeapon(action))}${warChant() ? " + 1d4" : ""}${extras.length ? ` (${extras.join(", ")})` : ""}.`];
+        const magic = attackWeapon(action)?.bonus ? ` + ${attackWeapon(action).bonus}` : "";
+
+        const parts = [`Damage: ${level + weaponExtraDice()}d${weaponDie(attackWeapon(action))}${warChant() ? " + 1d4" : ""}${magic}${extras.length ? ` (${extras.join(", ")})` : ""}.`];
 
         // Bladeword: level 1, level 2 from Weapon Mastery, the attack's level and spreading from Spellstorm.
         // The tiles are the limit. Charged Blade can keep them for the next one.

@@ -250,6 +250,44 @@ export const SUBCLASS_LEVEL = 2;
  * they already speak (see tongueChoices in state.js).
  */
 
+/*
+ * Races (see "Races" in the rulebook). A knack raises the mortal limit by 1,
+ * up to 5: for all of one chosen school (`chooseSchool`), or only for some
+ * actions in `schools`, which the player ticks when rolling (see casting.js).
+ */
+export const RACES = {
+    human: {
+        name: "Human", size: "Medium", speed: 30, darkvision: false, hpPerLevel: 0, tongue: "hearthspeech",
+        knack: { chooseSchool: true, text: "All mundane actions in one school of your choice" }
+    },
+    elf: {
+        name: "Elf", size: "Medium", speed: 35, darkvision: true, hpPerLevel: 0, tongue: "leafweave",
+        knack: { schools: ["reveal"], text: "Spotting and searching" }
+    },
+    dwarf: {
+        name: "Dwarf", size: "Medium", speed: 25, darkvision: true, hpPerLevel: 1, tongue: "deepcant",
+        knack: { schools: ["change", "create"], text: "Working stone and metal" }
+    },
+    halfling: {
+        name: "Halfling", size: "Small", speed: 25, darkvision: false, hpPerLevel: 0, tongue: "hearthspeech",
+        knack: { schools: ["move"], text: "Sneaking and hiding" }
+    },
+    gnome: {
+        name: "Gnome", size: "Small", speed: 25, darkvision: true, hpPerLevel: 0, tongue: "deepcant",
+        knack: { schools: ["change", "create"], text: "Working small mechanisms, such as locks, clocks and traps" }
+    },
+    orc: {
+        name: "Orc", size: "Medium", speed: 30, darkvision: true, hpPerLevel: 1, tongue: "deepcant",
+        knack: { schools: ["move"], text: "Lifting, pushing, grabbing and throwing" }
+    },
+    dragonkin: {
+        name: "Dragonkin", size: "Medium", speed: 30, darkvision: false, hpPerLevel: 0, tongue: "ashen",
+        knack: { schools: ["control"], text: "Intimidating" },
+        // Scales: 1 armor while wearing no armor
+        scales: 1
+    }
+};
+
 export const STARTING_TONGUES = 2;
 
 export const TONGUES = {
@@ -370,10 +408,13 @@ export const CLASSES = {
         },
 
         feats: [
-            { key: "wordHoard", name: "Word Hoard", text: "Tile Craft lets you swap up to 4 tiles." },
+            { key: "alliteration", name: "Alliteration", text: "A spell of 3 or more words that all start with the same letter takes effect 1 level higher, up to your rank." },
             { key: "arcaneRecovery", name: "Arcane Recovery", text: "Once per long rest, after a short rest, roll to grow one of your saved spells." },
+            { key: "wordHoard", name: "Word Hoard", text: "Tile Craft lets you swap up to 4 tiles." },
+            { key: "dyingWords", name: "Dying Words", minLevel: 4, text: "When you're downed, immediately cast a level 1 spell with the tiles you're holding." },
             { key: "longWords", name: "Long Words", minLevel: 4, text: "A spell containing a word of 8 or more letters takes effect 1 level higher, up to your rank." },
             { key: "sculptSpell", name: "Sculpt Spell", minLevel: 4, text: "Your area spells can leave out any creatures you choose." },
+            { key: "floodgates", name: "Floodgates", minLevel: 8, text: "While Torrent of Words lasts, Overchannel can raise your spell by 2 levels, for 1d8 damage each." },
             { key: "multicast", name: "Multicast", minLevel: 8, text: "Cast two separate spells on one casting turn, each 1 level lower (minimum 1)." }
         ]
     },
@@ -435,10 +476,12 @@ export const CLASSES = {
 
         feats: [
             { key: "healingHymn", name: "Healing Hymn", text: "Your Aid spells heal 1 extra hit point per effect die, so shared dice share the bonus too." },
+            { key: "marchingSong", name: "Marching Song", text: "While Battle Hymn lasts, allies who can hear you move 10 feet further." },
             { key: "mockingVerse", name: "Mocking Verse", text: "When your Control succeeds, the target rolls one die fewer next time." },
-            { key: "wordBank", name: "Word Bank", minLevel: 4, text: "Shared Verse lets you give up to 6 tiles." },
             { key: "chorusLine", name: "Chorus Line", minLevel: 4, text: "Use Inspiring Word twice per round." },
-            { key: "encore", name: "Encore", minLevel: 8, text: "Use Countersong twice per combat." }
+            { key: "wordBank", name: "Word Bank", minLevel: 4, text: "Shared Verse lets you give up to 6 tiles." },
+            { key: "encore", name: "Encore", minLevel: 8, text: "Use Countersong twice per combat." },
+            { key: "perfectHarmony", name: "Perfect Harmony", minLevel: 8, text: "Duet can include a second ally. The spell takes effect at the highest level among you + 2." }
         ]
     },
 
@@ -500,10 +543,13 @@ export const CLASSES = {
 
         feats: [
             { key: "shorthand", name: "Shorthand", text: "A written spell of 6 letters or fewer takes effect on your casting turn, like a spoken spell." },
+            { key: "signedWork", name: "Signed Work", text: "You always know when one of your runes is triggered, and roughly what triggered it." },
             { key: "triggerWord", name: "Trigger Word", text: "Bonus action: trigger any of your runes within 60 feet, whatever its trigger." },
-            { key: "runeAmmunition", name: "Rune Ammunition", minLevel: 4, text: "A rune on a weapon is released for free when that weapon's attack hits." },
             { key: "deepCarving", name: "Deep Carving", minLevel: 4, text: "Your runes can each be used twice before they fade." },
-            { key: "livingWorkshop", name: "Living Workshop", minLevel: 8, text: "2 more runes at once. Runes don't fade after a long rest, and a used one recharges after your next long rest instead of fading." }
+            { key: "forgery", name: "Forgery", minLevel: 4, text: "Tamper with a rune or written spell someone else left, once found: a mundane Change at its level or higher makes it fizzle when triggered, gives it a new trigger, or turns it on its writer." },
+            { key: "runeAmmunition", name: "Rune Ammunition", minLevel: 4, text: "A rune on a weapon is released for free when that weapon's attack hits." },
+            { key: "livingWorkshop", name: "Living Workshop", minLevel: 8, text: "2 more runes at once. Runes don't fade after a long rest, and a used one recharges after your next long rest instead of fading." },
+            { key: "masterpiece", name: "Masterpiece", minLevel: 8, text: "Once per long rest, a rune written outside combat can hold a spell up to your rank. It doesn't fade after a long rest, and lasts until it's used." }
         ]
     },
 
@@ -562,11 +608,14 @@ export const CLASSES = {
         },
 
         feats: [
-            { key: "improvisedTools", name: "Improvised Tools", text: "Mundane Change and Create need no proper tools and take half the time." },
             { key: "guardianProtocol", name: "Guardian Protocol", text: "Once per round, your construct takes a hit for you or an ally next to it. Its armor applies." },
+            { key: "improvisedTools", name: "Improvised Tools", text: "Mundane Change and Create need no proper tools and take half the time." },
+            { key: "sentryMode", name: "Sentry Mode", text: "While you rest, your construct keeps watch with your passive Reveal, and wakes you if anything approaches." },
             { key: "reinforcedConstruct", name: "Reinforced Construct", minLevel: 4, text: "Your construct has 2 more hit points per level, and 1 more armor." },
             { key: "spareParts", name: "Spare Parts", minLevel: 4, text: "Your construct can also choose the Compartment, Grapple Arm and Smoke Vents modules." },
-            { key: "overdrive", name: "Overdrive", minLevel: 8, text: "Once per combat, as a bonus action during your pre-turn, your construct acts twice on your casting turn." }
+            { key: "tandemStrike", name: "Tandem Strike", minLevel: 4, text: "Once per round, when you and your construct both hit the same target, the second hit deals one extra weapon die." },
+            { key: "overdrive", name: "Overdrive", minLevel: 8, text: "Once per combat, as a bonus action during your pre-turn, your construct acts twice on your casting turn." },
+            { key: "selfDestruct", name: "Self-Destruct", minLevel: 8, text: "Once per long rest, your construct explodes: every creature within 10 feet takes its weapon die once per your level. It's destroyed." }
         ]
     },
 
@@ -625,10 +674,13 @@ export const CLASSES = {
         },
 
         feats: [
+            { key: "escapeArtist", name: "Escape Artist", text: "One extra die when you try to break free from a Move or Control effect." },
             { key: "lightFingers", name: "Light Fingers", text: "Sleight takes 2 tiles." },
             { key: "silverLies", name: "Silver Lies", text: "A successful mundane Control in combat makes the target distracted for Ambush." },
-            { key: "dirtyFighting", name: "Dirty Fighting", minLevel: 4, text: "When your weapon hits, you can try to trip or disarm the target: roll one die the size of your Control dice, against a DC the DM sets as for any action. The DM decides if it's possible. Tripped: one die fewer next time. Disarmed: no attacks with that weapon until it's picked back up." },
+            { key: "dirtyTricks", name: "Dirty Tricks", minLevel: 4, text: "Once per round, give up your Ambush dice for a trick until the end of the target's next casting turn. Throat jab: it can only whisper. Box the ears: it's deafened. Jostle: it drops one random tile it's holding." },
+            { key: "sharpEyes", name: "Sharp Eyes", minLevel: 4, text: "With Sleight, see the creature's tiles and choose which one to take." },
             { key: "uncannyDodge", name: "Uncanny Dodge", minLevel: 4, text: "Once per round, as a reaction, halve the damage from one hit." },
+            { key: "grandLarceny", name: "Grand Larceny", minLevel: 8, text: "Once per combat, Sleight swaps your whole hand of tiles with the target's." },
             { key: "masterThief", name: "Master Thief", minLevel: 8, text: "Use Twist the Word twice per combat." }
         ]
     },
@@ -687,11 +739,14 @@ export const CLASSES = {
         },
 
         feats: [
-            { key: "duelist", name: "Duelist", text: "+1 armor while you fight with a single one-handed weapon and nothing in your other hand." },
             { key: "chargedBlade", name: "Charged Blade", text: "Instead of spelling a Bladeword, keep its tiles (also after a miss) and add them to your next one. Kept tiles return to the pile when the combat ends." },
+            { key: "duelist", name: "Duelist", text: "+1 armor while you fight with a single one-handed weapon and nothing in your other hand." },
+            { key: "heavyHitter", name: "Heavy Hitter", text: "With a heavy weapon, reroll 1s on your weapon dice, once." },
             { key: "arcaneRiposte", name: "Arcane Riposte", minLevel: 4, text: "When Parry reduces a hit to 0, make a level 1 weapon attack against the attacker." },
+            { key: "battleCry", name: "Battle Cry", minLevel: 4, text: "When you enter a Spellfury, every enemy within 10 feet rolls one die fewer in its next casting pool." },
             { key: "eldritchReach", name: "Eldritch Reach", minLevel: 4, text: "Melee weapon attacks can hit a target up to 15 feet away." },
-            { key: "battleCaster", name: "Battle Caster", minLevel: 8, text: "Once per combat, a weapon attack and a saved spell in the same pre-turn." }
+            { key: "battleCaster", name: "Battle Caster", minLevel: 8, text: "Once per combat, a weapon attack and a saved spell in the same pre-turn." },
+            { key: "twinBladewords", name: "Twin Bladewords", minLevel: 8, text: "Once per combat, spell two Bladewords from one attack's tiles, and both take effect." }
         ]
     },
 
@@ -750,11 +805,14 @@ export const CLASSES = {
         },
 
         feats: [
-            { key: "shieldBash", name: "Shield Bash", text: "When you Interpose, also make a level 1 weapon attack against the attacker." },
             { key: "fieldMedic", name: "Field Medic", text: "First aid reaches allies within 15 feet and heals with d6s." },
-            { key: "taunt", name: "Taunt", minLevel: 4, text: "A successful mundane Control forces the target to attack you next turn, unless it beats the level + 2 on its resist die." },
+            { key: "shieldBash", name: "Shield Bash", text: "When you Interpose, also make a level 1 weapon attack against the attacker." },
+            { key: "wideGuard", name: "Wide Guard", text: "Hold the Line protects allies within 10 feet of you." },
+            { key: "behindTheShield", name: "Behind the Shield", minLevel: 4, text: "While Hold the Line lasts, spells cast by allies next to you can't be countered." },
             { key: "ironHide", name: "Iron Hide", minLevel: 4, text: "+1 armor." },
-            { key: "guardianAngel", name: "Guardian Angel", minLevel: 8, text: "Interpose twice per round, for any ally you can reach." }
+            { key: "taunt", name: "Taunt", minLevel: 4, text: "A successful mundane Control forces the target to attack you next turn, unless it beats the level + 2 on its resist die." },
+            { key: "guardianAngel", name: "Guardian Angel", minLevel: 8, text: "Interpose twice per round, for any ally you can reach." },
+            { key: "intercept", name: "Intercept", minLevel: 8, text: "Once per combat, as a reaction, make an enemy spell aimed at an ally within 30 feet target you instead." }
         ]
     }
 };

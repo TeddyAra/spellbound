@@ -6,7 +6,8 @@ import {
     newWeapon,
     equipWeapon,
     canEquipWeapon,
-    allowedWeaponDice
+    allowedWeaponDice,
+    weaponBonusPrefix
 } from "./state.js";
 import { STANDARD_WEAPONS, WEAPON_TYPES } from "./rules.js";
 
@@ -23,6 +24,7 @@ const dieInput = $("customWeaponDie");
 const descriptionInput = $("customWeaponDescription");
 const rangedInput = $("customWeaponRanged");
 const twoHandedInput = $("customWeaponTwoHanded");
+const bonusInput = $("customWeaponBonus");
 
 // The weapon being changed in the form, or null for a new one
 let editing = null;
@@ -87,6 +89,7 @@ function openForm(weapon = null) {
 
     nameInput.value = weapon?.name ?? "";
     dieInput.value = weapon?.die ?? allowedWeaponDice().at(-1);
+    bonusInput.value = weapon?.bonus ?? 0;
     descriptionInput.value = weapon?.description ?? "";
     rangedInput.checked = weapon?.ranged ?? false;
     twoHandedInput.checked = weapon?.twoHanded ?? false;
@@ -115,6 +118,7 @@ form.addEventListener("submit", event => {
         name: nameInput.value,
         description: descriptionInput.value,
         die: dieInput.value,
+        bonus: bonusInput.value,
         ranged: rangedInput.checked,
         twoHanded: twoHandedInput.checked
     };
@@ -157,6 +161,7 @@ function toggleEquipped(weapon) {
 
 function weaponDetails(weapon) {
     return [
+        weapon.bonus ? `Magic +${weapon.bonus}` : null,
         `${WEAPON_TYPES[weapon.die]} d${weapon.die}`,
         weapon.twoHanded && "Two-handed",
         weapon.ranged && "Ranged"
@@ -172,7 +177,7 @@ function renderWeaponCard(weapon) {
 
     card.classList.toggle("active", weapon.equipped);
 
-    details.append(element("span", "item-name", weapon.name), element("span", "result-label", weaponDetails(weapon)));
+    details.append(element("span", "item-name", weaponBonusPrefix(weapon) + weapon.name), element("span", "result-label", weaponDetails(weapon)));
 
     if (weapon.description) {
         details.append(element("span", "result-label", weapon.description));

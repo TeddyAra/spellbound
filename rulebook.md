@@ -1,3 +1,5 @@
+{{pageNumber,auto}}
+
 {{wide
 <div style="text-align: center">
 # Spellbound
@@ -50,6 +52,8 @@ Version 0.4, playtest edition.
 
 \page
 
+{{pageNumber,auto}}
+
 {{wide
 ## How This Book Is Organized
 Spellbound is split into four parts. You don't need to read it front to back: start with the part that fits you, and come back to the rest when you need it.
@@ -65,7 +69,8 @@ Everything you do at the table, in the order you'll need it.
 - **Example of Play.** One full combat, from initiative to the last blow.
 
 ### Making a Character
-- **Character Creation.** Eight steps from a blank sheet to a ready character.
+- **Character Creation.** Nine steps from a blank sheet to a ready character.
+- **Races.** Seven races to choose from, and what each changes about your character.
 - **The class chapters.** One for each of the seven classes, with their features, feats, subclasses and a Quick Build to start playing right away.
 - **Feats.** The general feats every class can choose from.
 - **Advancement.** What changes when you level up.
@@ -97,6 +102,8 @@ Everything you do at the table, in the order you'll need it.
 }}
 
 \page
+
+{{pageNumber,auto}}
 
 ## Turn Structure
 Before combat starts, everyone rolls for initiative to decide the order of turns. Roll a d20 and add your Move rank. Whoever has the highest total goes first, then the next highest, and so on. If two creatures tie, the one with the higher Reveal rank goes first. If they're still tied, players go before enemies.
@@ -150,6 +157,8 @@ Some features and items let you do something as a **bonus action**: a quick extr
 
 \page
 
+{{pageNumber,auto}}
+
 #### Opportunity Attacks
 When an enemy you can see moves away from you, out of the space next to you, you can use your reaction to make a weapon attack against it. Roll your Harm casting pool right away, and if you succeed, the attack takes effect at the level you rolled. Enemies can do the same to you.
 
@@ -196,6 +205,8 @@ Aid spells heal, shield, or support creatures and objects. An Aid spell that hea
 **Mundane examples.** Bandaging a wound, treating poison, guarding an ally.
 
 \page
+
+{{pageNumber,auto}}
 
 ### Change
 Change spells alter what something is or how it behaves. The bigger the change, the higher the level it needs: turning a lock is easy, turning a castle to glass is not.
@@ -263,6 +274,8 @@ Try not to choose a passion that's too specific, or you'll struggle to use it.
 
 \page
 
+{{pageNumber,auto}}
+
 ### Mundane Actions
 Mundane actions work like spells, with a few differences:
 - **No spelling.** You roll your casting pool for the school as normal, but you don't draw tiles. On your casting turn, you just describe what you do.
@@ -321,6 +334,8 @@ A failed roll gives you nothing: no tiles, no level, and no action this round.
 
 \page
 
+{{pageNumber,auto}}
+
 ### Difficulty
 Your DM sets the difficulty (DC) based on what you're trying to do and who or what you're doing it to.
 
@@ -378,6 +393,8 @@ Ash has Move at rank 5 and wants to throw a bandit off a bridge. The DM sets the
 On their casting turn, Ash spells WIND GUST and blasts the bandit off the bridge.
 
 \page
+
+{{pageNumber,auto}}
 
 ## Spellcasting
 In Spellbound, you don't pick spells from a list. You make them up by spelling them out with your letter tiles. What a spell does depends on three things: the school you rolled, the word(s) you spelled, and the level you rolled.
@@ -438,6 +455,8 @@ Tongues only matter for magic. Everyday talk uses ordinary languages, so you can
 
 \page
 
+{{pageNumber,auto}}
+
 | Tongue | Spoken by | How it sounds |
 |:--- |:--- |:--- |
 | Hearthspeech | Common folk, most travellers | Warm and plain |
@@ -495,6 +514,8 @@ When a spell or mundane action needs a number, such as damage or healing, roll a
 Some features make effect dice one size bigger. These add up: a d6 made two sizes bigger becomes a d10. Effect dice and weapon dice can never grow beyond a d12.
 
 \page
+
+{{pageNumber,auto}}
 
 #### Sharing Effect Dice
 A spell that damages, heals or creates a ward can affect several creatures by sharing its effect dice between them. Every creature gets at least one die, so a spell can affect as many creatures as its level. Roll each creature's dice separately.
@@ -557,6 +578,8 @@ These rules depend heavily on the type of campaign you're playing. More serious 
 
 \page
 
+{{pageNumber,auto}}
+
 ## Health and Resting
 Adventuring is dangerous. This chapter covers how your character gets hurt, how they recover, and what happens when things go badly wrong.
 
@@ -614,6 +637,8 @@ Some effects leave you in a particular state. These are the conditions Spellboun
 
 \page
 
+{{pageNumber,auto}}
+
 ## Example of Play
 This chapter follows one full combat from start to finish, so you can see how the rules fit together. The party is three level 1 characters: Tamsin the Wordweaver from *Character Creation*, and Pip the Trickster and Bram the Warden, built with their classes' Quick Builds.
 
@@ -654,6 +679,8 @@ The fight is over in two rounds. Pip took 1 damage, thanks to Tamsin's quick thi
 
 \page
 
+{{pageNumber,auto}}
+
 ## Character Creation
 Creating a character in Spellbound is quicker than in *Dungeons & Dragons*. There are no ability scores to roll: everything your character can do comes from their ranks, their class, and their feats.
 
@@ -670,7 +697,10 @@ Your class decides how tough you are, what you can wear and wield, and which fea
 | Spellblade | Warrior-mage | 
 | Warden | Protector | 
 
-### 2. Set Your Ranks
+### 2. Choose a Race
+Your race decides your size, how far you move and whether you can see in the dark, and gives you a knack for one kind of mundane action. See *Races*.
+
+### 3. Set Your Ranks
 All seven schools (every school except Passion) start at rank 1. You then have 10 points to distribute among them as you like, adding 1 rank per point. After that, add your class's 3 bonus ranks.
 
 No school other than Passion can be higher than rank 4 at level 1, including after your class bonus.
@@ -680,18 +710,18 @@ No school other than Passion can be higher than rank 4 at level 1, including aft
 A character with a few high ranks is powerful in their specialty, but struggles outside it. A character with many medium ranks can try anything, but rarely casts high-level spells. Remember that your highest rank also sets your Passion rank, Move sets your initiative, Reveal sets your passive Reveal, and Move, Aid, Reveal and Control cover your saving throws.
 }}
 
-### 3. Choose Your Passion
+### 4. Choose Your Passion
 Pick something your character truly cares about, such as the sea, music, the undead, or clockwork. Your Passion rank is your highest other rank + 2, so most characters start with a Passion rank of 6. See *Passion* for advice on choosing one.
 
-### 4. Choose a Feat
+### 5. Choose a Feat
 Pick one feat, either from the general feats or from your class's own list. See *Feats*.
 
 \column
 
-### 5. Determine Your Hit Points
-At level 1, your maximum hit points are the highest number on your class's hit die + 6. A Warden starts with 18 hit points, while a Wordweaver starts with 12.
+### 6. Determine Your Hit Points
+At level 1, your maximum hit points are the highest number on your class's hit die + 6 plus any extra hit points from your race. A Warden starts with 18 hit points, while a Wordweaver starts with 12.
 
-### 6. Choose Your Equipment
+### 7. Choose Your Equipment
 Choose one weapon and one type of armor that your class allows, plus ordinary adventuring gear like a backpack, rope, and rations, and any tools or inks you need. Your DM may let you start with more.
 
 **Weapons.** When you attack with a weapon as a mundane action, you roll its weapon die once per level.
@@ -730,6 +760,8 @@ A mundane action has to be something a skilled person could do with the tools th
 
 \page
 
+{{pageNumber,auto}}
+
 #### Inks
 Anyone who writes spells or runes, such as a Runesmith, can carry special inks. What a spell or rune is written in decides what it survives.
 
@@ -742,23 +774,41 @@ Anyone who writes spells or runes, such as a Runesmith, can carry special inks. 
 | Glowing ink | Gives dim light within 5 feet, and can be read in the dark |
 | Floating ink | Can be drawn in the air, so spells and runes need no surface |
 
-### 7. Note Your Spell Slots
+#### Magic Weapons and Armor
+Some weapons and armor are enchanted, with a bonus of +1, +2 or +3. You don't start with one: you find, earn or buy them on your adventures.
+
+| Bonus | Magic weapon | Magic armor or shield |
+|:--- |:--- |:--- |
+| +1 | +1 damage | +1 armor |
+| +2 | +2 damage, Guard DC 1 lower | — |
+| +3 | +3 damage, Guard DC 1 lower | — |
+
+- **Damage.** Add the bonus once to each hit's damage, after rolling the weapon dice. An attack that hits several targets adds it to each of them.
+- **Accuracy.** A +2 or +3 weapon finds the gaps in any defense: its target's Guard DC is 1 lower, to a minimum of 2. Other DCs stay the same.
+- **Armor.** Magic armor and shields are only ever +1. A +1 shield and +1 armor add up, for 2 extra armor.
+- **Limits.** A magic weapon doesn't raise your mortal limit, or the level you rolled.
+
+As a guide for the DM, a +1 weapon suits a party of around level 3, a +2 weapon around level 6, and a +3 weapon level 9 or higher.
+
+### 8. Note Your Spell Slots
 You start with 2 empty spell slots (Wordweavers start with 3). You fill them by saving spells you've cast during play. See *Saving Spells*.
 
-### 8. Fill in the Details
+\column
+
+### 9. Fill in the Details
 Finally, decide who your character is: their name, where they come from, what they look like, and what drives them.
 
-You can choose a species and background from *Dungeons & Dragons* to help shape your character. Keep any traits that don't depend on ability scores, skills or languages, such as darkvision, and ignore ability score increases, skill proficiencies and languages, since Spellbound has none of them. A background is also a great way to explain your passion: a former sailor might well be passionate about the sea.
+You can choose a background from *Dungeons & Dragons* to help shape your character. Ignore its ability score increases, skill proficiencies and languages, since Spellbound has none of them. A background is also a great way to explain your passion: a former sailor might well be passionate about the sea.
 
-**Tongues.** Choose your native Tongue, which you speak fluently, and one more that you speak well (see *Tongues*). Your species and background are a good guide: a dwarf probably grew up with Deepcant, and a former sailor with the Drowned Tongue.
+**Tongues.** Choose your native Tongue, which you speak fluently, and one more that you speak well (see *Tongues*). Your race and background are a good guide: a dwarf probably grew up with Deepcant, and a former sailor with the Drowned Tongue.
 
 ### Starting at a Higher Level
 For a oneshot, your DM might ask you to start at level 3 so everyone has a few more features to play with. See *Advancement*.
 
-\column
-
 ### Example
 Tamsin is making a Wordweaver. She wants a character who's good at fighting, but can also solve problems in clever ways.
+
+**Race.** Tamsin is human, so she's Medium and moves 30 feet. For her knack she picks Reveal, so all her mundane Reveal actions have a mortal limit of 4.
 
 **Ranks.** All her schools start at rank 1. She spends her 10 points: 2 on Harm, 2 on Move, 2 on Reveal, and 1 each on Aid, Change, Control and Create. Her Wordweaver bonus adds 1 more to Harm, Change and Create.
 
@@ -780,6 +830,93 @@ Tamsin is making a Wordweaver. She wants a character who's good at fighting, but
 **Everything else.** She adds +3 to initiative from her Move rank, and her passive Reveal is 3, so she notices carelessly hidden things without trying. Her native Tongue is the Drowned Tongue, from her stormy coast, which gives her its perk. She also speaks Hearthspeech well, but without its perk.
 
 \page
+
+{{pageNumber,auto}}
+
+## Races
+Your race is the people your character was born into. It doesn't change your ranks: what your character is good at still comes from their ranks, class and feats. Instead, your race decides your size, how far you move, whether you can see in the dark, and one kind of mundane action that comes naturally to you.
+
+##### Races
+
+| Race | Size | Speed | Darkvision | Hit points | Knack |
+|:--- |:--- |:--- |:--- |:--- |:--- |
+| Human | Medium | 30 feet | — | — | One school of your choice |
+| Elf | Medium | 35 feet | Yes | — | Spotting and searching |
+| Dwarf | Medium | 25 feet | Yes | +1 per level | Working stone and metal |
+| Halfling | Small | 25 feet | — | — | Sneaking and hiding |
+| Gnome | Small | 25 feet | Yes | — | Working small mechanisms |
+| Orc | Medium | 30 feet | Yes | +1 per level | Lifting, pushing and grabbing |
+| Dragonkin | Medium | 30 feet | — | — | Intimidating |
+
+### Racial Traits
+- **Size.** Medium creatures are about the size of a grown person. Small creatures are about half that, and can't use heavy weapons.
+- **Speed.** How far you can move on your casting turn, in feet.
+- **Darkvision.** You can see in the dark up to 60 feet away, but only in shades of grey.
+- **Hit points.** Some races are hardier than others. Add these hit points at every level, including level 1.
+- **Knack.** One kind of mundane action comes naturally to you, and has a mortal limit 1 higher, up to 5. This adds up with class features and feats, so a dwarf Golemwright forging steel can reach level 5.
+- **Tongue.** Every race has a Tongue most of its people grow up with. It's a suggestion for your native Tongue, not a rule.
+
+\column
+
+### Human
+Humans are short-lived, stubborn and found everywhere, from fishing villages to royal courts. What they lack in gifts, they make up for in variety.
+
+- **Size and speed.** Medium, 30 feet.
+- **Knack.** Choose a school other than Passion. All your mundane actions in that school have a mortal limit 1 higher, up to 5.
+- **Tongue.** Usually Hearthspeech.
+
+### Elf
+Elves live for centuries in old forests, and have had a long time to learn to notice what others miss.
+
+- **Size and speed.** Medium, 35 feet.
+- **Darkvision.** You can see in the dark.
+- **Knack.** Your mundane Reveal actions to spot and search have a mortal limit 1 higher, up to 5.
+- **Tongue.** Usually Leafweave.
+
+### Dwarf
+Dwarves are miners and smiths from under the mountains, as tough as the stone they carve.
+
+- **Size and speed.** Medium, 25 feet.
+- **Darkvision.** You can see in the dark.
+- **Hit points.** 1 extra hit point per level.
+- **Knack.** Your mundane Change and Create actions with stone and metal have a mortal limit 1 higher, up to 5.
+- **Tongue.** Usually Deepcant.
+
+### Halfling
+Halflings are small, cheerful folk who are much harder to catch than they look.
+
+- **Size and speed.** Small, 25 feet.
+- **Knack.** Your mundane Move actions to sneak and hide have a mortal limit 1 higher, up to 5.
+- **Tongue.** Usually Hearthspeech.
+
+### Gnome
+Gnomes are small, curious tinkerers who can't leave a lock, a clock or a riddle alone.
+
+- **Size and speed.** Small, 25 feet.
+- **Darkvision.** You can see in the dark.
+- **Knack.** Your mundane Change and Create actions with small mechanisms, such as locks, clocks and traps, have a mortal limit 1 higher, up to 5.
+- **Tongue.** Usually Deepcant.
+
+### Orc
+Orcs are strong, proud, and very hard to put down.
+
+- **Size and speed.** Medium, 30 feet.
+- **Darkvision.** You can see in the dark.
+- **Hit points.** 1 extra hit point per level.
+- **Knack.** Your mundane Move actions to lift, push, grab or throw have a mortal limit 1 higher, up to 5.
+- **Tongue.** Usually Deepcant.
+
+### Dragonkin
+Dragonkin descend from dragons, and carry their scales and their pride.
+
+- **Size and speed.** Medium, 30 feet.
+- **Scales.** While you wear no armor, you have 1 armor.
+- **Knack.** Your mundane Control actions to intimidate have a mortal limit 1 higher, up to 5.
+- **Tongue.** Usually Ashen.
+
+\page
+
+{{pageNumber,auto}}
 
 ## Wordweaver
 Wordweavers are scholars of language who believe every word holds power. Where others see a pile of letters, a Wordweaver sees a dozen spells waiting to be spoken. They choose their strongest ranks, have the most saved spells, and control their tiles the best, but they rely almost entirely on magic.
@@ -838,11 +975,18 @@ Once per long rest, a spell you cast takes effect at level 8, however many surge
 ### Wordweaver Feats
 Whenever you gain a feat, you can choose one of these instead of a general feat. Feats marked 4+ or 8+ require that character level.
 
-- **Word Hoard.** Tile Craft lets you swap up to 4 tiles.
+- **Alliteration.** If your spell has at least 3 words and they all start with the same letter, it takes effect 1 level higher, up to your rank.
 - **Arcane Recovery.** Once per long rest, after a short rest, roll to grow one of your saved spells as if you'd just cast it.
+- **Word Hoard.** Tile Craft lets you swap up to 4 tiles.
+- **Dying Words (4+).** When you’re downed, you can immediately cast a level 1 spell with the tiles you’re holding.
 - **Long Words (4+).** A spell containing a word of 8 or more letters takes effect 1 level higher, up to your rank.
 - **Sculpt Spell (4+).** Your spells that affect an area can leave out any creatures you choose.
+- **Floodgates (8+).** While Torrent of Words lasts, Overchannel can raise your spell by 2 levels. You take 1d8 for each.
 - **Multicast (8+).** If your tiles spell two separate spells, you can cast both on one casting turn. Each takes effect 1 level lower, to a minimum of 1.
+
+\page
+
+{{pageNumber,auto}}
 
 ### Subclasses
 At level 2, choose a subclass. It shapes how you play your class, and gives you features at levels 2, 5 and 10.
@@ -853,8 +997,6 @@ Lexicographers collect words the way others collect coins. The longer and more p
 - **Level 2: Well-Read.** Whenever you draw tiles for a new spell, draw 2 extra tiles, then return any 2 tiles to the pile.
 - **Level 5: Precise Wording.** If your spell has 7 or more letters, its effect dice are one size bigger: d6s become d8s, and d8s become d10s.
 - **Level 10: Unabridged.** Once per combat, if your spell uses every tile you have, with at least 6 tiles, it takes effect 2 levels higher, up to your rank.
-
-\page
 
 #### Devotee
 Devotees give themselves over to what they love. Their passion burns brighter than any other caster's, and some even find room in their hearts for a second one.
@@ -870,19 +1012,24 @@ Archivists value a reliable spell over a clever one. Their saved spells grow fas
 - **Level 5: Annotated Spells.** When you save a spell, roll one die of the same size as your casting pool for its school. The spell starts at that level instead of 1, with a minimum of 2, up to your rank in its school.
 - **Level 10: Grand Library.** Once per combat, you can cast two of your saved spells on the same casting turn. Roll your pre-turn for the lower-ranked school.
 
+\column
+
 {{note
 ##### Quick Build
 Want to start playing right away? Use this build for a level 1 Wordweaver: a storm-touched scholar who solves fights with big words and problems with clever ones.
 
+- **Race.** Human, with Reveal as your knack, for a scholar who notices everything.
 - **Ranks.** Harm 4, Change 3, Reveal 3, Move 3, Aid 3, Control 2, Create 2. Your Wordweaver bonus goes to Harm, Change and Reveal.
 - **Passion.** Storms, at rank 6.
 - **Tongues.** Hearthspeech and Ashen.
 - **Feat.** Cantrips, for small extra spells every turn.
 - **Equipment.** A dagger (d4) and no armor.
-- **At a glance.** 12 hit points, armor 0, initiative +3, passive Reveal 3, and 3 spell slots.
+- **At a glance.** 12 hit points, armor 0, speed 30 feet, initiative +3, passive Reveal 3, and 3 spell slots.
 }}
 
 \page
+
+{{pageNumber,auto}}
 
 ## Loresinger
 Loresingers are bards, storytellers and keepers of old songs. Their magic is at its best when it's shared, and a Loresinger in the party makes everyone around them stronger. They're at home both in battle and at the negotiating table.
@@ -946,12 +1093,16 @@ Once per long rest, every ally rolls their next pre-turn as if their rank were 1
 Whenever you gain a feat, you can choose one of these instead of a general feat. Feats marked 4+ or 8+ require that character level.
 
 - **Healing Hymn.** Your Aid spells heal 1 extra hit point for every effect die. If you share the dice between several creatures, each creature heals 1 extra for each die it gets.
+- **Marching Song.** While Battle Hymn lasts, allies who can hear you move 10 feet further.
 - **Mocking Verse.** When your Control spell or mundane Control action succeeds, the target rolls one die fewer in its next casting pool.
-- **Word Bank (4+).** Shared Verse lets you give up to 6 tiles.
 - **Chorus Line (4+).** You can use Inspiring Word twice per round.
+- **Word Bank (4+).** Shared Verse lets you give up to 6 tiles.
 - **Encore (8+).** You can use Countersong twice per combat.
+- **Perfect Harmony (8+).** Duet can include a second ally. The spell takes effect at the highest level among you + 2.
 
 \page
+
+{{pageNumber,auto}}
 
 ### Subclasses
 At level 2, choose a subclass. It shapes how you play your class, and gives you features at levels 2, 5 and 10.
@@ -981,15 +1132,18 @@ Sirens sing songs that pull enemies off course. Their magic charms, lulls and co
 ##### Quick Build
 Want to start playing right away? Use this build for a level 1 Loresinger: a silver-tongued bard who keeps the party's spirits up and their enemies off balance.
 
+- **Race.** Human, with Control as your knack, so your Silver tongue can reach level 5 later on.
 - **Ranks.** Control 4, Aid 3, Reveal 3, Move 3, Harm 3, Change 2, Create 2. Your bonus to any school goes to Reveal.
 - **Passion.** Old ballads, at rank 6.
 - **Tongues.** Hearthspeech and Leafweave.
 - **Feat.** Persuasive, to make the most of your Silver tongue.
 - **Equipment.** A spear (d6) and light armor.
-- **At a glance.** 14 hit points, armor 1, initiative +3, passive Reveal 3, and 2 spell slots.
+- **At a glance.** 14 hit points, armor 1, speed 30 feet, initiative +3, passive Reveal 3, and 2 spell slots.
 }}
 
 \page
+
+{{pageNumber,auto}}
 
 ## Runesmith
 Runesmiths are scribes of power who believe a word is worth more written down than spoken aloud. They carve spells into stone, steel and parchment, leave traps on doorframes, and hand their friends runes to break in an emergency. In a fight, they're slower than other casters, but their spells can't be heard coming.
@@ -1056,26 +1210,25 @@ Runes you write outside of combat can hold spells up to your rank. Once per long
 
 \page
 
+{{pageNumber,auto}}
+
 ### Runesmith Feats
 Whenever you gain a feat, you can choose one of these instead of a general feat. Feats marked 4+ or 8+ require that character level.
 
 - **Shorthand.** A written spell of 6 letters or fewer takes effect on your casting turn, like a spoken spell.
+- **Signed Work.** You always know when one of your runes is triggered, and you get a rough sense of what triggered it.
 - **Trigger Word.** As a bonus action, you can trigger any of your runes within 60 feet of you, whatever trigger you chose for it.
-- **Rune Ammunition (4+).** A rune you've put on a weapon is released for free when that weapon's attack hits.
 - **Deep Carving (4+).** Your runes can each be used twice before they fade.
+- **Forgery (4+).** You can tamper with a rune or written spell someone else left, once you’ve found it. Make a mundane Change action. If its level equals or beats the rune’s level, choose one:
+  - it fizzles harmlessly when triggered,
+  - it gets a new trigger of your choice,
+  - it affects whoever wrote it instead.
+- **Rune Ammunition (4+).** A rune you've put on a weapon is released for free when that weapon's attack hits.
 - **Living Workshop (8+).** You can have 2 more runes at once. Your runes don't fade after a long rest, and when one is used, it recharges after your next long rest instead of fading.
+- **Masterpiece (8+).** Once per long rest, a rune you write outside of combat can hold a spell up to your rank. It doesn’t fade after a long rest, and lasts until it’s used.
 
 ### Subclasses
 At level 2, choose a subclass. It shapes how you play your class, and gives you features at levels 2, 5 and 10.
-
-#### Alchemist
-Alchemists write their spells into potions instead of objects, brewing remedies and poisons for every occasion.
-
-- **Level 2: Bottled Words.** During a long rest, roll your Change casting pool, draw tiles as normal, and spell up to as many words as your Change rank. Each word becomes a potion that holds that word's effect at level 1, in any school except Passion: a bottle of FROST, GLUE or CALM. Anyone can use a potion as a bonus action. **Drink it**, and its effect works on the drinker and lasts for 10 minutes instead of its usual duration. **Throw it** up to 30 feet, and it bursts where it lands, and every creature within 5 feet gets the potion's full effect. Your potions spoil after your next long rest.
-- **Level 5: Volatile Mixtures.** As a bonus action, you can combine two of your potions and drink or throw them together. They take effect as a single level 2 effect that mixes both words, such as FIRE and GLUE making sticky, burning tar. If the DM decides the words clash, roll a d6: on a 1 or 2, the mixture explodes in your hands for 1d6 damage per level the mixture would have had.
-- **Level 10: Master Brewer.** Your potions hold level 2 effects, and your mixtures level 3. You can mix up to three potions at once, and thrown potions burst across 15 feet instead of 5. Once per long rest, one potion you brew can hold its effect at your Change rank.
-
-\column
 
 #### Runewarden
 Runewardens turn rooms into traps and battlefields into puzzles. Few things walk out of a place they've prepared.
@@ -1083,6 +1236,15 @@ Runewardens turn rooms into traps and battlefields into puzzles. Few things walk
 - **Level 2: Lasting Runes.** You can have 1 more rune at once. Your runes don't fade after a long rest, and last for a week instead.
 - **Level 5: Chain Runes.** When one of your set runes is triggered, you can trigger another of your runes within 30 feet of it.
 - **Level 10: Warding Circle.** Once per long rest, as your action, you can draw a circle of runes up to 30 feet across around you, wherever you are. For the next hour, enemy spells cast inside the circle or into it take effect 1 level lower, and you can have up to 3 extra runes inside it. The circle is hard to spot: it has a concealment level equal to your Change rank, so enemies only notice it if their passive Reveal equals or beats it, or if they search for it.
+
+\column
+
+#### Alchemist
+Alchemists write their spells into potions instead of objects, brewing remedies and poisons for every occasion.
+
+- **Level 2: Bottled Words.** During a long rest, roll your Change casting pool, draw tiles as normal, and spell up to as many words as your Change rank. Each word becomes a potion that holds that word's effect at level 1, in any school except Passion. Anyone can use a potion as a bonus action. **Drink it**, and its effect works on the drinker and lasts for 10 minutes instead of its usual duration. **Throw it** up to 30 feet, and it bursts where it lands, and every creature within 5 feet gets the potion's full effect. Your potions spoil after your next long rest.
+- **Level 5: Volatile Mixtures.** As a bonus action, you can combine two of your potions and drink or throw them together. They take effect as a single level 2 effect that mixes both words, such as FIRE and GLUE making sticky, burning tar. If the DM decides the words clash, roll a d6: on a 1 or 2, the mixture explodes in your hands for 1d6 damage per level the mixture would have had.
+- **Level 10: Master Brewer.** Your potions hold level 2 effects, and your mixtures level 3. You can mix up to three potions at once, and thrown potions burst across 15 feet instead of 5. Once per long rest, one potion you brew can hold its effect at your Change rank.
 
 #### Runecarver
 Runecarvers write on the things they carry into battle. Their blades and armor are covered in words, ready to be spoken with every swing.
@@ -1095,15 +1257,18 @@ Runecarvers write on the things they carry into battle. Their blades and armor a
 ##### Quick Build
 Want to start playing right away? Use this build for a level 1 Runesmith: a careful scribe who leaves traps on every doorframe and hands out runes like candy.
 
+- **Race.** Gnome, for a scribe who knows their way around locks and traps, and can see in the dark.
 - **Ranks.** Change 4, Reveal 4, Control 3, Harm 3, Aid 2, Create 2, Move 2. Your bonus to any school goes to Control.
 - **Passion.** Old manuscripts, at rank 6.
-- **Tongues.** Ashen and Hearthspeech.
+- **Tongues.** Deepcant and Ashen.
 - **Feat.** Shorthand, so short words don't have to wait.
 - **Equipment.** A dagger (light, d4) and light armor.
-- **At a glance.** 14 hit points, armor 1, initiative +2, passive Reveal 4, 2 spell slots, and 2 runes.
+- **At a glance.** 14 hit points, armor 1, speed 25 feet, darkvision, initiative +2, passive Reveal 4, 2 spell slots, and 2 runes.
 }}
 
 \page
+
+{{pageNumber,auto}}
 
 ## Golemwright
 Golemwrights are tinkers and inventors who build their magic instead of speaking it. They forge blades in the middle of a fight, patch broken bridges, and never travel alone: a construct of scrap walks at their side.
@@ -1175,17 +1340,24 @@ These properties come from clever engineering, not magic, so nothing that stops 
 
 \page
 
+{{pageNumber,auto}}
+
 ### Level 12: Grand Engine
 Your construct now attacks with a casting pool of rank 4 and a d10 weapon die, and can have a third module. Once per long rest, as your action, you can build a second construct from whatever is around you. It's a copy of your first, modules included, and falls apart after an hour.
 
 ### Golemwright Feats
 Whenever you gain a feat, you can choose one of these instead of a general feat. Feats marked 4+ or 8+ require that character level.
 
-- **Improvised Tools.** Your mundane Change and Create actions don't need proper tools, and take half the usual time.
 - **Guardian Protocol.** Once per round, your construct can take a hit for you or an ally, as long as you or they are next to it. Its armor applies.
+- **Improvised Tools.** Your mundane Change and Create actions don't need proper tools, and take half the usual time.
+- **Sentry Mode.** While you rest, your construct keeps watch. It uses your passive Reveal and wakes you if anything approaches.
 - **Reinforced Construct (4+).** Your construct has 2 more hit points per level, and 1 more armor.
 - **Spare Parts (4+).** Your construct can also choose from the Spare Parts modules (see *Modules*).
+- **Tandem Strike (4+).** Once per round, when you and your construct both hit the same target, the second hit deals one extra weapon die.
 - **Overdrive (8+).** Once per combat, as a bonus action during your pre-turn, you can push your construct past its limits. It acts twice on your casting turn this round.
+- **Self-Destruct (8+).** Once per long rest, your construct explodes. Every creature within 10 feet takes its weapon die once per your level. It’s destroyed.
+
+\column
 
 ### Subclasses
 At level 2, choose a subclass. It shapes how you play your class, and gives you features at levels 2, 5 and 10.
@@ -1197,14 +1369,16 @@ Clockmakers prefer many small hands to one big one. Their workshops buzz with ti
 - **Level 5: Swarm Tactics.** When one of your small constructs attacks, every other small construct next to the target piles on. The attack deals one extra weapon die of damage for each of them, up to 3 extra dice.
 - **Level 10: Brass Swarm.** Once per long rest, as your action, you release a swarm of tiny constructs that fills a 20-foot area for 3 rounds. At the end of each round, every enemy inside takes 3d6 damage, and every ally inside heals 1d6.
 
-\column
-
 #### Warforger
 Warforgers build one construct, and build it big. Their companions are walking siege engines.
 
 - **Level 2: Heavy Frame.** Your construct can be as big as a horse (Large size in *Dungeons & Dragons*), and has 1 more armor. You can ride it. While you do, you move with it instead of on your own, it moves twice as far as you can (three times with Springs), and you add one die to your saving throws against being pushed, grabbed or knocked down.
 - **Level 5: Sweeping Blows.** Once per round, your construct's weapon attack can hit the target and one other creature next to it, rolling damage separately.
 - **Level 10: Colossus.** Once per long rest, your construct can grow huge for 3 rounds. It has twice its hit points, and its weapon die is one size bigger. Each time it attacks, choose: it hits a single target and rolls its weapon die twice for every level, or it stomps the ground and hits every enemy within 10 feet of it, rolling damage separately for each.
+
+\page
+
+{{pageNumber,auto}}
 
 #### Puppeteer
 Puppeteers see through their constructs' eyes and speak through their mouths. Their constructs are an extension of themselves.
@@ -1217,16 +1391,19 @@ Puppeteers see through their constructs' eyes and speak through their mouths. Th
 ##### Quick Build
 Want to start playing right away? Use this build for a level 1 Golemwright: a tinkering inventor who always has the right tool, and a loyal clockwork friend to carry it.
 
+- **Race.** Dwarf, so your Handy work with stone and metal can reach level 5 later on.
 - **Ranks.** Create 4, Change 4, Aid 3, Reveal 3, Harm 2, Move 2, Control 2.
 - **Passion.** Clockwork, at rank 6.
 - **Tongues.** Deepcant and Hearthspeech.
 - **Feat.** Improvised Tools, so you can tinker anywhere.
 - **Equipment.** A hammer (simple, d6) and light armor.
 - **Module.** Plating, for a sturdier companion.
-- **At a glance.** 14 hit points, armor 1, initiative +2, passive Reveal 3, and 2 spell slots. Your construct has 13 hit points and 2 armor, and attacks with 2d6 and a d6 weapon die.
+- **At a glance.** 15 hit points, armor 1, speed 25 feet, darkvision, initiative +2, passive Reveal 3, and 2 spell slots. Your construct has 13 hit points and 2 armor, and attacks with 2d6 and a d6 weapon die.
 }}
 
 \page
+
+{{pageNumber,auto}}
 
 ## Trickster
 Tricksters are thieves, spies and con artists who get by on quick fingers and quicker wits. They snatch letters out of the air before other casters can speak them, strike when no one's looking, and twist other casters' words against them. A Trickster is never quite where you think they are, and neither is their voice.
@@ -1285,16 +1462,24 @@ Once per combat, as a bonus action during your casting turn, you can disappear f
 ### Level 12: Perfect Heist
 Once per long rest, when an enemy casts a spell in a Tongue you know or a written spell, you can save it into one of your empty spell slots at its current level, up to your rank in its school.
 
+\page
+
+{{pageNumber,auto}}
+
 ### Trickster Feats
 Whenever you gain a feat, you can choose one of these instead of a general feat. Feats marked 4+ or 8+ require that character level.
 
+- **Escape Artist.** Add one die to your casting pool when you try to break free from a Move or Control effect.
 - **Light Fingers.** Sleight lets you take 2 tiles.
 - **Silver Lies.** When your mundane Control action succeeds in combat, its target counts as distracted for your Ambush.
-- **Dirty Fighting (4+).** When your weapon attack hits, you can try to trip or disarm your target. Roll one die of the same size as your Control casting pool, against a DC the DM sets as for any action. The DM also decides if it's possible: a creature without a weapon can't be disarmed. On a success, a tripped target rolls one die fewer in its next casting pool, and a disarmed target drops its weapon, and can't make weapon attacks with it until it picks it back up.
+- **Dirty Tricks (4+).** Once per round, when your Ambush deals damage, you can give up the Ambush dice to pull a trick instead. The trick lasts until the end of the target’s next casting turn:
+  - **Throat jab.** It can only whisper, so its spoken spells only reach what it touches.
+  - **Box the ears.** It’s deafened. It can’t counter spells, and songs don’t help it.
+  - **Jostle.** If it’s still holding tiles, it drops one at random back into the pile.
+- **Sharp Eyes (4+).** With Sleight, you see the creature’s tiles and choose which one to take.
 - **Uncanny Dodge (4+).** Once per round, you can use your reaction to halve the damage from one hit.
+- **Grand Larceny (8+).** Once per combat, Sleight swaps your whole hand of tiles with the target’s.
 - **Master Thief (8+).** You can use Twist the Word twice per combat.
-
-\page
 
 ### Subclasses
 At level 2, choose a subclass. It shapes how you play your class, and gives you features at levels 2, 5 and 10.
@@ -1305,6 +1490,8 @@ Shadows are assassins and scouts. By the time anyone notices them, the fight is 
 - **Level 2: Silent Step.** Your mundane Move actions for sneaking have a mortal limit 1 higher, up to 5. When you whisper a spell, it doesn't give away your position.
 - **Level 5: Assassinate.** In the first round of combat, your Ambush deals its highest possible damage instead of rolling.
 - **Level 10: Death Mark.** Once per combat, mark a creature you can see. Until the end of the combat, your Ambush dice against it are doubled.
+
+\column
 
 #### Mimic
 Mimics steal voices and words as easily as coins. They can sound like anyone, and cast like anyone too.
@@ -1324,15 +1511,18 @@ Cutthroats don't wait for an opening. They make one, with a kick to the knee or 
 ##### Quick Build
 Want to start playing right away? Use this build for a level 1 Trickster: a quick-fingered thief who strikes from the shadows and talks their way out of trouble.
 
+- **Race.** Halfling, so your Expert sneaking can reach level 5 later on.
 - **Ranks.** Harm 4, Reveal 4, Move 3, Change 3, Control 3, Aid 2, Create 1. Choose Move and Control for Expert, for sneaking and lying.
 - **Passion.** Masks, at rank 6.
 - **Tongues.** Hearthspeech and Hollow Tongue, to copy what cultists cast in the future.
 - **Feat.** Light Fingers, to steal two tiles at a time.
 - **Equipment.** A rapier (martial, d8) and light armor.
-- **At a glance.** 14 hit points, armor 1, initiative +3, passive Reveal 4, and 2 spell slots.
+- **At a glance.** 14 hit points, armor 1, speed 25 feet, initiative +3, passive Reveal 4, and 2 spell slots.
 }}
 
 \page
+
+{{pageNumber,auto}}
 
 ## Spellblade
 Spellblades are warriors who carve magic into every swing. They're as comfortable in the thick of a fight as any soldier, but their blade speaks words of fire and frost with every hit. Where other casters keep their distance, a Spellblade runs straight at the enemy.
@@ -1393,13 +1583,18 @@ Your Bladewords take effect at the same level as your weapon attack, and spread 
 ### Spellblade Feats
 Whenever you gain a feat, you can choose one of these instead of a general feat. Feats marked 4+ or 8+ require that character level.
 
-- **Duelist.** You gain +1 armor while you fight with a single one-handed weapon and nothing in your other hand.
 - **Charged Blade.** Instead of spelling a Bladeword, you can keep the tiles you drew for it, even when your attack misses. Add them to the tiles you draw for your next Bladeword. Kept tiles return to the pile at the end of the combat.
+- **Duelist.** You gain +1 armor while you fight with a single one-handed weapon and nothing in your other hand.
+- **Heavy Hitter.** With a heavy weapon, reroll 1s on your weapon dice, once.
 - **Arcane Riposte (4+).** When Parry reduces a hit's damage to 0, you can immediately make a level 1 weapon attack against the attacker.
+- **Battle Cry (4+).** When you enter a Spellfury, every enemy within 10 feet rolls one die fewer in its next casting pool.
 - **Eldritch Reach (4+).** Magic carries your blade further. Your melee weapon attacks can hit a target up to 15 feet away.
 - **Battle Caster (8+).** Once per combat, you can declare a weapon attack and a saved spell in the same pre-turn, and do both on your casting turn.
+- **Twin Bladewords (8+).** Once per combat, you can spell two Bladewords from one attack’s tiles, and both take effect.
 
 \page
+
+{{pageNumber,auto}}
 
 ### Subclasses
 At level 2, choose a subclass. It shapes how you play your class, and gives you features at levels 2, 5 and 10.
@@ -1431,15 +1626,18 @@ Spellguards use their blade as a shield against magic, turning enemy spells asid
 ##### Quick Build
 Want to start playing right away? Use this build for a level 1 Spellblade: a duelist whose blade burns with whatever they love most.
 
+- **Race.** Elf, for a quick, sharp-eyed fighter who can see in the dark.
 - **Ranks.** Harm 4, Move 4, Aid 3, Reveal 3, Change 2, Control 2, Create 2.
 - **Passion.** Wolves, at rank 6.
 - **Tongues.** Leafweave and Hearthspeech.
 - **Feat.** Duelist, for an extra point of armor.
 - **Equipment.** A longsword (martial, d8) with nothing in your other hand, and medium armor.
-- **At a glance.** 16 hit points, armor 3, initiative +4, passive Reveal 3, and 2 spell slots.
+- **At a glance.** 16 hit points, armor 3, speed 35 feet, darkvision, initiative +4, passive Reveal 3, and 2 spell slots.
 }}
 
 \page
+
+{{pageNumber,auto}}
 
 ## Warden
 Wardens are protectors who stand between their friends and whatever wants to hurt them. Clad in heavy armor and quick with a bandage, a Warden keeps the party standing when everything goes wrong. Their magic leans toward protection and healing, but their shield arm does just as much work.
@@ -1498,11 +1696,18 @@ Once per long rest, for one full round, every hit against an ally within 10 feet
 ### Warden Feats
 Whenever you gain a feat, you can choose one of these instead of a general feat. Feats marked 4+ or 8+ require that character level.
 
-- **Shield Bash.** When you use Interpose, you can also make a level 1 weapon attack against the attacker.
 - **Field Medic.** Your first aid can reach allies within 15 feet of you, and heals with d6s instead of d4s.
-- **Taunt (4+).** When your mundane Control action succeeds, the target must attack you on its next turn. An enemy can ignore this by rolling higher than the action's level + 2 on its resist die.
+- **Shield Bash.** When you use Interpose, you can also make a level 1 weapon attack against the attacker.
+- **Wide Guard.** Hold the Line protects allies within 10 feet of you.
+- **Behind the Shield (4+).** While Hold the Line lasts, spells cast by allies next to you can’t be countered.
 - **Iron Hide (4+).** You gain +1 armor.
+- **Taunt (4+).** When your mundane Control action succeeds, the target must attack you on its next turn. An enemy can ignore this by rolling higher than the action's level + 2 on its resist die.
 - **Guardian Angel (8+).** You can use Interpose twice per round, for any ally you can reach.
+- **Intercept (8+).** Once per combat, when an enemy spell targets an ally within 30 feet of you, you can use your reaction to make it target you instead.
+
+\page
+
+{{pageNumber,auto}}
 
 ### Subclasses
 At level 2, choose a subclass. It shapes how you play your class, and gives you features at levels 2, 5 and 10.
@@ -1513,8 +1718,6 @@ Sentinels hold their ground so well that enemies can't get past them, or away fr
 - **Level 2: Hold Fast.** When your weapon attack hits a creature, it can't move away from you until the end of your next casting turn, unless it rolls higher than the attack's level + 2 on its resist die.
 - **Level 5: Opportunist.** Once per round, when an enemy next to you attacks someone other than you, you can make a level 1 weapon attack against it.
 - **Level 10: Wall of Iron.** While Hold the Line lasts, enemies can't move past you or through the space around you.
-
-\page
 
 #### Lifewarden
 Lifewardens are healers in heavy armor, keeping their friends alive through sheer stubbornness.
@@ -1530,19 +1733,24 @@ Oathkeepers swear vows against those who harm their friends, and chase them down
 - **Level 5: Retribution.** When an enemy hits an ally next to you, you can make it your Vow target instead. Your next weapon attack against it is 1 level higher, up to your mortal limit.
 - **Level 10: Unbroken Oath.** While your Vow target is alive, you drop to 1 hit point instead of 0 the first time you would fall in that combat.
 
+\column
+
 {{note
 ##### Quick Build
 Want to start playing right away? Use this build for a level 1 Warden: a shield-bearing healer who keeps everyone standing, no matter what.
 
+- **Race.** Orc, for a protector who's very hard to put down.
 - **Ranks.** Aid 4, Harm 4, Control 3, Reveal 3, Move 2, Change 2, Create 2.
 - **Passion.** An oath to protect your family, at rank 6.
-- **Tongues.** Hearthspeech and Deepcant.
+- **Tongues.** Deepcant and Hearthspeech.
 - **Feat.** Medic, so short rests heal the whole party more.
 - **Equipment.** A warhammer (martial, d8), heavy armor and a shield.
-- **At a glance.** 18 hit points, armor 4, initiative +2, passive Reveal 3, and 2 spell slots.
+- **At a glance.** 19 hit points, armor 4, speed 30 feet, darkvision, initiative +2, passive Reveal 3, and 2 spell slots.
 }}
 
 \page
+
+{{pageNumber,auto}}
 
 ## Feats
 Feats are special talents that set your character apart: a knack for persuasion, a voice that shakes the walls, or a way with letters that other casters envy.
@@ -1595,6 +1803,8 @@ Whenever you gain a feat, you can choose one of the general feats in this chapte
 
 \page
 
+{{pageNumber,auto}}
+
 ### Tile Feats
 - **Cantrips.** As a bonus action, you can spell a word of 3 letters or fewer with your leftover tiles. It takes effect at level 1, in any school except Harm and Passion.
 - **Letter Hoard.** At the end of every casting turn, you can keep up to 3 unused tiles, or more if you couldn't spell anything.
@@ -1610,6 +1820,8 @@ Whenever you gain a feat, you can choose one of the general feats in this chapte
 
 \page
 
+{{pageNumber,auto}}
+
 ## Advancement
 As your character adventures, they grow more skilled and more powerful. This is shown by their **level**, which goes from 1 to 12.
 
@@ -1619,7 +1831,7 @@ Spellbound uses milestones: you level up when your DM says so, usually after an 
 ### Leveling Up
 Every time you gain a level, do the following:
 
-1. **Hit points.** Roll your class's hit die, or take the fixed number shown in your class's chapter, and add it to your maximum hit points.
+1. **Hit points.** Roll your class's hit die, or take the fixed number shown in your class's chapter, and add it to your maximum hit points, plus any extra hit points from your race.
 2. **Rank point.** Add 1 rank to any school except Passion. You can't go over the rank cap for your new level.
 3. **Feats.** Choose one feat, or two at levels 4, 8 and 12 (see *Feats*).
 4. **Class and subclass features.** Check your class's table for new features, and for anything that grows, such as extra uses of your signature ability, more runes, or a stronger construct.
@@ -1677,6 +1889,8 @@ Tamsin's Wordweaver reaches level 2 after the party escapes a flooded crypt.
 - **Spell slots.** She still has 3, so nothing changes there.
 
 \page
+
+{{pageNumber,auto}}
 
 ## Running Enemies
 *This chapter is for the DM.*
@@ -1747,6 +1961,8 @@ A fair fight costs one point of **budget** per player character.
 A party of four facing a fair fight might meet four standard enemies, or one elite and four minions. A boss fight for the same party might be one boss with two minions.
 
 \page
+
+{{pageNumber,auto}}
 
 ### Using *Dungeons & Dragons* Monsters
 You can use monsters from *Dungeons & Dragons* adventures by translating them:
@@ -1839,6 +2055,8 @@ ___
 
 \page
 
+{{pageNumber,auto}}
+
 ## Judging Spells
 *This chapter is for the DM.*
 
@@ -1897,6 +2115,8 @@ When a player bends the rules, choose a backfire that fits how they bent them, o
 Rowan rolls Harm at level 2 and spells ISE SPIKE, misspelling ICE. The word is bent, the goal fits Harm, and a level 2 spell has two dice to share, enough to hit two cultists. The DM approves the spell, so each cultist takes 1d8 damage. For the backfire, the DM picks one that fits the bent word: frost creeps up Rowan's fingers, and she takes 2d4 damage.
 
 \page
+
+{{pageNumber,auto}}
 
 {{wide
 ## Appendix A: Quick Reference
@@ -1991,6 +2211,9 @@ At 0 hit points, roll a d20 at the start of every round. 10+ is a success, 9 or 
 Only Tongues you're fluent in give their perk: your native Tongue, and any you've learned twice. Knowing a spell's Tongue lets you lip-read or copy it. Countering, tiles, written spells, runes, potions and constructs don't need one.
 
 \page
+
+{{pageNumber,auto}}
+
 {{wide
 ## Appendix B: Glossary
 }}
@@ -2011,6 +2234,8 @@ Only Tongues you're fluent in give their perk: your native Tongue, and any you'v
 
 **Construct.** A Golemwright's companion, built from scrap during a long rest. It acts on its creator's casting turn, right after them, and has the same Guard DC as its creator. See *Construct*.
 
+**Darkvision.** Seeing in the dark up to 60 feet away, in shades of grey. Elves, dwarves, gnomes and orcs have it. See *Races*.
+
 **Death roll.** The d20 you roll every round while downed. See *Dropping to 0 Hit Points*.
 
 **Difficulty (DC).** The number at least one die in your casting pool must equal or beat to succeed. See *Difficulty*.
@@ -2025,11 +2250,17 @@ Only Tongues you're fluent in give their perk: your native Tongue, and any you'v
 
 **Hit points.** How much damage you can take before you're downed. See *Hit Points*.
 
+**Knack.** The kind of mundane action your race is naturally good at. It has a mortal limit 1 higher, up to 5. See *Races*.
+
 **Known spell.** An enemy's version of a saved spell.
 
 **Level (character).** How experienced your character is, from 1 to 12. See *Advancement*.
 
+\column
+
 **Level (spell or action).** How powerful a spell or mundane action is: one level for every surge you rolled, with a minimum of 1. It can never be higher than your rank in that school, and a mundane action can't go above your mortal limit. A saved spell uses its saved level instead. See *Reading Your Roll* and *Spell Levels*.
+
+**Magic weapon.** A weapon with a bonus of +1, +2 or +3, which adds to its damage and, from +2, lowers its target's Guard DC by 1. Armor and shields can be +1. See *Magic Weapons and Armor*.
 
 **Module.** An upgrade built into a construct, such as Springs or a Ballista. A construct can have a number of modules shown in the Golemwright table. See *Modules*.
 
@@ -2051,6 +2282,8 @@ Only Tongues you're fluent in give their perk: your native Tongue, and any you'v
 
 **Prepare.** A pre-turn action that lets you counter one spell you can hear. See *Prepare*.
 
+**Race.** The people your character was born into. It sets your size, speed and darkvision, and gives you a knack. See *Races*.
+
 **Rank.** Your skill in a school, from 1 to 8. See *Ranks*.
 
 **Resist die.** The die an enemy rolls to break free of effects and resist hazards.
@@ -2062,6 +2295,10 @@ Only Tongues you're fluent in give their perk: your native Tongue, and any you'v
 **Saving throw.** A roll of a school's casting pool to resist something that happens to you. See *Saving Throws*.
 
 **Shield.** A piece of equipment that adds 1 to your armor value and takes up one hand. Only classes and feats that say so let you use one. A magical shield from an Aid spell is a ward instead. See *Armor and Shields*.
+
+\page
+
+{{pageNumber,auto}}
 
 **Signature ability.** The ability that defines your class and that only it has, such as a Spellblade's Spellfury or a Golemwright's Construct. Most can be used a limited number of times per long rest. The Runesmith's Written Word and the Golemwright's Construct have no uses, and grow in other ways.
 
@@ -2075,8 +2312,6 @@ Only Tongues you're fluent in give their perk: your native Tongue, and any you'v
 
 **Tiles.** The letter tiles you draw to spell your spells.
 
-\page
-
 **Tongue.** The grammar a spell is cast in. Knowing a spell's Tongue lets you read or copy its magic, and each Tongue you're fluent in gives a small perk. See *Tongues*.
 
 **Volume.** How loudly you cast a spell: whisper, speak or shout. It decides your spell's range and who hears it. See *Volume*.
@@ -2084,6 +2319,9 @@ Only Tongues you're fluent in give their perk: your native Tongue, and any you'v
 **Ward.** Anything that absorbs damage for a creature, such as a magical barrier, a protective creature, or a Warden's shield. Wards come from Aid spells and some features. See *Wards*.
 
 \page
+
+{{pageNumber,auto}}
+
 {{wide
 ## Appendix C: Example Spells
 Stuck for ideas? These spells show what different words can do at different levels. They're only examples: any word that fits the school will do, and the same word can do very different things in different schools.
@@ -2147,7 +2385,7 @@ These examples use the sea as a passion.
 }}
 
 {{fields
-| Name | Player |
+| Name | Race |
 |:--- |:--- |
 | &nbsp; | &nbsp; |
 
@@ -2266,6 +2504,9 @@ These examples use the sea as a passion.
 }}
 
 \page
+
+{{pageNumber,auto}}
+
 {{wide
 ## Appendix E: Feature Interactions
 *This appendix is for the DM.*
@@ -2291,8 +2532,8 @@ Many features change how other features work. When one of these situations comes
 \column
 
 ### Casting Pools and Limits
-- **Adding and losing dice.** Adding: Battle Hymn, War Chant, Rallying Refrain, Steady Mind, Persuasive, Keen Senses, Athlete, Stealthy, Fanatic, Heavy Frame. Losing: Siren Song, Mocking Verse, Dirty Fighting, Low Blow, Hold the Line, Tongue-tied. They all add up, but a pool never drops below one die, and the level is still capped by rank.
-- **Mortal limit** (Trained, Artisan, Expert, Silver tongue, Handy, Weapon Training, Weapon Mastery, Bulwark, Aegis, Battle Rhythm, Silent Step, Well of Stories, Sneaky, Lettered). These raise the limit, but never above 5. Retribution raises a weapon attack's level, but only up to the mortal limit.
+- **Adding and losing dice.** Adding: Battle Hymn, War Chant, Rallying Refrain, Steady Mind, Persuasive, Keen Senses, Athlete, Stealthy, Escape Artist, Fanatic, Heavy Frame. Losing: Siren Song, Mocking Verse, Battle Cry, Low Blow, Hold the Line, Tongue-tied. They all add up, but a pool never drops below one die, and the level is still capped by rank.
+- **Mortal limit** (Knack, Trained, Artisan, Expert, Silver tongue, Handy, Weapon Training, Weapon Mastery, Bulwark, Aegis, Battle Rhythm, Silent Step, Well of Stories, Sneaky, Lettered). These raise the limit, but never above 5. Retribution raises a weapon attack's level, but only up to the mortal limit.
 - **Extra turns** (Echo, Reserve of Power, Battle Caster, Grand Library, Multicast, Conduit, Overdrive). Each extra action needs its own successful pre-turn roll, unless the feature says otherwise, like Dual Wielder and Carve a Path.
 
 ### When a Creature Is Hit
@@ -2307,9 +2548,11 @@ Many features change how other features work. When one of these situations comes
 
 \page
 
+{{pageNumber,auto}}
+
 {{wide
 ## Appendix F: Changes
-What's changed between versions of Spellbound, newest first.
+What's changed between versions of Spellbound.
 
 ### Version 0.4
 - **Tongues.** You're fluent in your native Tongue, and only speak your second Tongue well. Only Tongues you're fluent in give their perk. Polyglot teaches you a new Tongue, or makes you fluent in one you already speak.
@@ -2317,8 +2560,13 @@ What's changed between versions of Spellbound, newest first.
 - **Golemwright.** A construct has the same Guard DC as you. Springs lets a Warforger's construct move three times as far as you.
 - **Archivist.** Annotated Spells rolls a die of the school's casting pool for a saved spell's starting level, at least 2 and up to your rank.
 - **Spellblade.** Bladewords no longer have a letter limit: the tiles you draw are the limit. Spellstorm makes your Bladewords spread to every enemy within 10 feet of the target. Charged Blade now lets you keep your Bladeword tiles for your next Bladeword.
-- **Trickster.** Dirty Fighting rolls one die of your Control casting pool against a DC set by the DM, who decides which effects are possible. Uncanny Dodge uses your reaction. The Cutthroat subclass replaces the Gambler.
+- **Trickster.** Uncanny Dodge uses your reaction. The Cutthroat subclass replaces the Gambler.
 - **Feats.** Added a Combat group with Charger, Dual Wielder, Heavy Armor Training, Savage Attacker and War Caster, and moved Martial Training and Shield Adept there. Added Athlete, Fleet-Footed and Hard to Kill to Body and Mind, Artisan, Observant and Stealthy to Skill, and Lingering Magic to Spellcraft.
+- **Class feats.** Every class has two or three new feats. Wordweavers gain Alliteration, Dying Words and Floodgates. Loresingers gain Marching Song and Perfect Harmony. Runesmiths gain Signed Work, Forgery and Masterpiece. Golemwrights gain Sentry Mode, Tandem Strike and Self-Destruct. Tricksters gain Escape Artist, Sharp Eyes and Grand Larceny. Spellblades gain Heavy Hitter, Battle Cry and Twin Bladewords. Wardens gain Wide Guard, Behind the Shield and Intercept.
+- **Trickster.** Dirty Tricks replaces Dirty Fighting. Instead of rolling to trip or disarm, you give up your Ambush dice to jab a throat, box the ears or jostle the target's tiles.
+- **Page Numbers.** Added page numbers.
+- **Races.** Added a *Races* chapter with humans, elves, dwarves, halflings, gnomes, orcs and dragonkin. Your race sets your size, speed and darkvision, and gives you a knack: one kind of mundane action with a mortal limit 1 higher. Character creation has a new step to choose one, and no longer uses species from *Dungeons & Dragons*.
+- **Magic weapons and armor.** Added *Magic Weapons and Armor*. A +1, +2 or +3 weapon adds its bonus to damage, and from +2 lowers its target's Guard DC by 1. Armor and shields can be +1.
 
 ### Version 0.3
 - **Runesmith and Golemwright.** The Runesmith is split into two classes. Runesmiths write spells and runes, with the Alchemist, Runewarden and Runecarver subclasses. Golemwrights build constructs with modules, with the Clockmaker, Warforger and Puppeteer subclasses. Glyphs are now part of runes.
@@ -2344,6 +2592,11 @@ What's changed between versions of Spellbound, newest first.
 - **Wordweaver.** Reworded Long Words, Burning Passion and Annotated Spells.
 - **Loresinger.** Shared Verse reaches allies who can hear you, Countersong uses your reaction, and Duet says whose turn it is. The Skald's Battle Hymn now affects the Skald too. Know Your Foe and Legendary Tale replace Prompter and Rewrite the Tale.
 - **Runesmith.** Added a Runes column, construct rules, and the Deep Carving feat. Written Word, glyphs, Grand Engine, Warding Circle and Colossus are clearer. Potions can be drunk or thrown from level 2, and Master Brewer is reworked.
+}}
+
+\page
+
+{{wide
 - **Trickster.** Sleight happens at the start of your casting turn. Ambush and Slippery are clearer. Vanish lasts until you attack, cast a spoken spell or make a loud noise, and Dirty Fighting's disarm now stops weapon attacks instead of taking away a die.
 - **Spellblade.** Parry is stronger with a shield, Eldritch Reach reaches 15 feet, and Arcane Archer is reworked.
 - **Warden.** Hold the Line affects all enemies and gives allies ward points, Aegis gives ward points, Last Bastion is simpler, and Field Medic reaches 15 feet.
@@ -2352,11 +2605,6 @@ What's changed between versions of Spellbound, newest first.
 - **Several targets.** Damage, healing and wards no longer roll smaller dice for several targets. Instead, a spell shares its effect dice between creatures, at least one die each, so it can affect as many creatures as its level. See *Sharing Effect Dice*.
 - **Wards.** Wards can now be shared between several creatures or objects, like healing. Some features give invisible ward points, which follow the same rules.
 - **Healing Hymn and Healing Hands.** These now heal 1 extra hit point per effect die, so shared dice share the bonus too.
-}}
-
-\page
-
-{{wide
 - **Examples.** EMBER RAIN, ISE SPIKE, STING, MEND and SHELL use the new numbers.
 - **Changes.** Added *Appendix F: Changes*.
 

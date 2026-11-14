@@ -62,6 +62,14 @@ function characterReminders() {
         reminders.push("Choose your Expert schools");
     }
 
+    if (!state.race) {
+        reminders.push("Choose a race");
+    }
+
+    if (unchosen(state.knackSchools)) {
+        reminders.push("Choose a school for your knack");
+    }
+
     if (needsSubclass()) {
         reminders.push("Choose a subclass");
     }

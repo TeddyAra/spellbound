@@ -6,6 +6,7 @@ import {
     addLog,
     onStateChange,
     characterClass,
+    characterRace,
     rank,
     rawRank,
     classBonus,
@@ -28,6 +29,9 @@ import {
     effectiveArmor,
     initiativeBonus,
     weaponDie,
+    weaponBonusPrefix,
+    magicArmorCounts,
+    magicShieldCounts,
     hasFeat,
     subclassIs,
     endSignature,
@@ -46,6 +50,7 @@ import {
 } from "./state.js";
 import {
     CLASSES,
+    RACES,
     RANKED_SCHOOLS,
     MAGIC_SCHOOLS,
     MAX_LEVEL,
@@ -265,7 +270,7 @@ const constructName = () => state.construct.name.trim() || "Construct";
 
 function classLine() {
     const subclass = characterClass().subclasses[state.subclass];
-    const line = `Level ${state.level} ${characterClass().name}`;
+    const line = `Level ${state.level} ${characterRace() ? `${characterRace().name} ` : ""}${characterClass().name}`;
 
     return subclass && state.level >= SUBCLASS_LEVEL ? `${line} · ${subclass.name}` : line;
 }
@@ -281,6 +286,7 @@ function renderStats() {
         `Armor ${effectiveArmor()}: reduces every instance of damage, to a minimum of 1.`;
     $("initiativeDisplay").textContent = formatModifier(initiativeBonus());
     $("passiveRevealDisplay").textContent = passiveReveal();
+    $("darkvisionRow").classList.toggle("hidden", !characterRace()?.darkvision);
     $("movementDisplay").replaceChildren(String(movementSpeed()), element("span", "stat-unit", " ft"));
 
     $("shortRestsDisplay").textContent = `${state.shortRests} / 2`;
@@ -477,6 +483,7 @@ const characterOverlay = $("characterOverlay");
 
 const nameInput = $("nameInput");
 const classInput = $("classInput");
+const raceInput = $("raceInput");
 const subclassInput = $("subclassInput");
 const levelInput = $("levelInput");
 const levelUpButton = $("levelUpButton");
@@ -486,9 +493,19 @@ const maxHPInput = $("maxHPInput");
 const rolledHPInput = $("rolledHPInput");
 const armorInput = $("armorInput");
 const shieldInput = $("shieldInput");
+const magicArmorInput = $("magicArmorInput");
+const magicShieldInput = $("magicShieldInput");
 
 classInput.replaceChildren(...Object.entries(CLASSES).map(([key, info]) => {
     const option = element("option", null, info.name);
+
+    option.value = key;
+
+    return option;
+}));
+
+raceInput.replaceChildren(...[["", "Choose a race"], ...Object.entries(RACES).map(([key, race]) => [key, race.name])].map(([key, name]) => {
+    const option = element("option", null, name);
 
     option.value = key;
 
@@ -599,6 +616,13 @@ function renderRankChoices() {
         });
     }
 
+    if (state.knackSchools.length) {
+        addChoices("Knack", state.knackSchools, (index, school) => {
+            state.knackSchools[index] = school;
+            commit();
+        });
+    }
+
     container.replaceChildren(...rows);
     container.classList.toggle("hidden", rows.length === 0);
 }
@@ -680,7 +704,7 @@ function renderEquipment() {
     rolledHPInput.checked = state.rolledHP;
     maxHPInput.title = state.rolledHP
         ? `Fixed hit points would give ${calculatedMaxHealth()}`
-        : "Highest number on your hit die + 6, plus the fixed number for every level after 1 (and Tough)";
+        : "Highest number on your hit die + 6, plus the fixed number for every level after 1 (and Tough, and your race)";
 
     fillSelect(
         armorInput,
@@ -691,8 +715,17 @@ function renderEquipment() {
     $("shieldRow").classList.toggle("hidden", !canUseShield());
     shieldInput.checked = state.shield;
 
+    // Magic armor and shields: only while worn
+    $("magicArmorRow").classList.toggle("hidden", state.armor === 0);
+    $("magicShieldRow").classList.toggle("hidden", !state.shield);
+    magicArmorInput.checked = state.magicArmor;
+    magicShieldInput.checked = state.magicShield;
+
     const extras = [];
 
+    if (state.armor === 0 && characterRace()?.scales) extras.push(`Scales +${characterRace().scales}`);
+    if (magicArmorCounts()) extras.push("Magic armor +1");
+    if (magicShieldCounts()) extras.push("Magic shield +1");
     if (hasFeat("ironHide")) extras.push("Iron Hide +1");
 
     if (hasFeat("duelist")) {
@@ -701,7 +734,7 @@ function renderEquipment() {
 
     $("armorNote").textContent = `Armor value ${effectiveArmor()}` + (extras.length ? ` (${extras.join(", ")})` : "");
 
-    $("equippedWeaponsDisplay").textContent = equippedWeapons().map(weapon => `${weapon.name} (d${weaponDie(weapon)})`).join(", ") || "None equipped";
+    $("equippedWeaponsDisplay").textContent = equippedWeapons().map(weapon => `${weaponBonusPrefix(weapon)}${weapon.name} (d${weaponDie(weapon)})`).join(", ") || "None equipped";
 
     $("weaponLimitDisplay").textContent = `${weaponMortalLimit()} · ${mortalLimitSources("weapon").join(", ")}`;
 }
@@ -711,6 +744,9 @@ function renderSettings() {
 
     setValue(nameInput, state.name);
     classInput.value = state.className;
+    raceInput.value = state.race;
+    raceInput.classList.toggle("needs-attention", !state.race);
+    renderRaceSummary();
     renderSubclassOptions();
     setValue(levelInput, state.level);
     levelUpButton.disabled = state.level >= MAX_LEVEL;
@@ -791,6 +827,41 @@ classInput.addEventListener("change", () => {
     commit();
 });
 
+/* What the race changes, under the class summary. */
+function renderRaceSummary() {
+    const race = characterRace();
+    const summary = $("raceSummary");
+
+    summary.classList.toggle("hidden", !race);
+
+    if (!race) {
+        return;
+    }
+
+    const parts = [
+        `${race.size}, ${race.speed} feet`,
+        race.darkvision ? "darkvision" : null,
+        race.hpPerLevel ? `+${race.hpPerLevel} hit point per level` : null,
+        race.scales ? `${race.scales} armor while wearing none` : null
+    ].filter(Boolean);
+
+    summary.textContent = `${race.name}: ${parts.join(", ")}. Knack (mortal limit +1, up to 5): ${race.knack.text.toLowerCase()}. ` +
+        `Usually speaks ${TONGUES[race.tongue].name}.` +
+        (race.size === "Small" ? " Small creatures can't use heavy weapons." : "");
+}
+
+raceInput.addEventListener("change", () => {
+    state.race = raceInput.value;
+    state.knackSchools = [];
+
+    // The race sets your speed. You can still change it by hand afterwards.
+    if (characterRace()) {
+        state.movement = characterRace().speed;
+    }
+
+    commit();
+});
+
 subclassInput.addEventListener("change", () => {
     state.subclass = subclassInput.value;
     commit();
@@ -851,6 +922,16 @@ maxHPInput.addEventListener("input", () => {
     state.maxHealth = value;
     state.currentHealth = wasAtFullHealth ? value : Math.min(state.currentHealth, value);
 
+    commit();
+});
+
+magicArmorInput.addEventListener("change", () => {
+    state.magicArmor = magicArmorInput.checked;
+    commit();
+});
+
+magicShieldInput.addEventListener("change", () => {
+    state.magicShield = magicShieldInput.checked;
     commit();
 });
 

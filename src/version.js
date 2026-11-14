@@ -22,7 +22,10 @@ export const CHANGELOG = [
             "Weapon buttons show the casting pool, and the Bladeword hints follow Weapon Mastery, Spellstorm and Charged Blade",
             "Trickster: the Cutthroat replaces the Gambler, with Vicious rerolling Ambush 1s",
             "New feats and a Combat group, with Heavy Armor Training, Fleet-Footed, Observant and Hard to Kill worked out by the app",
+            "Races: choose one in Character settings for your size, speed, darkvision and a knack that raises a mortal limit, ticked when you roll",
+            "Two or three new feats for every class, and Dirty Tricks replaces Dirty Fighting (characters who had it keep the feat slot)",
             "Inks and tools in the inventory",
+            "Magic weapons from +1 to +3 in the inventory, and +1 armor and shields in Character settings",
             "The rulebook is updated to version 0.4"
         ]
     }
